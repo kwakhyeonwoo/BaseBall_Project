@@ -15,27 +15,16 @@ struct SignIn: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                // 1. 왼쪽 정렬로 배치된 "안녕하세요 :)\n누구나 야구를 입니다."
                 viewText()
-                
-                // 2. ID 입력 필드
                 idPasswordInputField()
-                
-                // 3. 로그인 버튼
                 loginButton()
-                
-                // 4. 회원가입, 아이디 찾기, 비밀번호 찾기 버튼 (중앙 정렬)
                 actionButtons()
-                
-                // 5. 카카오 로그인, 구글 로그인 버튼
                 socialLoginButtons()
                 
-                // 다음 화면으로 이동
                 NavigationLink(destination: TeamSelect(), isActive: $isTeamSelectActive) {
                     EmptyView()
                 }
                 
-//                Spacer() // 아래쪽으로 화면을 밀어주는 역할
             }
             .padding()
             .frame(maxWidth: 500)
