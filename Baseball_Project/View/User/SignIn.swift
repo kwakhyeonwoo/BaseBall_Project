@@ -31,7 +31,7 @@ struct SignIn: View {
         }
     }
     
-    // 1. 왼쪽 정렬된 텍스트
+    // MARK: 텍스트
     func viewText() -> some View {
         Text("안녕하세요 :)\n누구나 야구를 입니다.")
             .font(.title)
@@ -40,7 +40,7 @@ struct SignIn: View {
             .frame(maxWidth: .infinity, alignment: .leading) // 왼쪽 정렬
     }
     
-    // 2. ID, PW 입력 필드
+    // MARK: ID, PW 입력
     func idPasswordInputField() -> some View {
         VStack(spacing: 15) {
             // ID 입력
@@ -61,7 +61,7 @@ struct SignIn: View {
         }
     }
     
-    // 3. 로그인 버튼
+    // MARK: 로그인
     func loginButton() -> some View {
         Button(action: {
             isTeamSelectActive = true // 로그인 로직 추가 가능
@@ -76,7 +76,7 @@ struct SignIn: View {
         }
     }
     
-    // 4. 회원가입, 아이디 찾기, 비밀번호 찾기 버튼
+    // MARK: 아이디 찾기, 비밀번호 찾기, 회원가입
     func actionButtons() -> some View {
         HStack {
             NavigationLink(destination: FindID()) {
@@ -109,7 +109,7 @@ struct SignIn: View {
         .frame(maxWidth: .infinity) // 중앙 정렬을 위한 설정
     }
     
-    // 5. 카카오 로그인, 구글 로그인 버튼
+    // MARK: 카카오, 구글 로그인
     func socialLoginButtons() -> some View {
         VStack(spacing: 15) {
             Button(action: {
@@ -153,7 +153,7 @@ struct SignIn: View {
                 
             }
         }
-        .padding(.top, 20) // 카카오/구글 버튼 사이에 공간 추가
+        .padding(.top, 20)
     }
 }
 
