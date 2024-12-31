@@ -41,24 +41,24 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		67C2594B2D2009F100CB8CF0 /* BaseballProject.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BaseballProject.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		67C2595B2D2009F300CB8CF0 /* BaseballProjectTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BaseballProjectTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		67C259652D2009F300CB8CF0 /* BaseballProjectUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BaseballProjectUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		67C2594B2D2009F100CB8CF0 /* Baseball.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Baseball.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		67C2595B2D2009F300CB8CF0 /* BaseballTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BaseballTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		67C259652D2009F300CB8CF0 /* BaseballUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BaseballUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		67C259DF2D22747A00CB8CF0 /* KakaoSDKFriendResources.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = KakaoSDKFriendResources.bundle; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		67C259C42D22724400CB8CF0 /* Exceptions for "Baseball_Project" folder in "BaseballProject" target */ = {
+		67C259C42D22724400CB8CF0 /* Exceptions for "Baseball" folder in "Baseball" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				.env,
 			);
-			target = 67C2594A2D2009F100CB8CF0 /* BaseballProject */;
+			target = 67C2594A2D2009F100CB8CF0 /* Baseball */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		67C259C52D22724400CB8CF0 /* Exceptions for "Baseball_Project" folder in "Compile Sources" phase from "BaseballProject" target */ = {
+		67C259C52D22724400CB8CF0 /* Exceptions for "Baseball" folder in "Compile Sources" phase from "Baseball" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			buildPhase = 67C259472D2009F100CB8CF0 /* Sources */;
 			membershipExceptions = (
@@ -68,13 +68,13 @@
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		67C2594D2D2009F100CB8CF0 /* Baseball_Project */ = {
+		67C2594D2D2009F100CB8CF0 /* Baseball */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				67C259C42D22724400CB8CF0 /* Exceptions for "Baseball_Project" folder in "BaseballProject" target */,
-				67C259C52D22724400CB8CF0 /* Exceptions for "Baseball_Project" folder in "Compile Sources" phase from "BaseballProject" target */,
+				67C259C42D22724400CB8CF0 /* Exceptions for "Baseball" folder in "Baseball" target */,
+				67C259C52D22724400CB8CF0 /* Exceptions for "Baseball" folder in "Compile Sources" phase from "Baseball" target */,
 			);
-			path = Baseball_Project;
+			path = Baseball;
 			sourceTree = "<group>";
 		};
 		67C2595E2D2009F300CB8CF0 /* Baseball_ProjectTests */ = {
@@ -131,7 +131,7 @@
 			isa = PBXGroup;
 			children = (
 				67C259DF2D22747A00CB8CF0 /* KakaoSDKFriendResources.bundle */,
-				67C2594D2D2009F100CB8CF0 /* Baseball_Project */,
+				67C2594D2D2009F100CB8CF0 /* Baseball */,
 				67C2595E2D2009F300CB8CF0 /* Baseball_ProjectTests */,
 				67C259682D2009F300CB8CF0 /* Baseball_ProjectUITests */,
 				67C2594C2D2009F100CB8CF0 /* Products */,
@@ -141,9 +141,9 @@
 		67C2594C2D2009F100CB8CF0 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				67C2594B2D2009F100CB8CF0 /* BaseballProject.app */,
-				67C2595B2D2009F300CB8CF0 /* BaseballProjectTests.xctest */,
-				67C259652D2009F300CB8CF0 /* BaseballProjectUITests.xctest */,
+				67C2594B2D2009F100CB8CF0 /* Baseball.app */,
+				67C2595B2D2009F300CB8CF0 /* BaseballTests.xctest */,
+				67C259652D2009F300CB8CF0 /* BaseballUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -151,9 +151,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		67C2594A2D2009F100CB8CF0 /* BaseballProject */ = {
+		67C2594A2D2009F100CB8CF0 /* Baseball */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 67C2596F2D2009F300CB8CF0 /* Build configuration list for PBXNativeTarget "BaseballProject" */;
+			buildConfigurationList = 67C2596F2D2009F300CB8CF0 /* Build configuration list for PBXNativeTarget "Baseball" */;
 			buildPhases = (
 				67C259472D2009F100CB8CF0 /* Sources */,
 				67C259482D2009F100CB8CF0 /* Frameworks */,
@@ -164,9 +164,9 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				67C2594D2D2009F100CB8CF0 /* Baseball_Project */,
+				67C2594D2D2009F100CB8CF0 /* Baseball */,
 			);
-			name = BaseballProject;
+			name = Baseball;
 			packageProductDependencies = (
 				67C259BD2D22714800CB8CF0 /* DotEnv */,
 				67C259C72D22739400CB8CF0 /* KakaoSDK */,
@@ -183,12 +183,12 @@
 				67C259DD2D22739400CB8CF0 /* KakaoSDKUser */,
 			);
 			productName = Baseball_Project;
-			productReference = 67C2594B2D2009F100CB8CF0 /* BaseballProject.app */;
+			productReference = 67C2594B2D2009F100CB8CF0 /* Baseball.app */;
 			productType = "com.apple.product-type.application";
 		};
-		67C2595A2D2009F300CB8CF0 /* BaseballProjectTests */ = {
+		67C2595A2D2009F300CB8CF0 /* BaseballTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 67C259722D2009F300CB8CF0 /* Build configuration list for PBXNativeTarget "BaseballProjectTests" */;
+			buildConfigurationList = 67C259722D2009F300CB8CF0 /* Build configuration list for PBXNativeTarget "BaseballTests" */;
 			buildPhases = (
 				67C259572D2009F300CB8CF0 /* Sources */,
 				67C259582D2009F300CB8CF0 /* Frameworks */,
@@ -202,16 +202,16 @@
 			fileSystemSynchronizedGroups = (
 				67C2595E2D2009F300CB8CF0 /* Baseball_ProjectTests */,
 			);
-			name = BaseballProjectTests;
+			name = BaseballTests;
 			packageProductDependencies = (
 			);
 			productName = Baseball_ProjectTests;
-			productReference = 67C2595B2D2009F300CB8CF0 /* BaseballProjectTests.xctest */;
+			productReference = 67C2595B2D2009F300CB8CF0 /* BaseballTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		67C259642D2009F300CB8CF0 /* BaseballProjectUITests */ = {
+		67C259642D2009F300CB8CF0 /* BaseballUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 67C259752D2009F300CB8CF0 /* Build configuration list for PBXNativeTarget "BaseballProjectUITests" */;
+			buildConfigurationList = 67C259752D2009F300CB8CF0 /* Build configuration list for PBXNativeTarget "BaseballUITests" */;
 			buildPhases = (
 				67C259612D2009F300CB8CF0 /* Sources */,
 				67C259622D2009F300CB8CF0 /* Frameworks */,
@@ -225,11 +225,11 @@
 			fileSystemSynchronizedGroups = (
 				67C259682D2009F300CB8CF0 /* Baseball_ProjectUITests */,
 			);
-			name = BaseballProjectUITests;
+			name = BaseballUITests;
 			packageProductDependencies = (
 			);
 			productName = Baseball_ProjectUITests;
-			productReference = 67C259652D2009F300CB8CF0 /* BaseballProjectUITests.xctest */;
+			productReference = 67C259652D2009F300CB8CF0 /* BaseballUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -255,7 +255,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 67C259462D2009F100CB8CF0 /* Build configuration list for PBXProject "BaseballProject" */;
+			buildConfigurationList = 67C259462D2009F100CB8CF0 /* Build configuration list for PBXProject "Baseball" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -273,9 +273,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				67C2594A2D2009F100CB8CF0 /* BaseballProject */,
-				67C2595A2D2009F300CB8CF0 /* BaseballProjectTests */,
-				67C259642D2009F300CB8CF0 /* BaseballProjectUITests */,
+				67C2594A2D2009F100CB8CF0 /* Baseball */,
+				67C2595A2D2009F300CB8CF0 /* BaseballTests */,
+				67C259642D2009F300CB8CF0 /* BaseballUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -332,12 +332,12 @@
 /* Begin PBXTargetDependency section */
 		67C2595D2D2009F300CB8CF0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 67C2594A2D2009F100CB8CF0 /* BaseballProject */;
+			target = 67C2594A2D2009F100CB8CF0 /* Baseball */;
 			targetProxy = 67C2595C2D2009F300CB8CF0 /* PBXContainerItemProxy */;
 		};
 		67C259672D2009F300CB8CF0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 67C2594A2D2009F100CB8CF0 /* BaseballProject */;
+			target = 67C2594A2D2009F100CB8CF0 /* Baseball */;
 			targetProxy = 67C259662D2009F300CB8CF0 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -469,23 +469,24 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Baseball_Project/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Baseball/Preview Content\"";
 				DEVELOPMENT_TEAM = U84KVP7AF4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Baseball-Project-Info.plist";
+				INFOPLIST_FILE = "Baseball.Baseball-Project";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_PREPROCESS = NO;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Baseball.BaseballProject;
+				PRODUCT_BUNDLE_IDENTIFIER = Baseball.Baseball;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -500,23 +501,24 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Baseball_Project/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Baseball/Preview Content\"";
 				DEVELOPMENT_TEAM = U84KVP7AF4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Baseball-Project-Info.plist";
+				INFOPLIST_FILE = "Baseball.Baseball-Project";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_PREPROCESS = NO;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = Baseball.BaseballProject;
+				PRODUCT_BUNDLE_IDENTIFIER = Baseball.Baseball;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -539,7 +541,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BaseballProject.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BaseballProject";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Baseball.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Baseball";
 			};
 			name = Debug;
 		};
@@ -558,7 +560,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BaseballProject.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BaseballProject";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Baseball.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Baseball";
 			};
 			name = Release;
 		};
@@ -599,7 +601,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		67C259462D2009F100CB8CF0 /* Build configuration list for PBXProject "BaseballProject" */ = {
+		67C259462D2009F100CB8CF0 /* Build configuration list for PBXProject "Baseball" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				67C2596D2D2009F300CB8CF0 /* Debug */,
@@ -608,7 +610,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		67C2596F2D2009F300CB8CF0 /* Build configuration list for PBXNativeTarget "BaseballProject" */ = {
+		67C2596F2D2009F300CB8CF0 /* Build configuration list for PBXNativeTarget "Baseball" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				67C259702D2009F300CB8CF0 /* Debug */,
@@ -617,7 +619,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		67C259722D2009F300CB8CF0 /* Build configuration list for PBXNativeTarget "BaseballProjectTests" */ = {
+		67C259722D2009F300CB8CF0 /* Build configuration list for PBXNativeTarget "BaseballTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				67C259732D2009F300CB8CF0 /* Debug */,
@@ -626,7 +628,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		67C259752D2009F300CB8CF0 /* Build configuration list for PBXNativeTarget "BaseballProjectUITests" */ = {
+		67C259752D2009F300CB8CF0 /* Build configuration list for PBXNativeTarget "BaseballUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				67C259762D2009F300CB8CF0 /* Debug */,

@@ -1,18 +1,18 @@
 //
-//  Calendar.swift
-//  Baseball_Project
+//  FindPassword.swift
+//  Baseball
 //
-//  Created by 곽현우 on 12/28/24.
+//  Created by 곽현우 on 12/30/24.
 //
 
 import SwiftUI
 
-struct Calendar: View {
+struct FindPassword: View {
     var body: some View {
         Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
     }
 }
 
 #Preview {
-    Calendar()
+    FindPassword()
 }

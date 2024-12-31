@@ -1,6 +1,6 @@
 //
 //  firstPage.swift
-//  Baseball_Project
+//  Baseball
 //
 //  Created by 곽현우 on 12/28/24.
 //
