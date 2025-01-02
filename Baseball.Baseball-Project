@@ -1,5 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict/>
+<dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>kakao</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>6b54fc20e78909e7354f9c49ba25e913</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>google</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.490200374980-e8u3racek0o44dflciovskp3d1dgdd91</string>
+			</array>
+		</dict>
+	</array>
+	<key>GIDClientID</key>
+	<string>490200374980-e8u3racek0o44dflciovskp3d1dgdd91.apps.googleusercontent.com</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>kakaokompassauth</string>
+		<string>kakaolink</string>
+		<string>kakaoplus</string>
+	</array>
+</dict>
 </plist>

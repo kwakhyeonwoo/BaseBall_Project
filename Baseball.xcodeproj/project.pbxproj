@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		675F54AC2D265AFF00706702 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 675F54AB2D265AFF00706702 /* GoogleSignIn */; };
+		675F54AE2D265AFF00706702 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 675F54AD2D265AFF00706702 /* GoogleSignInSwift */; };
 		67C259BE2D22714800CB8CF0 /* DotEnv in Frameworks */ = {isa = PBXBuildFile; productRef = 67C259BD2D22714800CB8CF0 /* DotEnv */; };
 		67C259C82D22739400CB8CF0 /* KakaoSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 67C259C72D22739400CB8CF0 /* KakaoSDK */; };
 		67C259CA2D22739400CB8CF0 /* KakaoSDKAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 67C259C92D22739400CB8CF0 /* KakaoSDKAuth */; };
@@ -94,6 +96,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				675F54AE2D265AFF00706702 /* GoogleSignInSwift in Frameworks */,
 				67C259BE2D22714800CB8CF0 /* DotEnv in Frameworks */,
 				67C259D22D22739400CB8CF0 /* KakaoSDKFriend in Frameworks */,
 				67C259C82D22739400CB8CF0 /* KakaoSDK in Frameworks */,
@@ -107,6 +110,7 @@
 				67C259D82D22739400CB8CF0 /* KakaoSDKShare in Frameworks */,
 				67C259D02D22739400CB8CF0 /* KakaoSDKCommon in Frameworks */,
 				67C259CC2D22739400CB8CF0 /* KakaoSDKCert in Frameworks */,
+				675F54AC2D265AFF00706702 /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -181,6 +185,8 @@
 				67C259D92D22739400CB8CF0 /* KakaoSDKTalk */,
 				67C259DB2D22739400CB8CF0 /* KakaoSDKTemplate */,
 				67C259DD2D22739400CB8CF0 /* KakaoSDKUser */,
+				675F54AB2D265AFF00706702 /* GoogleSignIn */,
+				675F54AD2D265AFF00706702 /* GoogleSignInSwift */,
 			);
 			productName = Baseball_Project;
 			productReference = 67C2594B2D2009F100CB8CF0 /* Baseball.app */;
@@ -267,6 +273,7 @@
 			packageReferences = (
 				67C259BC2D22714800CB8CF0 /* XCRemoteSwiftPackageReference "DotEnv" */,
 				67C259C62D22739400CB8CF0 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */,
+				675F54AA2D265AFF00706702 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 67C2594C2D2009F100CB8CF0 /* Products */;
@@ -640,6 +647,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		675F54AA2D265AFF00706702 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 		67C259BC2D22714800CB8CF0 /* XCRemoteSwiftPackageReference "DotEnv" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/swiftpackages/DotEnv";
@@ -659,6 +674,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		675F54AB2D265AFF00706702 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 675F54AA2D265AFF00706702 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		675F54AD2D265AFF00706702 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 675F54AA2D265AFF00706702 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
 		67C259BD2D22714800CB8CF0 /* DotEnv */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 67C259BC2D22714800CB8CF0 /* XCRemoteSwiftPackageReference "DotEnv" */;

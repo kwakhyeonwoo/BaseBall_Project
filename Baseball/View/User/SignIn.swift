@@ -11,6 +11,10 @@ struct SignIn: View {
     @State private var ID: String = ""
     @State private var PW: String = ""
     @State private var isTeamSelectActive: Bool = false // TeamSelect 화면 이동 플래그
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+    @StateObject var googleAuth = GoogleAuth() // GoogleAuth 인스턴스
+    @Environment(\.presentationMode) var presentationMode // 화면 전환을 위한 presentationMode
     
     var body: some View {
         NavigationStack {
@@ -28,6 +32,18 @@ struct SignIn: View {
             }
             .padding()
             .frame(maxWidth: 500)
+            .onChange(of: googleAuth.isLoggedIn) { isLoggedIn in
+                if isLoggedIn {
+                    // 구글 로그인 성공 시 TeamSelect 화면으로 이동
+                    isTeamSelectActive = true
+                }
+            }
+            .onAppear {
+                // 화면이 다시 나타날 때 로그인 상태 초기화 (예: 앱 재시작 시)
+                if googleAuth.isLoggedIn {
+                    googleAuth.logOut() // 로그인 상태를 초기화
+                }
+            }
         }
     }
     
@@ -113,7 +129,16 @@ struct SignIn: View {
     func socialLoginButtons() -> some View {
         VStack(spacing: 15) {
             Button(action: {
-                // 카카오 로그인 액션
+                KakaoAuth.shared.loginWithKakao { result in
+                    switch result {
+                    case .success(let token):
+                        alertMessage = "카카오 로그인 성공! 토큰: \(token)"
+                        isTeamSelectActive = true
+                    case .failure(let error):
+                        alertMessage = "카카오 로그인 실패: \(error.localizedDescription)"
+                    }
+                    showAlert = true
+                }
             }) {
                 HStack {
                     Image(systemName: "message.fill")
@@ -133,7 +158,7 @@ struct SignIn: View {
             }
             
             Button(action: {
-                // 구글 로그인 액션
+                googleAuth.signIn() // 구글 로그인 시작
             }) {
                 HStack(spacing: 15){
                     Image("Google")
@@ -150,7 +175,6 @@ struct SignIn: View {
                 .foregroundColor(.black)
                 .cornerRadius(8)
                 .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 2)
-                
             }
         }
         .padding(.top, 20)

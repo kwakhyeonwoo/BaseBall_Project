@@ -6,107 +6,64 @@
 //
 
 import Foundation
-
-// iOS SDK
-import KakaoSDKCommon
 import KakaoSDKAuth
 import KakaoSDKUser
-import UIKit
-import SwiftUI
 
-class AppDelegate: UIResponder, UIApplicationDelegate {
-    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-        if (AuthApi.isKakaoTalkLoginUrl(url)) {
-            return AuthController.handleOpenUrl(url: url)
-        }
-
-        return false
-    }
-}
-
-class SceneDelegate: UIResponder, UIWindowSceneDelegate {
-    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
-        if let url = URLContexts.first?.url {
-            if (AuthApi.isKakaoTalkLoginUrl(url)) {
-                _ = AuthController.handleOpenUrl(url: url)
+class KakaoAuth {
+    static let shared = KakaoAuth()
+    
+    private init() {}
+    
+    // 카카오 로그인 실행
+    func loginWithKakao(completion: @escaping (Result<String, Error>) -> Void) {
+        if UserApi.isKakaoTalkLoginAvailable() {
+            // 카카오톡 앱으로 로그인
+            UserApi.shared.loginWithKakaoTalk { (oauthToken, error) in
+                if let error = error {
+                    completion(.failure(error))
+                } else if let token = oauthToken {
+                    print("카카오톡으로 로그인 성공: \(token.accessToken)")
+                    completion(.success(token.accessToken))
+                }
+            }
+        } else {
+            // 카카오 계정으로 로그인 (웹뷰)
+            UserApi.shared.loginWithKakaoAccount { (oauthToken, error) in
+                if let error = error {
+                    completion(.failure(error))
+                } else if let token = oauthToken {
+                    print("카카오 계정으로 로그인 성공: \(token.accessToken)")
+                    completion(.success(token.accessToken))
+                }
             }
         }
     }
-}
-
-func kakaoLogninWithApp(){
-    UserApi.shared.loginWithKakaoTalk {(OAuthToken, error) in
-        if let error = error{
-            print (error)
-        }
-        else {
-            print("loginWithKakaotalk() success")
-            _ = OAuthToken
-        }
-    }
-}
-
-func kakaoLoginWithAccount(){
-    UserApi.shared.loginWithKakaoAccount {(OAuthToken, error) in
-        if let error = error{
-            print (error)
-        }
-        else {
-            print("loginWithKakaotalk() success")
-            _ = OAuthToken
+    
+    // 로그아웃
+    func logout(completion: @escaping (Result<Void, Error>) -> Void) {
+        UserApi.shared.logout { (error) in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                print("카카오 로그아웃 성공")
+                completion(.success(()))
+            }
         }
     }
-}
-
-func KakaoLogin() {
-    // 카카오톡 실행 가능 여부 확인
-    if (UserApi.isKakaoTalkLoginAvailable()) {
-        // 카카오톡 앱으로 로그인 인증
-        kakaoLogninWithApp()
-    } else { // 카톡이 설치가 안 되어 있을 때
-        // 카카오 계정으로 로그인
-        kakaoLoginWithAccount()
-    }
-}
-
-func kakaoLogout() {
-    UserApi.shared.logout {(error) in
-        if let error = error {
-            print(error)
-        }
-        else {
-            print("logout() success.")
-        }
-    }
-}
-
-func kakaoUnlink() {
-    UserApi.shared.unlink {(error) in
-        if let error = error {
-            print(error)
-        }
-        else {
-            print("unlink() success.")
-        }
-    }
-}
-
-func getUserInfo() {
-    UserApi.shared.me() {(user, error) in
-        if let error = error {
-            print(error)
-        }
-        else {
-            print("me() success.")
-            
-            //do something
-            let userName = user?.kakaoAccount?.name
-            let userEmail = user?.kakaoAccount?.email
-            let userProfile = user?.kakaoAccount?.profile?.profileImageUrl
-            
-            print("이름: \(String(describing: userName))")
-            print("이메일: \(String(describing: userEmail))")
-            print("프로필: \(String(describing: userProfile))")
+    
+    // 사용자 정보 가져오기
+    func fetchUserInfo(completion: @escaping (Result<[String: Any], Error>) -> Void) {
+        UserApi.shared.me { (user, error) in
+            if let error = error {
+                completion(.failure(error))
+            } else if let user = user {
+                var userInfo: [String: Any] = [:]
+                userInfo["id"] = user.id
+                userInfo["email"] = user.kakaoAccount?.email
+//                userInfo["profileImage"] = user.kakaoAccount?.profile?.profileImageUrl
+                print("사용자 정보 가져오기 성공: \(userInfo)")
+                completion(.success(userInfo))
+            }
         }
     }
 }
