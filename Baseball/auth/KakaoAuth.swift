@@ -14,7 +14,7 @@ class KakaoAuth {
     
     private init() {}
     
-    // 카카오 로그인 실행
+    // MARK: 카카오 로그인 실행
     func loginWithKakao(completion: @escaping (Result<String, Error>) -> Void) {
         if UserApi.isKakaoTalkLoginAvailable() {
             // 카카오톡 앱으로 로그인
@@ -39,7 +39,7 @@ class KakaoAuth {
         }
     }
     
-    // 로그아웃
+    // MARK: 로그아웃
     func logout(completion: @escaping (Result<Void, Error>) -> Void) {
         UserApi.shared.logout { (error) in
             if let error = error {
@@ -51,7 +51,7 @@ class KakaoAuth {
         }
     }
     
-    // 사용자 정보 가져오기
+    // MARK: 사용자 정보 가져오기
     func fetchUserInfo(completion: @escaping (Result<[String: Any], Error>) -> Void) {
         UserApi.shared.me { (user, error) in
             if let error = error {

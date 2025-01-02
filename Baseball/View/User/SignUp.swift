@@ -122,17 +122,6 @@ struct SignUp: View {
     // MARK: 가입하기, 취소 버튼
     func actionButtons() -> some View {
         HStack(spacing: 20) {
-            Button(action: {
-                viewmodel.handleSignUp()
-            }) {
-                Text("가입하기")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .shadow(color: .blue.opacity(0.2), radius: 4, x: 0, y: 2)
-            }
             
             Button(action: {
                 presentationMode.wrappedValue.dismiss()
@@ -144,6 +133,18 @@ struct SignUp: View {
                     .foregroundColor(.white)
                     .cornerRadius(10)
                     .shadow(color: .red.opacity(0.2), radius: 4, x: 0, y: 2)
+            }
+            
+            Button(action: {
+                viewmodel.handleSignUp()
+            }) {
+                Text("가입하기")
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                    .shadow(color: .blue.opacity(0.2), radius: 4, x: 0, y: 2)
             }
         }
         .frame(maxWidth: .infinity)

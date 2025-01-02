@@ -29,14 +29,14 @@ struct TeamSelect: View {
         }
     }
     
-    // 1. 선택 안내 텍스트
+    //MARK: 선택 안내 텍스트
     func teamSelectionInstructions() -> some View {
         Text("선택한 팀은 바꿀 수 없으니 신중하게 골라주세요")
             .foregroundStyle(.gray)
             .padding(.bottom, 20)
     }
     
-    // 2. 팀 이미지 그리드
+    //MARK: 팀 이미지 그리드
     func teamGrid() -> some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 50), count: 2), spacing: 30) {
             ForEach(teams, id: \.self) { team in
@@ -46,7 +46,7 @@ struct TeamSelect: View {
         .padding()
     }
     
-    // 3. 팀 이미지 뷰
+    //MARK: 팀 이미지 뷰
     func teamImageView(team: String) -> some View {
         VStack {
             Image(team)
@@ -70,7 +70,7 @@ struct TeamSelect: View {
         }
     }
     
-    // 4. 팀 선택 완료 버튼
+    //MARK: 팀 선택 완료 버튼
     func teamSelectionButton() -> some View {
         Button(action: {
             // 버튼 클릭 시 수행할 액션 (예: 팀 선택 완료 처리)

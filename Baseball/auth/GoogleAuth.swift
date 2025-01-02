@@ -46,7 +46,9 @@ class GoogleAuth: ObservableObject {
             print("Name: \(user.profile?.name ?? "N/A")")
             print("Email: \(user.profile?.email ?? "N/A")")
             
-            self?.isLoggedIn = true
+            DispatchQueue.main.async {
+                self?.isLoggedIn = true
+            }
         }
     }
 
@@ -67,7 +69,9 @@ class GoogleAuth: ObservableObject {
     
     func logOut() {
         GIDSignIn.sharedInstance.signOut()  // 구글 로그아웃
-        self.isLoggedIn = false // 상태 초기화
+        DispatchQueue.main.async {
+            self.isLoggedIn = false
+        }
     }
     
     

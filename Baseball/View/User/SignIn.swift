@@ -8,13 +8,7 @@
 import SwiftUI
 
 struct SignIn: View {
-    @State private var ID: String = ""
-    @State private var PW: String = ""
-    @State private var isTeamSelectActive: Bool = false // TeamSelect 화면 이동 플래그
-    @State private var showAlert = false
-    @State private var alertMessage = ""
-    @StateObject var googleAuth = GoogleAuth() // GoogleAuth 인스턴스
-    @Environment(\.presentationMode) var presentationMode // 화면 전환을 위한 presentationMode
+    @StateObject private var viewModel = SignInViewModel()
     
     var body: some View {
         NavigationStack {
@@ -25,24 +19,17 @@ struct SignIn: View {
                 actionButtons()
                 socialLoginButtons()
                 
-                NavigationLink(destination: TeamSelect(), isActive: $isTeamSelectActive) {
+                NavigationLink(destination: TeamSelect(), isActive: $viewModel.isTeamSelectActive) {
                     EmptyView()
                 }
-                
             }
             .padding()
             .frame(maxWidth: 500)
-            .onChange(of: googleAuth.isLoggedIn) { isLoggedIn in
-                if isLoggedIn {
-                    // 구글 로그인 성공 시 TeamSelect 화면으로 이동
-                    isTeamSelectActive = true
-                }
-            }
             .onAppear {
-                // 화면이 다시 나타날 때 로그인 상태 초기화 (예: 앱 재시작 시)
-                if googleAuth.isLoggedIn {
-                    googleAuth.logOut() // 로그인 상태를 초기화
-                }
+                viewModel.logOut()
+            }
+            .alert(isPresented: $viewModel.showAlert) {
+                Alert(title: Text("알림"), message: Text(viewModel.alertMessage), dismissButton: .default(Text("확인")))
             }
         }
     }
@@ -59,8 +46,7 @@ struct SignIn: View {
     // MARK: ID, PW 입력
     func idPasswordInputField() -> some View {
         VStack(spacing: 15) {
-            // ID 입력
-            TextField("아이디를 입력하세요", text: $ID)
+            TextField("아이디를 입력하세요", text: $viewModel.ID)
                 .padding()
                 .background(Color(uiColor: .secondarySystemBackground))
                 .cornerRadius(8)
@@ -68,8 +54,7 @@ struct SignIn: View {
                 .autocapitalization(.none)
                 .disableAutocorrection(true)
             
-            // PW 입력
-            SecureField("비밀번호를 입력하세요", text: $PW)
+            SecureField("비밀번호를 입력하세요", text: $viewModel.PW)
                 .padding()
                 .background(Color(uiColor: .secondarySystemBackground))
                 .cornerRadius(8)
@@ -80,7 +65,7 @@ struct SignIn: View {
     // MARK: 로그인
     func loginButton() -> some View {
         Button(action: {
-            isTeamSelectActive = true // 로그인 로직 추가 가능
+            viewModel.signIn()
         }) {
             Text("로그인")
                 .frame(maxWidth: .infinity)
@@ -129,16 +114,7 @@ struct SignIn: View {
     func socialLoginButtons() -> some View {
         VStack(spacing: 15) {
             Button(action: {
-                KakaoAuth.shared.loginWithKakao { result in
-                    switch result {
-                    case .success(let token):
-                        alertMessage = "카카오 로그인 성공! 토큰: \(token)"
-                        isTeamSelectActive = true
-                    case .failure(let error):
-                        alertMessage = "카카오 로그인 실패: \(error.localizedDescription)"
-                    }
-                    showAlert = true
-                }
+                viewModel.kakaoLogin()
             }) {
                 HStack {
                     Image(systemName: "message.fill")
@@ -158,7 +134,7 @@ struct SignIn: View {
             }
             
             Button(action: {
-                googleAuth.signIn() // 구글 로그인 시작
+                viewModel.googleLogin()
             }) {
                 HStack(spacing: 15){
                     Image("Google")
