@@ -15,6 +15,7 @@ struct TeamSelect: View {
     
     @State private var selectedTeam: String? = nil // 선택된 팀을 추적하는 상태 변수
     @State private var isAnimating: Bool = false // 애니메이션 상태 변수
+    @State private var navigateToCalendar: Bool = false // Calendar로 이동 여부
     
     var body: some View {
         NavigationStack {
@@ -24,6 +25,14 @@ struct TeamSelect: View {
                 teamGrid()
                 
                 teamSelectionButton()
+                
+//              NavigationLink로 Calendar로 이동
+                NavigationLink(
+                    destination: CalendarView(),
+                    isActive: $navigateToCalendar
+                ) {
+                    EmptyView()
+                }
             }
             .padding()
         }
@@ -56,7 +65,7 @@ struct TeamSelect: View {
                 .background(Color(uiColor: .secondarySystemBackground))
                 .cornerRadius(10)
                 .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 2)
-                //테두리 할지말지 
+                // 테두리
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
                         .stroke(selectedTeam == team ? Color.blue : Color.gray, lineWidth: 2)
@@ -73,8 +82,8 @@ struct TeamSelect: View {
     //MARK: 팀 선택 완료 버튼
     func teamSelectionButton() -> some View {
         Button(action: {
-            // 버튼 클릭 시 수행할 액션 (예: 팀 선택 완료 처리)
             print("\(selectedTeam ?? "") 팀 선택됨")
+            navigateToCalendar = true // Calendar로 이동
         }) {
             Text("팀 선택 완료")
                 .frame(maxWidth: .infinity)

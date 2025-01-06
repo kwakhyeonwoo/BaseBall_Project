@@ -6,3 +6,13 @@
 //
 
 import Foundation
+
+struct TeamScheduleModel: Decodable {
+    let teamName: String
+    let gameDate: String
+    let opponent: String
+}
+
+struct GameResponse: Decodable {
+    let games: [TeamScheduleModel]
+}
