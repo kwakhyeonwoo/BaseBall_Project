@@ -7,14 +7,22 @@
 
 import UIKit
 import GoogleSignIn
+import Firebase
 
 class AppDelegate: NSObject, UIApplicationDelegate {
+    
+    var window: UIWindow?
+    
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        // Firebase 초기화
+        FirebaseApp.configure()
+        
         // Google Sign-In 초기화
         GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: "490200374980-e8u3racek0o44dflciovskp3d1dgdd91.apps.googleusercontent.com")
+        
         return true
     }
 
@@ -28,3 +36,4 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     }
 }
 
+//490200374980-e8u3racek0o44dflciovskp3d1dgdd91.apps.googleusercontent.com"

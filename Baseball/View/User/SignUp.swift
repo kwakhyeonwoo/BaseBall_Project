@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct SignUp: View {
     @StateObject private var viewmodel = SignUpViewModel()
@@ -63,12 +64,13 @@ struct SignUp: View {
                 
                 HStack {
                     TextField("아이디를 입력하세요", text: $viewmodel.id)
+                        .font(.subheadline)
                         .padding(.leading, 15)
                         .autocapitalization(.none)
                         .disableAutocorrection(true)
                     
                     Button(action: {
-                        viewmodel.checkIdDuplication()
+                        viewmodel.handleSignUp()
                     }) {
                         Text("중복 확인")
                             .font(.footnote)
@@ -127,6 +129,7 @@ struct SignUp: View {
                 presentationMode.wrappedValue.dismiss()
             }) {
                 Text("취소")
+                    .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.red)
@@ -139,6 +142,7 @@ struct SignUp: View {
                 viewmodel.handleSignUp()
             }) {
                 Text("가입하기")
+                    .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.blue)
@@ -149,6 +153,9 @@ struct SignUp: View {
         }
         .frame(maxWidth: .infinity)
     }
+    
+    //MARK: firebase DB 연동
+    
 }
 
 #Preview {

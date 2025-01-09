@@ -12,7 +12,8 @@ struct CalendarView: View {
     @State private var selectedTeam: String? = "ssg2"
     @State private var selectedTeamImage: String? = "ssg2"
     @State private var selectedTab: String? = "경기일정" // 현재 선택된 탭
-    
+    @State private var showVideoRecorder: Bool = false // VideoRecorderView 표시 여부
+
     var body: some View {
         VStack(spacing: 20) {
             teamHeader()
@@ -24,6 +25,15 @@ struct CalendarView: View {
         .onAppear {
             if let team = selectedTeam {
                 viewModel.fetchGameSchedules(for: team)
+            }
+        }
+        .sheet(isPresented: $showVideoRecorder) {
+            VideoRecorderViewModel { videoURL in
+                if let videoURL = videoURL {
+                    print("녹화된 동영상 경로: \(videoURL)")
+                } else {
+                    print("녹화가 취소되었습니다.")
+                }
             }
         }
     }
@@ -111,6 +121,9 @@ struct CalendarView: View {
     func tabButton(label: String, icon: String, tag: String) -> some View {
         Button(action: {
             selectedTab = tag // 선택된 버튼 업데이트
+            if tag == "응원가 업로드" {
+                showVideoRecorder = true // VideoRecorderView 표시
+            }
         }) {
             VStack(spacing: 5) {
                 Image(systemName: icon)
@@ -130,8 +143,6 @@ struct CalendarView: View {
         .buttonStyle(PlainButtonStyle()) // 기본 버튼 스타일 제거
     }
 }
-
-
 
 #Preview {
     CalendarView()

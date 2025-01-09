@@ -8,6 +8,8 @@
 import SwiftUI
 import KakaoSDKCommon
 import KakaoSDKAuth
+import Firebase
+
 
 @main
 struct Baseball_ProjectApp: App {

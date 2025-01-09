@@ -16,8 +16,8 @@ class GameScheduleViewModel: ObservableObject {
         }
         
         var request = URLRequest(url: url)
-        request.setValue("gaQ9abn61x6i6MsxWf8m", forHTTPHeaderField: "X-Naver-Client-Id")  // API 키 설정
-        request.setValue("j7Yc0FLwRh", forHTTPHeaderField: "X-Naver-Client-Secret")  // 비밀키 설정
+        request.setValue("gaQ9abn61x6i6MsxWf8m", forHTTPHeaderField: "X-Naver-Client-Id")
+        request.setValue("j7Yc0FLwRh", forHTTPHeaderField: "X-Naver-Client-Secret")
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data, error == nil else {
