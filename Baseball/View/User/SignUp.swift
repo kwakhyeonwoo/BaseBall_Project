@@ -9,7 +9,7 @@ import SwiftUI
 import FirebaseAuth
 
 struct SignUp: View {
-    @StateObject private var viewmodel = SignUpViewModel()
+    @StateObject private var viewModel = SignUpViewModel()
     @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
@@ -30,12 +30,12 @@ struct SignUp: View {
             .frame(maxWidth: 500)
             .background(Color(uiColor: .systemGroupedBackground))
             .navigationTitle("회원가입")
-            .alert(isPresented: $viewmodel.showAlert) {
-                if viewmodel.isSignUpSuccessful {
+            .alert(isPresented: $viewModel.showAlert) {
+                if viewModel.isSignUpSuccessful {
                     // 회원가입 성공 시 alert
                     return Alert(
                         title: Text("알림"),
-                        message: Text(viewmodel.alertMessage),
+                        message: Text(viewModel.alertMessage),
                         dismissButton: .default(Text("확인")) {
                             presentationMode.wrappedValue.dismiss()
                         }
@@ -44,7 +44,7 @@ struct SignUp: View {
                     // 일반 alert
                     return Alert(
                         title: Text("알림"),
-                        message: Text(viewmodel.alertMessage),
+                        message: Text(viewModel.alertMessage),
                         dismissButton: .default(Text("확인"))
                     )
                 }
@@ -63,14 +63,14 @@ struct SignUp: View {
                     .shadow(color: .gray.opacity(0.2), radius: 4, x: 0, y: 2)
                 
                 HStack {
-                    TextField("아이디를 입력하세요", text: $viewmodel.id)
+                    TextField("아이디를 입력하세요", text: $viewModel.id)
                         .font(.subheadline)
                         .padding(.leading, 15)
                         .autocapitalization(.none)
                         .disableAutocorrection(true)
                     
                     Button(action: {
-                        viewmodel.handleSignUp()
+                        viewModel.checkIdDuplication()
                     }) {
                         Text("중복 확인")
                             .font(.footnote)
@@ -92,14 +92,14 @@ struct SignUp: View {
         VStack(alignment: .leading, spacing: 20) {
             Text("비밀번호")
                 .font(.headline)
-            SecureField("비밀번호를 입력하세요", text: $viewmodel.password)
+            SecureField("비밀번호를 입력하세요", text: $viewModel.password)
                 .padding()
                 .background(Color(uiColor: .secondarySystemBackground))
                 .cornerRadius(10)
                 .shadow(color: .gray.opacity(0.2), radius: 4, x: 0, y: 2)
             Text("비밀번호 확인")
                 .font(.headline)
-            SecureField("비밀번호를 확인하세요", text: $viewmodel.confirmPassword)
+            SecureField("비밀번호를 확인하세요", text: $viewModel.confirmPassword)
                 .padding()
                 .background(Color(uiColor: .secondarySystemBackground))
                 .cornerRadius(10)
@@ -112,7 +112,7 @@ struct SignUp: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("이메일")
                 .font(.headline)
-            TextField("이메일을 입력하세요", text: $viewmodel.email)
+            TextField("이메일을 입력하세요", text: $viewModel.email)
                 .padding()
                 .background(Color(uiColor: .secondarySystemBackground))
                 .cornerRadius(10)
@@ -139,7 +139,7 @@ struct SignUp: View {
             }
             
             Button(action: {
-                viewmodel.handleSignUp()
+                viewModel.handleSignUp()
             }) {
                 Text("가입하기")
                     .font(.headline)
