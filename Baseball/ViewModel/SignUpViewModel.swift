@@ -17,7 +17,8 @@ class SignUpViewModel: ObservableObject {
     @Published var showAlert: Bool = false
     @Published var isSignUpSuccessful: Bool = false
     @Published var alertMessage: String = ""
-    
+    @Published var isIdChecked: Bool = false // 중복 확인 여부 플래그
+
     private let db = Firestore.firestore()
 
     // 중복 확인
@@ -28,7 +29,57 @@ class SignUpViewModel: ObservableObject {
             showAlert = true
             return
         }
-        
+
+        db.collection("users")
+            .whereField("id", isEqualTo: id)
+            .getDocuments { [weak self] querySnapshot, error in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        self?.alertMessage = "중복 확인 오류: \(error.localizedDescription)"
+                        self?.showAlert = true
+                        self?.isIdChecked = false
+                        return
+                    }
+
+                    if let documents = querySnapshot?.documents, !documents.isEmpty {
+                        // 중복된 아이디가 존재
+                        self?.alertMessage = "중복된 아이디입니다."
+                        self?.showAlert = true
+                        self?.isIdChecked = false
+                    } else {
+                        // 중복되지 않음
+                        self?.alertMessage = "사용 가능한 아이디입니다."
+                        self?.showAlert = true
+                        self?.isIdChecked = true
+                    }
+                }
+            }
+    }
+
+    // 회원가입 처리
+    func handleSignUp() {
+        // 모든 필드 확인
+        guard !id.isEmpty, !password.isEmpty, !email.isEmpty else {
+            alertMessage = "모든 필드를 입력해주세요."
+            showAlert = true
+            return
+        }
+
+        // 비밀번호 확인
+        guard password == confirmPassword else {
+            alertMessage = "비밀번호가 일치하지 않습니다."
+            showAlert = true
+            return
+        }
+
+        // 중복 확인 여부 확인
+        guard isIdChecked else {
+            alertMessage = "중복 확인 버튼을 눌러주세요."
+            showAlert = true
+            return
+        }
+
+        // 아이디 중복 체크 확인
         db.collection("users")
             .whereField("id", isEqualTo: id)
             .getDocuments { [weak self] querySnapshot, error in
@@ -38,36 +89,17 @@ class SignUpViewModel: ObservableObject {
                         self?.showAlert = true
                         return
                     }
-                    
+
                     if let documents = querySnapshot?.documents, !documents.isEmpty {
                         // 중복된 아이디가 존재
                         self?.alertMessage = "중복된 아이디입니다."
                         self?.showAlert = true
                     } else {
-                        // 중복되지 않음
-                        self?.alertMessage = "사용 가능한 아이디입니다."
-                        self?.showAlert = true
+                        // 회원가입 진행
+                        self?.registerUser()
                     }
                 }
             }
-    }
-
-    // 회원가입 처리
-    func handleSignUp() {
-        guard !id.isEmpty, !password.isEmpty, !email.isEmpty else {
-            alertMessage = "모든 필드를 입력해주세요."
-            showAlert = true
-            return
-        }
-
-        guard password == confirmPassword else {
-            alertMessage = "비밀번호가 일치하지 않습니다."
-            showAlert = true
-            return
-        }
-        
-        // 회원가입 진행
-        registerUser()
     }
 
     // Firebase Authentication으로 사용자 등록
