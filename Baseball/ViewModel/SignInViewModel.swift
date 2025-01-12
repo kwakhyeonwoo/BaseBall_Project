@@ -17,19 +17,22 @@ class SignInViewModel: ObservableObject {
     @Published var isLoggedIn: Bool = false
     
     private var cancellables = Set<AnyCancellable>()
-    let googleAuth: GoogleAuth
+    private let authProvider: AuthProvider
     
-    init(googleAuth: GoogleAuth = GoogleAuth()) {
-        self.googleAuth = googleAuth
+    init(authProvider: AuthProvider) {
+        self.authProvider = authProvider
         
-        googleAuth.$isLoggedIn
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isLoggedIn in
-                if isLoggedIn {
-                    self?.isTeamSelectActive = true
+        // 로그인 상태를 관찰
+        if let googleAuth = authProvider as? GoogleAuth {
+            googleAuth.$isSignedIn
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] isSignedIn in
+                    if isSignedIn {
+                        self?.isTeamSelectActive = true
+                    }
                 }
-            }
-            .store(in: &cancellables)
+                .store(in: &cancellables)
+        }
     }
     
     func signIn() {
@@ -60,11 +63,10 @@ class SignInViewModel: ObservableObject {
     }
     
     func googleLogin() {
-        googleAuth.signIn()
+        authProvider.signIn()
     }
     
     func logOut() {
-        googleAuth.logOut()
+        authProvider.signOut()
     }
 }
-

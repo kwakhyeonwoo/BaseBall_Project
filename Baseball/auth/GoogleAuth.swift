@@ -9,8 +9,7 @@ import Foundation
 import GoogleSignIn
 import GoogleSignInSwift
 
-class GoogleAuth: ObservableObject {
-    static let shared = GoogleAuth()
+class GoogleAuth: ObservableObject, AuthProvider {
     
     @Published var isSignedIn: Bool = false // 로그인 상태 확인
     @Published var userName: String? = nil // 사용자 이름

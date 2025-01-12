@@ -8,7 +8,12 @@
 import SwiftUI
 
 struct SignIn: View {
-    @StateObject private var viewModel = SignInViewModel()
+    @StateObject private var viewModel = SignInViewModel(authProvider: GoogleAuth())
+
+    // SignInViewModel을 초기화할 때 GoogleAuth를 주입합니다.
+//    init(authProvider: AuthProvider = GoogleAuth()) {
+//        _viewModel = StateObject(wrappedValue: SignInViewModel(authProvider: authProvider))
+//    }
     
     var body: some View {
         NavigationStack {
@@ -113,6 +118,7 @@ struct SignIn: View {
     // MARK: 카카오, 구글 로그인
     func socialLoginButtons() -> some View {
         VStack(spacing: 15) {
+            // 카카오 로그인 버튼
             Button(action: {
                 viewModel.kakaoLogin()
             }) {
@@ -133,6 +139,7 @@ struct SignIn: View {
                 .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 2)
             }
             
+            // 구글 로그인 버튼
             Button(action: {
                 viewModel.googleLogin()
             }) {
@@ -158,5 +165,5 @@ struct SignIn: View {
 }
 
 #Preview {
-    SignIn()
+    SignIn() // GoogleAuth를 주입
 }
