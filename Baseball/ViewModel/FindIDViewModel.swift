@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import FirebaseFunctions
 
 class FindIDViewModel: ObservableObject {
     @Published var model = FindIDModel()
@@ -16,6 +17,7 @@ class FindIDViewModel: ObservableObject {
     
     private let verificationCodeLength = 6
     private var generatedCode: String = ""
+    private let functions = Functions.functions()
     
     // 이메일 인증 코드 요청
     func requestVerificationCode() {
@@ -28,7 +30,8 @@ class FindIDViewModel: ObservableObject {
         // 랜덤 인증번호 생성
         generatedCode = String((0..<verificationCodeLength).map { _ in "0123456789".randomElement()! })
         
-        sendVerificationEmail(to: model.email, code: generatedCode) { [weak self] success in
+        // Cloud Functions 호출
+        sendEmailVerification(to: model.email, code: generatedCode) { [weak self] success in
             DispatchQueue.main.async {
                 if success {
                     self?.isVerificationCodeSent = true
@@ -58,31 +61,23 @@ class FindIDViewModel: ObservableObject {
         return NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: email)
     }
     
-    // 이메일 전송 함수 (Cloud Functions 호출)
-    private func sendVerificationEmail(to email: String, code: String, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "https://console.cloud.google.com/gcr/images/baseball-642ed/us/gcf") else {
-            completion(false)
-            return
-        }
+    // Cloud Functions 호출로 이메일 전송
+    private func sendEmailVerification(to email: String, code: String, completion: @escaping (Bool) -> Void) {
+        let parameters: [String: Any] = ["email": email, "code": code]
         
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let body: [String: Any] = ["email": email, "code": code]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        functions.httpsCallable("sendVerificationCode").call(parameters) { result, error in
             if let error = error {
                 print("Error sending email: \(error.localizedDescription)")
                 completion(false)
                 return
             }
             
-            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+            if let data = result?.data as? [String: Any],
+               let success = data["success"] as? Bool, success {
                 completion(true)
             } else {
                 completion(false)
             }
-        }.resume()
+        }
     }
 }
