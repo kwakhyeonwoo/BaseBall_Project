@@ -143,30 +143,3 @@ class SignUpViewModel: ObservableObject {
         }
     }
 }
-
-
-// do {
-//   let token = try await AppCheck.appCheck().token(forcingRefresh: false)
-//
-//    Get the raw App Check token string.
-//   let tokenString = token.token
-//
-//    Include the App Check token with requests to your server.
-//   let url = URL(string: "https://yourbackend.example.com/yourApiEndpoint")!
-//   var request = URLRequest(url: url)
-//   request.httpMethod = "GET"
-//   request.setValue(tokenString, forHTTPHeaderField: "X-Firebase-AppCheck")
-//
-//   let task = URLSession.shared.dataTask(with: request) { data, response, error in
-//        Handle response from your backend.
-//   }
-//   task.resume()
-// } catch(let error) {
-//   print("Unable to retrieve App Check token: \(error)")
-//   return
-// }
-// 
-//
-//AppCheck.appCheck().limitedUseToken() { token, error in
-//
-//}

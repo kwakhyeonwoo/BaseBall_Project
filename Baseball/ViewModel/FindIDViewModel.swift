@@ -14,6 +14,7 @@ class FindIDViewModel: ObservableObject {
     @Published var alertMessage: String = ""
     @Published var showAlert = false
     @Published var foundID: String = ""
+    @Published var isSignInActive = false
 
     private var generatedCode: String = ""
 
@@ -67,8 +68,10 @@ class FindIDViewModel: ObservableObject {
                 case .success(let id):
                     self?.foundID = id
                     self?.alertMessage = "아이디: \(id)"
+                    self?.isSignInActive = true
                 case .failure(let error):
                     self?.alertMessage = error.localizedDescription
+                    self?.isVerified = false
                 }
                 self?.showAlert = true
             }

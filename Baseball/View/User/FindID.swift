@@ -11,29 +11,44 @@ struct FindID: View {
     @StateObject private var viewModel = FindIDViewModel()
     
     var body: some View {
-        VStack {
-            headerSection()
-                .padding(.bottom, 30)
-            
-            emailInputSection()
-                .padding(.horizontal, 20)
-                .padding(.bottom, 20)
-            
-            if viewModel.isVerificationCodeSent {
-                verificationCodeSection()
+        NavigationStack {
+            VStack {
+                headerSection()
+                    .padding(.bottom, 30)
+                
+                emailInputSection()
                     .padding(.horizontal, 20)
                     .padding(.bottom, 20)
+                
+                if viewModel.isVerificationCodeSent {
+                    verificationCodeSection()
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 20)
+                }
+                
+                actionButtons()
+                    .padding(.horizontal, 20)
+                
+                Spacer()
             }
-            
-            actionButtons()
-                .padding(.horizontal, 20)
-            
-            Spacer()
-        }
-        .padding(.top, 40)
-        .background(LinearGradient(gradient: Gradient(colors: [Color.blue.opacity(0.2), Color.white]), startPoint: .top, endPoint: .bottom))
-        .alert(isPresented: $viewModel.showAlert) {
-            Alert(title: Text("알림"), message: Text(viewModel.alertMessage), dismissButton: .default(Text("확인")))
+            .padding(.top, 40)
+            .alert(isPresented: $viewModel.showAlert) {
+                if viewModel.isVerified {
+                    return Alert(
+                        title: Text("아이디 찾기 성공"),
+                        message: Text("아이디: \(viewModel.foundID)"),
+                        dismissButton: .default(Text("확인")) {
+                            viewModel.isSignInActive = true // "확인" 버튼에서 상태 변경
+                        }
+                    )
+                } else {
+                    return Alert(
+                        title: Text("알림"),
+                        message: Text(viewModel.alertMessage),
+                        dismissButton: .default(Text("확인"))
+                    )
+                }
+            }
         }
     }
     
@@ -43,7 +58,7 @@ struct FindID: View {
             Text("아이디 찾기")
                 .font(.largeTitle)
                 .fontWeight(.bold)
-                .foregroundColor(.blue)
+                .foregroundColor(.black)
         }
     }
     
@@ -54,7 +69,7 @@ struct FindID: View {
                 .font(.headline)
                 .foregroundColor(.black)
             
-            TextField("example@example.com", text: $viewModel.model.email)
+            TextField("", text: $viewModel.model.email)
                 .padding()
                 .background(Color.white)
                 .cornerRadius(10)
@@ -77,6 +92,7 @@ struct FindID: View {
                 .cornerRadius(10)
                 .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
                 .keyboardType(.numberPad)
+            
         }
     }
     

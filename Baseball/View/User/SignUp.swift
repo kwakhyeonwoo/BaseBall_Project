@@ -124,7 +124,6 @@ struct SignUp: View {
     // MARK: 가입하기, 취소 버튼
     func actionButtons() -> some View {
         HStack(spacing: 20) {
-            
             Button(action: {
                 presentationMode.wrappedValue.dismiss()
             }) {
@@ -153,9 +152,6 @@ struct SignUp: View {
         }
         .frame(maxWidth: .infinity)
     }
-    
-    //MARK: firebase DB 연동
-    
 }
 
 #Preview {

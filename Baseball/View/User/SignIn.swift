@@ -9,11 +9,6 @@ import SwiftUI
 
 struct SignIn: View {
     @StateObject private var viewModel = SignInViewModel(authProvider: GoogleAuth())
-
-    // SignInViewModel을 초기화할 때 GoogleAuth를 주입합니다.
-//    init(authProvider: AuthProvider = GoogleAuth()) {
-//        _viewModel = StateObject(wrappedValue: SignInViewModel(authProvider: authProvider))
-//    }
     
     var body: some View {
         NavigationStack {
