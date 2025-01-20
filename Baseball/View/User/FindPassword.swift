@@ -8,11 +8,75 @@
 import SwiftUI
 
 struct FindPassword: View {
+    @StateObject private var viewModel = FindPasswordViewModel()
+
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        NavigationStack {
+            VStack {
+                headerSection()
+                    .padding(.bottom, 30)
+
+                idInputSection()
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
+
+                actionButton()
+                    .padding(.horizontal, 20)
+
+                Spacer()
+            }
+            .padding(.top, 40)
+            .alert(isPresented: $viewModel.showAlert) {
+                Alert(
+                    title: Text("알림"),
+                    message: Text(viewModel.alertMessage),
+                    dismissButton: .default(Text("확인"))
+                )
+            }
+        }
+    }
+
+    // MARK: - 헤더 섹션
+    func headerSection() -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("비밀번호 찾기")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .foregroundColor(.blue)
+        }
+    }
+
+    // MARK: - 아이디 입력 섹션
+    func idInputSection() -> some View {
+        VStack(alignment: .leading, spacing: 15) {
+            Text("아이디를 입력해주세요")
+                .font(.headline)
+                .foregroundColor(.black)
+
+            TextField("아이디", text: $viewModel.model.id)
+                .padding()
+                .background(Color.white)
+                .cornerRadius(10)
+                .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
+                .autocapitalization(.none)
+        }
+    }
+
+    // MARK: - 버튼 섹션
+    func actionButton() -> some View {
+        Button(action: {
+            viewModel.validateIDAndSendResetEmail()
+        }) {
+            Text("비밀번호 재설정 이메일 보내기")
+                .fontWeight(.bold)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+        }
     }
 }
-
 #Preview {
     FindPassword()
 }

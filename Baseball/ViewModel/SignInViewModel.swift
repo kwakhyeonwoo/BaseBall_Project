@@ -52,12 +52,12 @@ class SignInViewModel: ObservableObject {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let token):
-//                    self.alertMessage = "카카오 로그인 성공! 토큰: \(token)"
+                    self.alertMessage = "카카오 로그인 성공! 토큰: \(token)"
                     self.isTeamSelectActive = true
                 case .failure(let error):
                     self.alertMessage = "카카오 로그인 실패: \(error.localizedDescription)"
                 }
-                self.showAlert = true
+                self.showAlert = false
             }
         }
     }
