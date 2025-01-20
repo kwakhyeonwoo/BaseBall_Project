@@ -76,6 +76,9 @@ struct FindID: View {
                 .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
                 .autocapitalization(.none)
                 .keyboardType(.emailAddress)
+                .onChange(of: viewModel.model.email) { _ in
+                    viewModel.resetState() // 이메일 변경 시 상태 초기화
+                }
         }
     }
     

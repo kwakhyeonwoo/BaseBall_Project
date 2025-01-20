@@ -78,4 +78,13 @@ class FindIDViewModel: ObservableObject {
             }
         }
     }
+    
+    func resetState() {
+        isVerificationCodeSent = false
+        isVerified = false
+        alertMessage = ""
+        isLoading = false
+        showAlert = false
+        foundID = ""
+    }
 }
