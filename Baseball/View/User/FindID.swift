@@ -99,6 +99,10 @@ struct FindID: View {
     // MARK: - 버튼 섹션
     func actionButtons() -> some View {
         VStack(spacing: 15) {
+            if viewModel.isLoading {
+                ProgressView("로딩 중...")
+                    .padding()
+            }
             Button(action: {
                 viewModel.requestVerificationCode()
             }) {
@@ -110,7 +114,7 @@ struct FindID: View {
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
-            .disabled(viewModel.isVerificationCodeSent)
+            .disabled(viewModel.isVerificationCodeSent || viewModel.isLoading)
             
             if viewModel.isVerificationCodeSent {
                 Button(action: {
@@ -124,6 +128,11 @@ struct FindID: View {
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
+            }
+        }
+        .onChange(of: viewModel.isVerificationCodeSent) { isSent in
+            if isSent {
+                viewModel.isLoading = false // 인증번호 입력 필드가 보이면 로딩 종료
             }
         }
     }

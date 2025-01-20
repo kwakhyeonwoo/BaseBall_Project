@@ -12,6 +12,7 @@ class FindIDViewModel: ObservableObject {
     @Published var isVerificationCodeSent = false
     @Published var isVerified = false
     @Published var alertMessage: String = ""
+    @Published var isLoading = false
     @Published var showAlert = false
     @Published var foundID: String = ""
     @Published var isSignInActive = false
@@ -25,7 +26,7 @@ class FindIDViewModel: ObservableObject {
             showAlert = true
             return
         }
-
+        isLoading = true
         // Firestore에서 이메일 확인
         model.fetchID(for: model.email) { [weak self] result in
             DispatchQueue.main.async {
