@@ -9,8 +9,8 @@ import SwiftUI
 
 struct CalendarView: View {
     @StateObject private var viewModel = GameScheduleViewModel()
-    @State private var selectedTeam: String? = "ssg2"
-    @State private var selectedTeamImage: String? = "ssg2"
+    @State private var selectedTeam: String? = "SSG"
+    @State private var selectedTeamImage: String? = "SSG"
     @State private var selectedTab: String? = "경기일정" // 현재 선택된 탭
     @State private var showVideoRecorder: Bool = false // VideoRecorderView 표시 여부
 
