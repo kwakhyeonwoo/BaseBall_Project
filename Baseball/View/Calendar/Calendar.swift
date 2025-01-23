@@ -13,31 +13,44 @@ struct CalendarView: View {
     @State private var selectedTeamImage: String? = "SSG"
     @State private var selectedTab: String? = "경기일정" // 현재 선택된 탭
     @State private var showVideoRecorder: Bool = false // VideoRecorderView 표시 여부
+    @State private var navigateToSongView: Bool = false // TeamSelect_SongView로 이동 여부
 
     var body: some View {
-        VStack(spacing: 20) {
-            teamHeader()
-            scheduleSection()
-            Spacer()
-            tabView()
-        }
-        .padding()
-        .onAppear {
-            if let team = selectedTeam {
-                viewModel.fetchGameSchedules(for: team)
+        NavigationStack {
+            VStack(spacing: 20) {
+                teamHeader()
+                scheduleSection()
+                Spacer()
+                tabView()
             }
-        }
-        .sheet(isPresented: $showVideoRecorder) {
-            VideoRecorderViewModel { videoURL in
-                if let videoURL = videoURL {
-                    print("녹화된 동영상 경로: \(videoURL)")
-                } else {
-                    print("녹화가 취소되었습니다.")
+            .padding()
+            .onAppear {
+                if let team = selectedTeam {
+                    viewModel.fetchGameSchedules(for: team)
                 }
             }
+            .sheet(isPresented: $showVideoRecorder) {
+                VideoRecorderViewModel { videoURL in
+                    if let videoURL = videoURL {
+                        print("녹화된 동영상 경로: \(videoURL)")
+                    } else {
+                        print("녹화가 취소되었습니다.")
+                    }
+                }
+            }
+            // NavigationLink로 TeamSelect_SongView로 이동
+            .background(
+                NavigationLink(
+                    destination: TeamSelect_SongView(team: selectedTeam ?? ""),
+                    isActive: $navigateToSongView
+                ) {
+                    EmptyView()
+                }
+                .hidden()
+            )
         }
     }
-    
+
     // MARK: - 상단 선택한 팀 섹션
     func teamHeader() -> some View {
         Group {
@@ -60,7 +73,7 @@ struct CalendarView: View {
             }
         }
     }
-    
+
     // MARK: - 경기 일정 섹션
     func scheduleSection() -> some View {
         VStack(alignment: .leading, spacing: 15) {
@@ -94,10 +107,6 @@ struct CalendarView: View {
                 }
                 .padding(.top, 5)
             }
-            
-            Text("다른 팀 금일 경기 일정")
-                .font(.headline)
-                .foregroundColor(.gray)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -105,7 +114,7 @@ struct CalendarView: View {
         .cornerRadius(12)
         .shadow(radius: 5)
     }
-    
+
     // MARK: - 하단 탭 메뉴
     func tabView() -> some View {
         HStack(spacing: 0) {
@@ -116,13 +125,15 @@ struct CalendarView: View {
         }
         .frame(height: 100) // HStack 안의 모든 버튼 높이 동일
     }
-    
+
     // MARK: - 공통 버튼 뷰
     func tabButton(label: String, icon: String, tag: String) -> some View {
         Button(action: {
             selectedTab = tag // 선택된 버튼 업데이트
             if tag == "응원가 업로드" {
                 showVideoRecorder = true // VideoRecorderView 표시
+            } else if tag == "공식 응원가" {
+                navigateToSongView = true // TeamSelect_SongView로 이동
             }
         }) {
             VStack(spacing: 5) {

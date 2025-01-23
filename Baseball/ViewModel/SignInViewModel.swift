@@ -86,7 +86,7 @@ class SignInViewModel: ObservableObject {
                 case .failure(let error):
                     self.alertMessage = "카카오 로그인 실패: \(error.localizedDescription)"
                 }
-                self.showAlert = true
+                self.showAlert = false
             }
         }
     }

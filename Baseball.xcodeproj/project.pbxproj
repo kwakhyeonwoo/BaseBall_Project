@@ -67,24 +67,24 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		67C2594B2D2009F100CB8CF0 /* Baseball.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Baseball.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		67C2594B2D2009F100CB8CF0 /*    .app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "   .app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		67C2595B2D2009F300CB8CF0 /* BaseballTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BaseballTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		67C259652D2009F300CB8CF0 /* BaseballUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BaseballUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		67C259DF2D22747A00CB8CF0 /* KakaoSDKFriendResources.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = KakaoSDKFriendResources.bundle; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		67C259C42D22724400CB8CF0 /* Exceptions for "Baseball" folder in "Baseball" target */ = {
+		67C259C42D22724400CB8CF0 /* Exceptions for "Baseball" folder in "   " target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				.env,
 			);
-			target = 67C2594A2D2009F100CB8CF0 /* Baseball */;
+			target = 67C2594A2D2009F100CB8CF0 /*     */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		67C259C52D22724400CB8CF0 /* Exceptions for "Baseball" folder in "Compile Sources" phase from "Baseball" target */ = {
+		67C259C52D22724400CB8CF0 /* Exceptions for "Baseball" folder in "Compile Sources" phase from "   " target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			buildPhase = 67C259472D2009F100CB8CF0 /* Sources */;
 			membershipExceptions = (
@@ -97,8 +97,8 @@
 		67C2594D2D2009F100CB8CF0 /* Baseball */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				67C259C42D22724400CB8CF0 /* Exceptions for "Baseball" folder in "Baseball" target */,
-				67C259C52D22724400CB8CF0 /* Exceptions for "Baseball" folder in "Compile Sources" phase from "Baseball" target */,
+				67C259C42D22724400CB8CF0 /* Exceptions for "Baseball" folder in "   " target */,
+				67C259C52D22724400CB8CF0 /* Exceptions for "Baseball" folder in "Compile Sources" phase from "   " target */,
 			);
 			path = Baseball;
 			sourceTree = "<group>";
@@ -193,7 +193,7 @@
 		67C2594C2D2009F100CB8CF0 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				67C2594B2D2009F100CB8CF0 /* Baseball.app */,
+				67C2594B2D2009F100CB8CF0 /*    .app */,
 				67C2595B2D2009F300CB8CF0 /* BaseballTests.xctest */,
 				67C259652D2009F300CB8CF0 /* BaseballUITests.xctest */,
 			);
@@ -203,9 +203,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		67C2594A2D2009F100CB8CF0 /* Baseball */ = {
+		67C2594A2D2009F100CB8CF0 /*     */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 67C2596F2D2009F300CB8CF0 /* Build configuration list for PBXNativeTarget "Baseball" */;
+			buildConfigurationList = 67C2596F2D2009F300CB8CF0 /* Build configuration list for PBXNativeTarget "   " */;
 			buildPhases = (
 				67C259472D2009F100CB8CF0 /* Sources */,
 				67C259482D2009F100CB8CF0 /* Frameworks */,
@@ -218,7 +218,7 @@
 			fileSystemSynchronizedGroups = (
 				67C2594D2D2009F100CB8CF0 /* Baseball */,
 			);
-			name = Baseball;
+			name = "   ";
 			packageProductDependencies = (
 				67C259BD2D22714800CB8CF0 /* DotEnv */,
 				67C259C72D22739400CB8CF0 /* KakaoSDK */,
@@ -261,7 +261,7 @@
 				672A181E2D2FA24D00D68719 /* FirebaseVertexAI */,
 			);
 			productName = Baseball_Project;
-			productReference = 67C2594B2D2009F100CB8CF0 /* Baseball.app */;
+			productReference = 67C2594B2D2009F100CB8CF0 /*    .app */;
 			productType = "com.apple.product-type.application";
 		};
 		67C2595A2D2009F300CB8CF0 /* BaseballTests */ = {
@@ -353,7 +353,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				67C2594A2D2009F100CB8CF0 /* Baseball */,
+				67C2594A2D2009F100CB8CF0 /*     */,
 				67C2595A2D2009F300CB8CF0 /* BaseballTests */,
 				67C259642D2009F300CB8CF0 /* BaseballUITests */,
 			);
@@ -412,12 +412,12 @@
 /* Begin PBXTargetDependency section */
 		67C2595D2D2009F300CB8CF0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 67C2594A2D2009F100CB8CF0 /* Baseball */;
+			target = 67C2594A2D2009F100CB8CF0 /*     */;
 			targetProxy = 67C2595C2D2009F300CB8CF0 /* PBXContainerItemProxy */;
 		};
 		67C259672D2009F300CB8CF0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 67C2594A2D2009F100CB8CF0 /* Baseball */;
+			target = 67C2594A2D2009F100CB8CF0 /*     */;
 			targetProxy = 67C259662D2009F300CB8CF0 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -692,7 +692,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		67C2596F2D2009F300CB8CF0 /* Build configuration list for PBXNativeTarget "Baseball" */ = {
+		67C2596F2D2009F300CB8CF0 /* Build configuration list for PBXNativeTarget "   " */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				67C259702D2009F300CB8CF0 /* Debug */,
