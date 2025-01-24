@@ -26,9 +26,12 @@ struct TeamSelect: View {
                 
                 teamSelectionButton()
                 
-//              NavigationLink로 Calendar로 이동
+                // NavigationLink로 Calendar로 이동
                 NavigationLink(
-                    destination: CalendarView(),
+                    destination: CalendarView(
+                        selectedTeam: selectedTeam ?? "",
+                        selectedTeamImage: selectedTeam ?? ""
+                    ),
                     isActive: $navigateToCalendar
                 ) {
                     EmptyView()
@@ -38,14 +41,14 @@ struct TeamSelect: View {
         }
     }
     
-    //MARK: 선택 안내 텍스트
+    // MARK: - 선택 안내 텍스트
     func teamSelectionInstructions() -> some View {
         Text("선택한 팀은 바꿀 수 없으니 신중하게 골라주세요")
             .foregroundStyle(.gray)
             .padding(.bottom, 20)
     }
     
-    //MARK: 팀 이미지 그리드
+    // MARK: - 팀 이미지 그리드
     func teamGrid() -> some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 50), count: 2), spacing: 30) {
             ForEach(teams, id: \.self) { team in
@@ -55,7 +58,7 @@ struct TeamSelect: View {
         .padding()
     }
     
-    //MARK: 팀 이미지 뷰
+    // MARK: - 팀 이미지 뷰
     func teamImageView(team: String) -> some View {
         VStack {
             Image(team)
@@ -79,7 +82,7 @@ struct TeamSelect: View {
         }
     }
     
-    //MARK: 팀 선택 완료 버튼
+    // MARK: - 팀 선택 완료 버튼
     func teamSelectionButton() -> some View {
         Button(action: {
             print("\(selectedTeam ?? "") 팀 선택됨")

@@ -9,8 +9,8 @@ import SwiftUI
 
 struct CalendarView: View {
     @StateObject private var viewModel = GameScheduleViewModel()
-    @State private var selectedTeam: String? = "SSG"
-    @State private var selectedTeamImage: String? = "SSG"
+    let selectedTeam: String
+    let selectedTeamImage: String
     @State private var selectedTab: String? = "경기일정" // 현재 선택된 탭
     @State private var showVideoRecorder: Bool = false // VideoRecorderView 표시 여부
     @State private var navigateToSongView: Bool = false // TeamSelect_SongView로 이동 여부
@@ -19,15 +19,13 @@ struct CalendarView: View {
         NavigationStack {
             VStack(spacing: 20) {
                 teamHeader()
-                scheduleSection()
+//                scheduleSection()
                 Spacer()
                 tabView()
             }
             .padding()
             .onAppear {
-                if let team = selectedTeam {
-                    viewModel.fetchGameSchedules(for: team)
-                }
+                viewModel.fetchGameSchedules(for: selectedTeam)
             }
             .sheet(isPresented: $showVideoRecorder) {
                 VideoRecorderViewModel { videoURL in
@@ -53,67 +51,65 @@ struct CalendarView: View {
 
     // MARK: - 상단 선택한 팀 섹션
     func teamHeader() -> some View {
-        Group {
-            if let team = selectedTeam, let image = selectedTeamImage {
-                HStack(spacing: 10) {
-                    Image(image)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 50, height: 50)
-                        .clipShape(Circle())
-                    
-                    Text("\(team) 일정입니다.")
-                        .font(.headline)
-                }
-                .padding()
-            } else {
-                Text("팀을 선택해주세요.")
-                    .font(.headline)
-                    .padding()
-            }
-        }
-    }
-
-    // MARK: - 경기 일정 섹션
-    func scheduleSection() -> some View {
-        VStack(alignment: .leading, spacing: 15) {
-            Text("오늘의 경기 일정")
-                .font(.title2)
-                .bold()
-                .frame(maxWidth: .infinity, alignment: .leading)
-            
-            if let team = selectedTeam {
-                Text("\(team)의 경기 일정")
-                    .font(.headline)
+        VStack(spacing: 20) {
+            HStack{
+                Image(selectedTeamImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 120, height: 120)
+                    .clipShape(Circle())
+                    .shadow(radius: 5)
+                
+                Text("팀이 선택되었습니다")
+                    .font(.title)
+                    .fontWeight(.bold)
                     .foregroundColor(.blue)
-                    .padding(.top)
-            } else {
-                Text("선택된 팀이 없습니다.")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            }
-            
-            Divider()
-            
-            // 실제 경기 일정 목록
-            ForEach(viewModel.gameSchedules, id: \.gameDate) { game in
-                VStack(alignment: .leading) {
-                    Text("\(game.gameDate)")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                    Text("대상팀: \(game.opponent)")
-                        .font(.body)
-                        .foregroundColor(.black)
-                }
-                .padding(.top, 5)
+                    .padding(.top, 10)
             }
         }
         .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(uiColor: .secondarySystemBackground))
-        .cornerRadius(12)
-        .shadow(radius: 5)
     }
+
+    // MARK: - 경기 일정 섹션
+//    func scheduleSection() -> some View {
+//        VStack(alignment: .leading, spacing: 15) {
+//            Text("오늘의 경기 일정")
+//                .font(.title2)
+//                .bold()
+//                .frame(maxWidth: .infinity, alignment: .leading)
+//            
+//            if let team = selectedTeam {
+//                Text("\(team)의 경기 일정")
+//                    .font(.headline)
+//                    .foregroundColor(.blue)
+//                    .padding(.top)
+//            } else {
+//                Text("선택된 팀이 없습니다.")
+//                    .font(.subheadline)
+//                    .foregroundColor(.gray)
+//            }
+//            
+//            Divider()
+//            
+//            // 실제 경기 일정 목록
+//            ForEach(viewModel.gameSchedules, id: \.gameDate) { game in
+//                VStack(alignment: .leading) {
+//                    Text("\(game.gameDate)")
+//                        .font(.subheadline)
+//                        .foregroundColor(.gray)
+//                    Text("대상팀: \(game.opponent)")
+//                        .font(.body)
+//                        .foregroundColor(.black)
+//                }
+//                .padding(.top, 5)
+//            }
+//        }
+//        .padding()
+//        .frame(maxWidth: .infinity, alignment: .leading)
+//        .background(Color(uiColor: .secondarySystemBackground))
+//        .cornerRadius(12)
+//        .shadow(radius: 5)
+//    }
 
     // MARK: - 하단 탭 메뉴
     func tabView() -> some View {
@@ -155,8 +151,8 @@ struct CalendarView: View {
     }
 }
 
-#Preview {
-    CalendarView()
-}
+//#Preview {
+//    CalendarView(selectedTeam: , selectedTeamImage: <#String#>)
+//}
 
 //calendar,music.note,arrow.up.circle,tray.full
