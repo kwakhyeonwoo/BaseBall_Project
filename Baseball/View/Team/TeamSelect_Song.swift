@@ -9,35 +9,52 @@ import SwiftUI
 import AVKit
 
 struct TeamSelect_SongView: View {
-    let team: String
+    let selectedTeam: String
+    let selectedTeamImage: String
     @StateObject private var viewModel = TeamSelectSongViewModel()
-    @State private var player: AVPlayer? = nil
+    @State private var selectedSong: Song? = nil // 선택된 Song
+    @State private var isDetailPresented: Bool = false
 
     var body: some View {
-        VStack(spacing: 20) {
-            if viewModel.isLoading {
-                loadingView()
-            } else if !viewModel.songs.isEmpty {
-                songsListView()
-            } else {
-                errorView(message: "응원가 정보를 불러올 수 없습니다.")
+        NavigationView {
+            VStack {
+                categoryPicker()
+                Spacer()
+                if viewModel.isLoading {
+                    ProgressView("로딩 중...")
+                } else if !viewModel.songs.isEmpty {
+                    songListView()
+                } else {
+                    Text("응원가 정보를 불러올 수 없습니다.")
+                        .foregroundColor(.red)
+                        .padding()
+                }
+            }
+            .navigationTitle("\(selectedTeam) 응원가")
+            .onAppear {
+                viewModel.fetchSongs(for: selectedTeam)
+            }
+            .sheet(item: $selectedSong) { song in
+                SongDetailView(song: song)
             }
         }
-        .onAppear {
-            print("Fetching songs for selected team: \(team)") // 팀 이름 출력
-            viewModel.fetchSongs(for: team)
+    }
+
+    // MARK: - Category Picker
+    private func categoryPicker() -> some View {
+        Picker("Category", selection: $viewModel.selectedCategory) {
+            Text("팀 응원가").tag(SongCategory.teamSongs)
+            Text("선수 응원가").tag(SongCategory.playerSongs)
         }
-        .navigationTitle("\(team) 응원가")
+        .pickerStyle(SegmentedPickerStyle())
+        .padding()
+        .onChange(of: viewModel.selectedCategory) { _ in
+            viewModel.fetchSongs(for: selectedTeam)
+        }
     }
 
-    // MARK: - Loading View
-    private func loadingView() -> some View {
-        ProgressView("로딩 중...")
-            .padding()
-    }
-
-    // MARK: - Songs List View
-    private func songsListView() -> some View {
+    // MARK: - Song List View
+    private func songListView() -> some View {
         ScrollView {
             VStack(spacing: 20) {
                 ForEach(viewModel.songs) { song in
@@ -50,52 +67,39 @@ struct TeamSelect_SongView: View {
 
     // MARK: - Song Card
     private func songCard(song: Song) -> some View {
-        VStack(spacing: 10) {
+        HStack {
+            Image(selectedTeamImage)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 50, height: 50)
+                .clipShape(Circle())
+            
             Text(song.title)
-                .font(.title)
-                .fontWeight(.bold)
-
-            Button(action: {
-                playSong(url: song.audioUrl)
-            }) {
-                Text("응원가 재생")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .shadow(radius: 5)
-            }
-
-            Text("가사")
                 .font(.headline)
-                .padding(.top)
-
-            Text(song.lyrics)
-                .padding()
-                .background(Color(uiColor: .secondarySystemBackground))
-                .cornerRadius(10)
+                .foregroundColor(.primary)
+                .padding(.leading, 10)
+                .onTapGesture {
+                    selectedSong = song
+                }
+            
+            Spacer()
+            
+            Button(action: {
+                viewModel.toggleFavorite(song: song)
+            }) {
+                Image(systemName: viewModel.isFavorite(song: song) ? "heart.fill" : "heart")
+                    .foregroundColor(viewModel.isFavorite(song: song) ? .red : .gray)
+                    .font(.title2)
+            }
         }
         .padding()
-    }
-
-    // MARK: - Error View
-    private func errorView(message: String) -> some View {
-        Text(message)
-            .foregroundColor(.red)
-    }
-
-    // MARK: - Play Song
-    private func playSong(url: String) {
-        guard let audioURL = URL(string: url) else {
-            print("Invalid URL: \(url)")
-            return
-        }
-        player = AVPlayer(url: audioURL)
-        player?.play()
+        .background(Color(uiColor: .secondarySystemBackground))
+        .cornerRadius(10)
+        .shadow(radius: 5)
     }
 }
 
+
 #Preview {
-    TeamSelect_SongView(team: "SSG")
+    TeamSelect_SongView(selectedTeam: "SSG", selectedTeamImage: "SSG")
 }

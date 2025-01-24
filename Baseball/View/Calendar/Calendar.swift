@@ -41,7 +41,7 @@ struct CalendarView: View {
             // NavigationLink로 TeamSelect_SongView로 이동
             .background(
                 NavigationLink(
-                    destination: TeamSelect_SongView(team: selectedTeam ?? ""),
+                    destination: TeamSelect_SongView(selectedTeam: selectedTeam ?? "", selectedTeamImage: selectedTeamImage ?? ""),
                     isActive: $navigateToSongView
                 ) {
                     EmptyView()
