@@ -72,18 +72,27 @@ class TeamSelectSongViewModel: ObservableObject {
     private func getDownloadURL(for gsUrl: String, completion: @escaping (URL?) -> Void) {
         print("Attempting to convert gsUrl: \(gsUrl)")
 
-        // `gs://` 이후의 경로 추출
-        guard let bucketIndex = gsUrl.range(of: "gs://")?.upperBound else {
+        // `gs://` 이후의 경로만 추출
+        guard let range = gsUrl.range(of: "gs://") else {
             print("Invalid gsUrl format: \(gsUrl)")
             completion(nil)
             return
         }
 
-        // 실제 경로 추출: `gs://` 이후부터 시작
-        let path = String(gsUrl[bucketIndex...]).dropFirst() // "SSG/We are the Landers.mp4"
-        print("Extracted path: \(path)") // 추출된 경로 출력
+        // `gs://` 이후의 경로만 추출
+        let path = String(gsUrl[range.upperBound...]) // "baseball-642ed.firebasestorage.app/SSG/We are the Landers.mp4"
 
-        let storageRef = Storage.storage().reference(withPath: String(path))
+        // 첫 번째 '/' 이후의 경로 추출
+        guard let slashIndex = path.firstIndex(of: "/") else {
+            print("Invalid path format: \(path)")
+            completion(nil)
+            return
+        }
+
+        let storagePath = String(path[slashIndex...]).dropFirst() // "SSG/We are the Landers.mp4"
+        print("Extracted storage path: \(storagePath)")
+
+        let storageRef = Storage.storage().reference(withPath: String(storagePath))
         storageRef.downloadURL { url, error in
             if let error = error {
                 print("Error fetching download URL: \(error.localizedDescription)")
@@ -94,5 +103,4 @@ class TeamSelectSongViewModel: ObservableObject {
             }
         }
     }
-
 }
