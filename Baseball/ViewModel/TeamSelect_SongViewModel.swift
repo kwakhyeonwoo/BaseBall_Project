@@ -7,9 +7,9 @@
 
 import SwiftUI
 
-enum SongCategory {
-    case teamSongs
-    case playerSongs
+enum SongCategory: String, CaseIterable {
+    case teamSongs = "Team Songs"
+    case playerSongs = "Player Songs"
 }
 
 class TeamSelectSongViewModel: ObservableObject {
