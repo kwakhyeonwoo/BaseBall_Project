@@ -12,6 +12,7 @@ struct TeamSelect_SongView: View {
     let selectedTeam: String
     let selectedTeamImage: String
     @StateObject private var viewModel = TeamSelectSongViewModel()
+    @State private var player: AVPlayer? = nil
     @State private var selectedSong: Song? = nil // 선택된 Song
     @State private var isDetailPresented: Bool = false
 
