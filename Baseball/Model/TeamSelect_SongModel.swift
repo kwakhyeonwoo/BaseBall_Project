@@ -18,7 +18,8 @@ struct Song: Identifiable {
 
 class TeamSelect_SongModel {
     private let db = Firestore.firestore()
-    private var cachedUrls: [String: URL] = [:]  // URL 캐시
+    //URL 캐시 - 중복 다운로드 방지, 초기에 다운된 URL 저장 후 재요청시 호출
+    private var cachedUrls: [String: URL] = [:]
     private var audioPlayer: AVPlayer?
 
     // 노래 목록 가져오기
@@ -41,6 +42,7 @@ class TeamSelect_SongModel {
 
             print("Fetched \(documents.count) documents for \(category.rawValue)")
             var songs: [Song] = []
+            //네트워크 요청 최대 4개까지 설정해서 과도한 부하 방지
             let semaphore = DispatchSemaphore(value: 4)
             let group = DispatchGroup()
 
@@ -92,6 +94,7 @@ class TeamSelect_SongModel {
         let storagePath = String(path[slashIndex...]).dropFirst()
         let storageRef = Storage.storage().reference(withPath: String(storagePath))
 
+        //다운로드 URL을 백그라운드로 가져오고 메인 쓰레드에서 결과 처리 
         DispatchQueue.global(qos: .userInitiated).async {
             storageRef.downloadURL { url, error in
                 DispatchQueue.main.async {
