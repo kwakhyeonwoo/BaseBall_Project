@@ -42,8 +42,8 @@ class TeamSelect_SongModel {
 
             print("Fetched \(documents.count) documents for \(category.rawValue)")
             var songs: [Song] = []
-            //네트워크 요청 최대 4개까지 설정해서 과도한 부하 방지
-            let semaphore = DispatchSemaphore(value: 4)
+            //네트워크 요청 최대 3개까지 설정해서 과도한 부하 방지
+            let semaphore = DispatchSemaphore(value: 3)
             let group = DispatchGroup()
 
             for doc in documents {
@@ -55,10 +55,11 @@ class TeamSelect_SongModel {
                 }
 
                 if let cachedUrl = self.cachedUrls[gsUrl] {
+                    // 캐시된 URL을 사용
                     songs.append(Song(id: doc.documentID, title: title, audioUrl: cachedUrl.absoluteString, lyrics: lyrics))
                 } else {
-                    group.enter()
-                    DispatchQueue.global(qos: .userInitiated).async {
+                    // QoS 일치 및 semaphore 대기
+                    DispatchQueue.global(qos: .utility).async(group: group) {
                         semaphore.wait()
                         self.getDownloadURL(for: gsUrl) { [weak self] httpUrl in
                             if let httpUrl = httpUrl {
@@ -66,7 +67,6 @@ class TeamSelect_SongModel {
                                 songs.append(Song(id: doc.documentID, title: title, audioUrl: httpUrl.absoluteString, lyrics: lyrics))
                             }
                             semaphore.signal()
-                            group.leave()
                         }
                     }
                 }

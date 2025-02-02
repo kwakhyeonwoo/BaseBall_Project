@@ -62,7 +62,7 @@ class AudioPlayerManager: ObservableObject {
         return currentUrl
     }
 
-    // 정지 및 메모리 해제
+    // 정지 및 메모리 해제, 메모리 관리
     func stop() {
         player?.pause()
         player = nil
