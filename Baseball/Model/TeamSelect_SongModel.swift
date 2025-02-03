@@ -23,6 +23,7 @@ class TeamSelect_SongModel {
     private var audioPlayer: AVPlayer?
 
     // 노래 목록 가져오기
+    // firebase와 네트워크 연동
     func fetchSongs(for team: String, category: SongCategory, completion: @escaping ([Song]) -> Void) {
         print("Fetching \(category == .teamSongs ? "team songs" : "player songs") for team: \(team)")
 

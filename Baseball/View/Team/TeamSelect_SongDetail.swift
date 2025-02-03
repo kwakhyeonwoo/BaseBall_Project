@@ -56,7 +56,7 @@ struct SongDetailView: View {
 
     private func setupPlayer() {
         guard let url = URL(string: song.audioUrl) else { return }
-        playerManager.play(url: url)
+        playerManager.play(url: url, for: song)
     }
 
     private func togglePlayPause() {
@@ -67,7 +67,7 @@ struct SongDetailView: View {
             if playerManager.getCurrentUrl() != URL(string: song.audioUrl) {
                 setupPlayer()  // 다른 음원이 선택된 경우 새로 설정
             }
-            playerManager.play(url: URL(string: song.audioUrl)!)
+            playerManager.play(url: URL(string: song.audioUrl)!, for: song)
         }
     }
 
