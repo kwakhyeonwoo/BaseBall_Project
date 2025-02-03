@@ -63,13 +63,14 @@ struct SongDetailView: View {
         if playerManager.isPlaying {
             playerManager.pause()
         } else {
-            if playerManager.getCurrentUrl() == URL(string: song.audioUrl) {
-                playerManager.play(url: URL(string: song.audioUrl)!)
-            } else {
-                setupPlayer()
+            // 현재 URL과 비교하여 이미 재생 중인 플레이어인지 확인
+            if playerManager.getCurrentUrl() != URL(string: song.audioUrl) {
+                setupPlayer()  // 다른 음원이 선택된 경우 새로 설정
             }
+            playerManager.play(url: URL(string: song.audioUrl)!)
         }
     }
+
 
     private func formatTime(_ time: Double) -> String {
         let minutes = Int(time) / 60
