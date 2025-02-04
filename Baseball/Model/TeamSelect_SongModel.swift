@@ -14,6 +14,7 @@ struct Song: Identifiable {
     let title: String
     let audioUrl: String
     let lyrics: String
+    let teamImageName: String
 }
 
 class TeamSelect_SongModel {
@@ -28,7 +29,7 @@ class TeamSelect_SongModel {
         print("Fetching \(category == .teamSongs ? "team songs" : "player songs") for team: \(team)")
 
         let collectionName = category == .teamSongs ? "teamSongs" : "playerSongs"
-        db.collection("songs").document(team).collection(collectionName).getDocuments { snapshot, error in
+        db.collection("songs").document(team).collection(collectionName).getDocuments { [self] snapshot, error in
             if let error = error {
                 print("Error fetching songs: \(error.localizedDescription)")
                 completion([])
@@ -54,10 +55,12 @@ class TeamSelect_SongModel {
                       let lyrics = data["lyrics"] as? String else {
                     continue
                 }
+                // 팀 이름에 따라 이미지 파일명을 동적으로 결정
+                let teamImageName: String = determineTeamImageName(for: team)
 
                 if let cachedUrl = self.cachedUrls[gsUrl] {
                     // 캐시된 URL을 사용
-                    songs.append(Song(id: doc.documentID, title: title, audioUrl: cachedUrl.absoluteString, lyrics: lyrics))
+                    songs.append(Song(id: doc.documentID, title: title, audioUrl: cachedUrl.absoluteString, lyrics: lyrics, teamImageName: teamImageName))
                 } else {
                     // QoS 일치 및 semaphore 대기
                     DispatchQueue.global(qos: .utility).async(group: group) {
@@ -65,7 +68,7 @@ class TeamSelect_SongModel {
                         self.getDownloadURL(for: gsUrl) { [weak self] httpUrl in
                             if let httpUrl = httpUrl {
                                 self?.cachedUrls[gsUrl] = httpUrl
-                                songs.append(Song(id: doc.documentID, title: title, audioUrl: httpUrl.absoluteString, lyrics: lyrics))
+                                songs.append(Song(id: doc.documentID, title: title, audioUrl: httpUrl.absoluteString, lyrics: lyrics, teamImageName: teamImageName))
                             }
                             semaphore.signal()
                         }
@@ -109,4 +112,21 @@ class TeamSelect_SongModel {
             }
         }
     }
+    
+    private func determineTeamImageName(for team: String) -> String {
+        switch team {
+        case "SSG": return "SSG"
+        case "Samsung": return "Samsung"
+        case "LG": return "LG"
+        case "Doosan": return "Doosan"
+        case "Hanwha": return "Hanwha"
+        case "KIA": return "KIA"
+        case "Kiwoom": return "Kiwoom"
+        case "Kt": return "Kt"
+        case "Lotte": return "Lotte"
+        case "NC": return "NC"
+        default: return "DefaultTeamImage"
+        }
+    }
+
 }

@@ -61,12 +61,14 @@ class AudioPlayerManager: ObservableObject {
         }
     }
 
+    // 일시정지
     func pause() {
         player?.pause()
         isPlaying = false
         backgroundManager.updateNowPlayingPlaybackState(for: player, duration: duration)
     }
 
+    // 음원 종료시 메모리 해제
     func stop() {
         player?.pause()
         player = nil
@@ -81,6 +83,7 @@ class AudioPlayerManager: ObservableObject {
         }
     }
 
+    // 실행되고 있는 URL 불러오기 
     func getCurrentUrl() -> URL? {
         return currentUrl
     }
