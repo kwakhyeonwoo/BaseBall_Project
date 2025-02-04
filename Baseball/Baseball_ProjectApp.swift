@@ -16,8 +16,7 @@ struct Baseball_ProjectApp: App {
     init(){
         KakaoSDK.initSDK(appKey: "6b54fc20e78909e7354f9c49ba25e913")
         FirebaseApp.configure()
-        AudioPlayerManager.configureAudioSession()
-        NetworkMonitor.shared
+        AVPlayerBackgroundManager.configureAudioSession()
     }
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
