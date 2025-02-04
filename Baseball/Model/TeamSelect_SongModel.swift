@@ -78,9 +78,31 @@ class TeamSelect_SongModel {
             }
 
             // 모든 비동기 작업이 완료되면 UI 업데이트
+            // 리스트 오름차순
             group.notify(queue: .main) {
-                print("UI update with \(songs.count) songs")
-                completion(songs)
+                let sortedSongs = songs.sorted { lhs, rhs in
+                    let lhsIsEnglish = lhs.title.range(of: "^[A-Za-z]", options: .regularExpression) != nil
+                    let rhsIsEnglish = rhs.title.range(of: "^[A-Za-z]", options: .regularExpression) != nil
+
+                    // 영어 제목이 우선 정렬
+                    if lhsIsEnglish && !rhsIsEnglish {
+                        return true
+                    } else if !lhsIsEnglish && rhsIsEnglish {
+                        return false
+                    }
+
+                    // 영어 또는 한국어끼리는 자연 정렬 (숫자 포함)
+                    let lhsComponents = lhs.title.components(separatedBy: CharacterSet.decimalDigits.inverted).compactMap { Int($0) }
+                    let rhsComponents = rhs.title.components(separatedBy: CharacterSet.decimalDigits.inverted).compactMap { Int($0) }
+
+                    if let lhsNumber = lhsComponents.first, let rhsNumber = rhsComponents.first {
+                        return lhsNumber < rhsNumber
+                    }
+
+                    return lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
+                }
+
+                completion(sortedSongs)
             }
         }
     }
@@ -116,6 +138,7 @@ class TeamSelect_SongModel {
         }
     }
     
+    // MARK: 팀 선택시 제어 화면에서 보이는 팀 이미지
     private func determineTeamImageName(for team: String) -> String {
         switch team {
         case "SSG": return "SSG"
@@ -131,5 +154,4 @@ class TeamSelect_SongModel {
         default: return "DefaultTeamImage"
         }
     }
-
 }
