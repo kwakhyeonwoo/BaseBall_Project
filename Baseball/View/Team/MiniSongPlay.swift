@@ -10,18 +10,19 @@ import AVKit
 
 struct MiniPlayerView: View {
     @StateObject private var playerManager = AudioPlayerManager.shared
-    
+    @State private var isShowingDetail = false  // 상세 화면 표시 여부
+
     var body: some View {
-        if let currentSong = playerManager.currentSong {
-            VStack {
+        VStack {
+            if let currentSong = playerManager.currentSong {
                 HStack {
                     // 현재 곡 정보
                     Text(currentSong.title)
                         .font(.headline)
                         .lineLimit(1)
-                    
+
                     Spacer()
-                    
+
                     // 재생/일시정지 버튼
                     Button(action: {
                         if playerManager.isPlaying {
@@ -41,18 +42,15 @@ struct MiniPlayerView: View {
                 .cornerRadius(12)
                 .shadow(radius: 2)
                 .onTapGesture {
-                    // 클릭 시 전체 재생 화면으로 이동
-                    // NavigationLink 또는 직접 화면 전환
+                    isShowingDetail = true  // 상세 화면으로 전환
+                }
+                .sheet(isPresented: $isShowingDetail) {
+                    SongDetailView(song: currentSong)  // 밑에서 올라오는 상세 화면
                 }
             }
-            .padding([.horizontal, .bottom], 10)
-            .transition(.move(edge: .bottom))
-            .animation(.spring())
         }
+        .padding([.horizontal, .bottom], 10)
+        .transition(.move(edge: .bottom))
+        .animation(.spring(), value: playerManager.isPlaying)
     }
-}
-
-
-#Preview {
-    MiniPlayerView()
 }
