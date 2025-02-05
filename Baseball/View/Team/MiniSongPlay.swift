@@ -42,7 +42,8 @@ struct MiniPlayerView: View {
                 .cornerRadius(12)
                 .shadow(radius: 2)
                 .onTapGesture {
-                    isShowingDetail = true  // 상세 화면으로 전환
+                    // 화면 전환만 수행 (음원 상태 변경 없음)
+                    isShowingDetail = true
                 }
                 .sheet(isPresented: $isShowingDetail) {
                     SongDetailView(song: currentSong)  // 밑에서 올라오는 상세 화면

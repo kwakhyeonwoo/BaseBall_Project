@@ -67,6 +67,12 @@ class AudioPlayerManager: ObservableObject {
         isPlaying = false
         backgroundManager.updateNowPlayingPlaybackState(for: player, duration: duration)
     }
+    
+    // MARK: 다시 시작
+    func resume() {
+        player?.play()
+        isPlaying = true
+    }
 
     // MARK: 음원 종료시 메모리 해제
     func stop() {

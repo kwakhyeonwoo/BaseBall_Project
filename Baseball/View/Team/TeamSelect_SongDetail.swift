@@ -51,10 +51,15 @@ struct SongDetailView: View {
             }
         }
         .padding()
-        .onAppear(perform: setupPlayer)
+        .onAppear(perform: setupPlayerIfNeeded)
     }
 
-    private func setupPlayer() {
+    // 현재 곡과 다른 경우에만 플레이어를 새로 설정
+    private func setupPlayerIfNeeded() {
+        guard playerManager.getCurrentUrl() != URL(string: song.audioUrl) else {
+            return  // 이미 같은 곡이 재생 중이면 건너뜀
+        }
+
         guard let url = URL(string: song.audioUrl) else { return }
         playerManager.play(url: url, for: song)
     }
@@ -63,14 +68,15 @@ struct SongDetailView: View {
         if playerManager.isPlaying {
             playerManager.pause()
         } else {
-            // 현재 URL과 비교하여 이미 재생 중인 플레이어인지 확인
-            if playerManager.getCurrentUrl() != URL(string: song.audioUrl) {
-                setupPlayer()  // 다른 음원이 선택된 경우 새로 설정
+            // 이미 설정된 URL이 있다면, 해당 URL로 재생을 계속 진행
+            if let currentUrl = playerManager.getCurrentUrl(), currentUrl == URL(string: song.audioUrl) {
+                playerManager.resume()  // 이어서 재생 (resume 메서드 추가 필요)
+            } else {
+                // URL이 다를 경우 새로 재생
+                playerManager.play(url: URL(string: song.audioUrl)!, for: song)
             }
-            playerManager.play(url: URL(string: song.audioUrl)!, for: song)
         }
     }
-
 
     private func formatTime(_ time: Double) -> String {
         let minutes = Int(time) / 60
@@ -78,7 +84,3 @@ struct SongDetailView: View {
         return String(format: "%02d:%02d", minutes, seconds)
     }
 }
-
-//#Preview {
-//    SongDetailView(song: <#Song#>)
-//}
