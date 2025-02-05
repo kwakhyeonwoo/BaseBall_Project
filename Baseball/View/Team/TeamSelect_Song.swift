@@ -21,7 +21,6 @@ struct TeamSelect_SongView: View {
             ZStack (alignment: .bottom){
                 VStack {
                     categoryPicker()
-                    Spacer()
                     if viewModel.isLoading {
                         ProgressView("로딩 중...")
                     } else if !viewModel.songs.isEmpty {
@@ -31,8 +30,10 @@ struct TeamSelect_SongView: View {
                             .foregroundColor(.red)
                             .padding()
                     }
+                    Spacer()
                 }
                 .navigationTitle("\(selectedTeam) 응원가")
+                .navigationBarTitleDisplayMode(.inline)
                 .onAppear {
                     viewModel.fetchSongs(for: selectedTeam)
                 }

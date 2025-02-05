@@ -10,48 +10,73 @@ import AVKit
 
 struct MiniPlayerView: View {
     @StateObject private var playerManager = AudioPlayerManager.shared
-    @State private var isShowingDetail = false  // 상세 화면 표시 여부
+    @State private var isShowingDetailView: Bool = false
 
     var body: some View {
-        VStack {
-            if let currentSong = playerManager.currentSong {
-                HStack {
-                    // 현재 곡 정보
-                    Text(currentSong.title)
-                        .font(.headline)
-                        .lineLimit(1)
-
-                    Spacer()
-
-                    // 재생/일시정지 버튼
-                    Button(action: {
-                        if playerManager.isPlaying {
-                            playerManager.pause()
-                        } else {
-                            if let currentUrl = playerManager.getCurrentUrl() {
-                                playerManager.play(url: currentUrl, for: currentSong)
-                            }
-                        }
-                    }) {
-                        Image(systemName: playerManager.isPlaying ? "pause.fill" : "play.fill")
-                            .foregroundColor(.primary)
-                    }
-                }
-                .padding()
-                .background(Color(uiColor: .secondarySystemBackground))
-                .cornerRadius(12)
-                .shadow(radius: 2)
-                .onTapGesture {
-                    // 화면 전환만 수행 (음원 상태 변경 없음)
-                    isShowingDetail = true
-                }
-                .sheet(isPresented: $isShowingDetail) {
-                    SongDetailView(song: currentSong)  // 밑에서 올라오는 상세 화면
-                }
+        if let currentSong = playerManager.currentSong {
+            VStack {
+                miniPlayerContent(for: currentSong)
+            }
+            .padding([.horizontal, .bottom], 10)
+            .background(Color(uiColor: .systemBackground).shadow(radius: 2))
+            .cornerRadius(12)
+            .transition(.move(edge: .bottom))
+            .animation(.spring(), value: playerManager.isPlaying)
+            .sheet(isPresented: $isShowingDetailView) {
+                SongDetailView(song: currentSong)
             }
         }
-        .padding([.horizontal, .bottom], 10)
-        .transition(.move(edge: .bottom))
-        .animation(.spring(), value: playerManager.isPlaying)
+    }
+
+    private func miniPlayerContent(for song: Song) -> some View {
+        HStack {
+            albumArtwork(for: song)
+            
+            VStack(alignment: .leading, spacing: 5) {
+                Text(song.title)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+
+                Text(playerManager.isPlaying ? "재생 중" : "일시 정지")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+
+            Spacer()
+
+            playbackControls(for: song)
+        }
+        .padding(10)
+        .onTapGesture {
+            showSongDetailView()
+        }
+    }
+
+    private func albumArtwork(for song: Song) -> some View {
+        Image(song.teamImageName)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 50, height: 50)
+            .cornerRadius(8)
+            .clipped()
+    }
+
+    private func playbackControls(for song: Song) -> some View {
+        Button(action: {
+            playerManager.isPlaying ? playerManager.pause() : playerManager.play(url: playerManager.getCurrentUrl()!, for: song)
+        }) {
+            Image(systemName: playerManager.isPlaying ? "pause.fill" : "play.fill")
+                .foregroundColor(.primary)
+                .font(.system(size: 24, weight: .bold))
+                .frame(width: 40, height: 40)
+                .background(Color(uiColor: .secondarySystemBackground))
+                .clipShape(Circle())
+        }
+    }
+
+    private func showSongDetailView() {
+        // 뷰 전환 애니메이션 적용
+        isShowingDetailView = true
     }
 }
