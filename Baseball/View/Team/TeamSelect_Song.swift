@@ -18,25 +18,29 @@ struct TeamSelect_SongView: View {
 
     var body: some View {
         NavigationView {
-            VStack {
-                categoryPicker()
-                Spacer()
-                if viewModel.isLoading {
-                    ProgressView("로딩 중...")
-                } else if !viewModel.songs.isEmpty {
-                    songListView()
-                } else {
-                    Text("응원가 정보를 불러올 수 없습니다.")
-                        .foregroundColor(.red)
-                        .padding()
+            ZStack (alignment: .bottom){
+                VStack {
+                    categoryPicker()
+                    Spacer()
+                    if viewModel.isLoading {
+                        ProgressView("로딩 중...")
+                    } else if !viewModel.songs.isEmpty {
+                        songListView()
+                    } else {
+                        Text("응원가 정보를 불러올 수 없습니다.")
+                            .foregroundColor(.red)
+                            .padding()
+                    }
                 }
-            }
-            .navigationTitle("\(selectedTeam) 응원가")
-            .onAppear {
-                viewModel.fetchSongs(for: selectedTeam)
-            }
-            .sheet(item: $selectedSong) { song in
-                SongDetailView(song: song)
+                .navigationTitle("\(selectedTeam) 응원가")
+                .onAppear {
+                    viewModel.fetchSongs(for: selectedTeam)
+                }
+                .sheet(item: $selectedSong) { song in
+                    SongDetailView(song: song)
+                }
+                // 하단부에 현재 음원 출력
+                MiniPlayerView()
             }
         }
     }
