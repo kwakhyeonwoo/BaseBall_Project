@@ -32,8 +32,6 @@ struct TeamSelect_SongView: View {
                     }
                     Spacer()
                 }
-                .navigationTitle("\(selectedTeam) 응원가")
-                .navigationBarTitleDisplayMode(.inline)
                 .onAppear {
                     viewModel.fetchSongs(for: selectedTeam)
                 }

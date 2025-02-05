@@ -26,6 +26,7 @@ class AudioPlayerManager: ObservableObject {
     init() {
         backgroundManager.setupAudioSessionNotifications()
         backgroundManager.configureRemoteCommandCenter(for: self)
+        setupEndTimeObserver()
     }
 
     // MARK: - 재생 메서드
@@ -92,5 +93,22 @@ class AudioPlayerManager: ObservableObject {
     // MARK: 실행되고 있는 URL 불러오기 
     func getCurrentUrl() -> URL? {
         return currentUrl
+    }
+    
+    // 종료 알림 설정
+    private func setupEndTimeObserver() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(playerDidFinishPlaying),
+            name: .AVPlayerItemDidPlayToEndTime,
+            object: nil
+        )
+    }
+    
+    // 재생이 끝났을 때 호출되는 메서드
+    @objc private func playerDidFinishPlaying() {
+        player?.seek(to: .zero)  // 재생 위치를 처음으로 이동
+        isPlaying = false        // 재생 상태를 false로 변경
+        backgroundManager.updateNowPlayingPlaybackState(for: player, duration: duration)
     }
 }
