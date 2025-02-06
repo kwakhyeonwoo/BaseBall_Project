@@ -37,10 +37,9 @@ struct MiniPlayerView: View {
                     .font(.headline)
                     .foregroundColor(.primary)
                     .lineLimit(1)
-
-                Text(playerManager.isPlaying ? "재생 중" : "일시 정지")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                
+                CustomProgressBar(progress: .constant(playerManager.currentTime / playerManager.duration))
+                    .frame(height: 4)
             }
 
             Spacer()

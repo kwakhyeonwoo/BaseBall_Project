@@ -29,17 +29,19 @@ struct SongDetailView: View {
                     .cornerRadius(10)
             }
 
-            // 음원 진행 상태
+            // 음원 진행 상태 - 원형 마커 추가
             if playerManager.duration > 0 {
-                ProgressView(value: playerManager.currentTime / playerManager.duration)
+                CustomProgressBar(progress: .constant(playerManager.currentTime / playerManager.duration))
                     .padding()
+                
                 HStack {
                     Text("\(formatTime(playerManager.currentTime))")
                     Spacer()
                     Text("-\(formatTime(playerManager.duration - playerManager.currentTime))")
                 }
+                .padding()
             }
-
+            
             // 음원 재생/일시정지 버튼
             Button(action: togglePlayPause) {
                 Text(playerManager.isPlaying ? "일시정지" : "재생")
@@ -89,7 +91,7 @@ struct SongDetailView: View {
             }
         }
     }
-
+    
     private func formatTime(_ time: Double) -> String {
         let minutes = Int(time) / 60
         let seconds = Int(time) % 60
