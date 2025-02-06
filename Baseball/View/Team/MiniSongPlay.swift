@@ -64,7 +64,14 @@ struct MiniPlayerView: View {
 
     private func playbackControls(for song: Song) -> some View {
         Button(action: {
-            playerManager.isPlaying ? playerManager.pause() : playerManager.play(url: playerManager.getCurrentUrl()!, for: song)
+            if playerManager.isPlaying {
+                playerManager.pause()
+            } else if let currentUrl = playerManager.getCurrentUrl() {
+                playerManager.play(url: currentUrl, for: song)
+            } else {
+                // 현재 URL이 없는 경우 새로 재생
+                playerManager.play(url: URL(string: song.audioUrl)!, for: song)
+            }
         }) {
             Image(systemName: playerManager.isPlaying ? "pause.fill" : "play.fill")
                 .foregroundColor(.primary)

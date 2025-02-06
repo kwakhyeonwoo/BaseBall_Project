@@ -19,7 +19,6 @@ struct CalendarView: View {
         NavigationStack {
             VStack(spacing: 20) {
                 teamHeader()
-//                scheduleSection()
                 Spacer()
                 tabView()
             }
@@ -61,55 +60,14 @@ struct CalendarView: View {
                     .shadow(radius: 5)
                 
                 Text("팀이 선택되었습니다")
-                    .font(.title)
+                    .font(.headline)
                     .fontWeight(.bold)
-                    .foregroundColor(.blue)
+                    .foregroundColor(.black)
                     .padding(.top, 10)
             }
         }
         .padding()
     }
-
-    // MARK: - 경기 일정 섹션
-//    func scheduleSection() -> some View {
-//        VStack(alignment: .leading, spacing: 15) {
-//            Text("오늘의 경기 일정")
-//                .font(.title2)
-//                .bold()
-//                .frame(maxWidth: .infinity, alignment: .leading)
-//            
-//            if let team = selectedTeam {
-//                Text("\(team)의 경기 일정")
-//                    .font(.headline)
-//                    .foregroundColor(.blue)
-//                    .padding(.top)
-//            } else {
-//                Text("선택된 팀이 없습니다.")
-//                    .font(.subheadline)
-//                    .foregroundColor(.gray)
-//            }
-//            
-//            Divider()
-//            
-//            // 실제 경기 일정 목록
-//            ForEach(viewModel.gameSchedules, id: \.gameDate) { game in
-//                VStack(alignment: .leading) {
-//                    Text("\(game.gameDate)")
-//                        .font(.subheadline)
-//                        .foregroundColor(.gray)
-//                    Text("대상팀: \(game.opponent)")
-//                        .font(.body)
-//                        .foregroundColor(.black)
-//                }
-//                .padding(.top, 5)
-//            }
-//        }
-//        .padding()
-//        .frame(maxWidth: .infinity, alignment: .leading)
-//        .background(Color(uiColor: .secondarySystemBackground))
-//        .cornerRadius(12)
-//        .shadow(radius: 5)
-//    }
 
     // MARK: - 하단 탭 메뉴
     func tabView() -> some View {

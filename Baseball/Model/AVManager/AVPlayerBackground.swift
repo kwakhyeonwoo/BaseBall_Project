@@ -19,7 +19,11 @@ class AVPlayerBackgroundManager {
     static func configureAudioSession() {
         do {
             let audioSession = AVAudioSession.sharedInstance()
-            try audioSession.setCategory(.playback, mode: .default, options: [])
+            try audioSession.setCategory(
+                .playback,
+                mode: .moviePlayback,  // 오디오 스트리밍 및 지속적 재생에 적합
+                options: [.allowAirPlay, .interruptSpokenAudioAndMixWithOthers]
+            )
             try audioSession.setActive(true)
             print("Audio session configured for playback.")
         } catch {

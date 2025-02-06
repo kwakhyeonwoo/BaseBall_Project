@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SongDetailView: View {
     let song: Song
+    @Environment(\.presentationMode) var presentationMode
     @StateObject private var playerManager = AudioPlayerManager.shared
 
     var body: some View {
@@ -52,6 +53,17 @@ struct SongDetailView: View {
         }
         .padding()
         .onAppear(perform: setupPlayerIfNeeded)
+        .onReceive(playerManager.$didFinishPlaying) { didFinish in
+            if didFinish {
+                // 재생이 끝났을 때 화면 닫기
+                presentationMode.wrappedValue.dismiss()
+
+                // 상태 초기화
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    playerManager.didFinishPlaying = false
+                }
+            }
+        }
     }
 
     // 현재 곡과 다른 경우에만 플레이어를 새로 설정
@@ -70,7 +82,7 @@ struct SongDetailView: View {
         } else {
             // 이미 설정된 URL이 있다면, 해당 URL로 재생을 계속 진행
             if let currentUrl = playerManager.getCurrentUrl(), currentUrl == URL(string: song.audioUrl) {
-                playerManager.resume()  // 이어서 재생 (resume 메서드 추가 필요)
+                playerManager.resume()  // 이어서 재생
             } else {
                 // URL이 다를 경우 새로 재생
                 playerManager.play(url: URL(string: song.audioUrl)!, for: song)

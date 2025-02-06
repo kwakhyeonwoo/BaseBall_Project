@@ -15,6 +15,7 @@ class AudioPlayerManager: ObservableObject {
     @Published var isPlaying: Bool = false
     @Published var currentTime: Double = 0
     @Published var duration: Double = 0
+    @Published var didFinishPlaying: Bool = false
 
     private var player: AVPlayer?
     private var playerObserver: Any?
@@ -28,7 +29,7 @@ class AudioPlayerManager: ObservableObject {
         backgroundManager.configureRemoteCommandCenter(for: self)
         setupEndTimeObserver()
     }
-
+    
     // MARK: - 재생 메서드
     func play(url: URL, for song: Song) {
         if currentUrl != url {
@@ -49,12 +50,16 @@ class AudioPlayerManager: ObservableObject {
         let playerItem = AVPlayerItem(url: url)
         player = AVPlayer(playerItem: playerItem)
 
+        // 오디오 버퍼 설정
+        playerItem.preferredForwardBufferDuration = 5  // 5초 동안의 오디오를 미리 버퍼링
+        
         playerItem.asset.loadValuesAsynchronously(forKeys: ["duration"]) {
             DispatchQueue.main.async {
                 self.duration = CMTimeGetSeconds(playerItem.asset.duration)
                 self.backgroundManager.setupNowPlayingInfo(for: song, player: self.player)
             }
         }
+        NotificationCenter.default.addObserver(self, selector: #selector(handlePlaybackEnded), name: .AVPlayerItemDidPlayToEndTime, object: playerItem)
 
         playerObserver = player?.addPeriodicTimeObserver(forInterval: CMTime(seconds: 1, preferredTimescale: 1), queue: .main) { time in
             self.currentTime = CMTimeGetSeconds(time)
@@ -110,5 +115,12 @@ class AudioPlayerManager: ObservableObject {
         player?.seek(to: .zero)  // 재생 위치를 처음으로 이동
         isPlaying = false        // 재생 상태를 false로 변경
         backgroundManager.updateNowPlayingPlaybackState(for: player, duration: duration)
+    }
+    
+    @objc private func handlePlaybackEnded(){
+        DispatchQueue.main.async{
+            self.didFinishPlaying = true
+            self.stop()
+        }
     }
 }
