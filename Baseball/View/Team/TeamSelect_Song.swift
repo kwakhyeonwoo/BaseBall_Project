@@ -12,6 +12,7 @@ struct TeamSelect_SongView: View {
     let selectedTeam: String
     let selectedTeamImage: String
     @StateObject private var viewModel = TeamSelectSongViewModel()
+    @StateObject private var playerManager = AudioPlayerManager.shared
     @State private var player: AVPlayer? = nil
     @State private var selectedSong: Song? = nil // 선택된 Song
     @State private var isDetailPresented: Bool = false
@@ -21,6 +22,16 @@ struct TeamSelect_SongView: View {
             ZStack (alignment: .bottom){
                 VStack {
                     categoryPicker()
+                    if !viewModel.songs.isEmpty {
+                        HStack {
+                            Text("[총 \(viewModel.songs.count)곡]")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                                .padding(.leading)
+                            Spacer()
+                        }
+                    }
+                    
                     if viewModel.isLoading {
                         ProgressView("로딩 중...")
                     } else if !viewModel.songs.isEmpty {
@@ -31,6 +42,8 @@ struct TeamSelect_SongView: View {
                             .padding()
                     }
                     Spacer()
+                    
+                    
                 }
                 .onAppear {
                     viewModel.fetchSongs(for: selectedTeam)
