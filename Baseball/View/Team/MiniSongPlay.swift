@@ -11,35 +11,47 @@ import AVKit
 struct MiniPlayerView: View {
     @StateObject private var playerManager = AudioPlayerManager.shared
     @State private var isShowingDetailView: Bool = false
+    let selectedTeam: String  // 선택된 팀 이름
 
     var body: some View {
         if let currentSong = playerManager.currentSong {
-            VStack {
-                miniPlayerContent(for: currentSong)
+            // 막대바를 ZStack으로 변경해서 간격 조절해야 되나
+            VStack(alignment: .leading) {
+                CustomProgressBar(
+                    progress: .constant(playerManager.currentTime / playerManager.duration),
+                    teamColor: TeamColorModel.shared.getColor(for: selectedTeam)
+                )
+                .frame(height: 4)
+                .padding(.horizontal, 0)
+
+                VStack(spacing: 10) {
+                    miniPlayerContent(for: currentSong)
+                }
+                .padding([.horizontal, .bottom], 10)
+                .background(Color(uiColor: .systemBackground))
+                .cornerRadius(12)
+                .shadow(radius: 2)
+                .sheet(isPresented: $isShowingDetailView) {
+                    SongDetailView(song: currentSong, selectedTeam: selectedTeam)  // 팀 이름 전달
+                }
             }
-            .padding([.horizontal, .bottom], 10)
-            .background(Color(uiColor: .systemBackground).shadow(radius: 2))
-            .cornerRadius(12)
-            .transition(.move(edge: .bottom))
             .animation(.spring(), value: playerManager.isPlaying)
-            .sheet(isPresented: $isShowingDetailView) {
-                SongDetailView(song: currentSong)
-            }
         }
     }
 
     private func miniPlayerContent(for song: Song) -> some View {
-        HStack {
+        HStack(spacing: 10) {
             albumArtwork(for: song)
-            
+
             VStack(alignment: .leading, spacing: 5) {
                 Text(song.title)
                     .font(.headline)
                     .foregroundColor(.primary)
                     .lineLimit(1)
-                
-                CustomProgressBar(progress: .constant(playerManager.currentTime / playerManager.duration))
-                    .frame(height: 4)
+
+                Text(playerManager.isPlaying ? "재생 중" : "일시 정지")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
             }
 
             Spacer()
@@ -48,7 +60,7 @@ struct MiniPlayerView: View {
         }
         .padding(10)
         .onTapGesture {
-            showSongDetailView()
+            isShowingDetailView = true
         }
     }
 
@@ -63,14 +75,7 @@ struct MiniPlayerView: View {
 
     private func playbackControls(for song: Song) -> some View {
         Button(action: {
-            if playerManager.isPlaying {
-                playerManager.pause()
-            } else if let currentUrl = playerManager.getCurrentUrl() {
-                playerManager.play(url: currentUrl, for: song)
-            } else {
-                // 현재 URL이 없는 경우 새로 재생
-                playerManager.play(url: URL(string: song.audioUrl)!, for: song)
-            }
+            playerManager.isPlaying ? playerManager.pause() : playerManager.play(url: playerManager.getCurrentUrl()!, for: song)
         }) {
             Image(systemName: playerManager.isPlaying ? "pause.fill" : "play.fill")
                 .foregroundColor(.primary)
@@ -82,7 +87,6 @@ struct MiniPlayerView: View {
     }
 
     private func showSongDetailView() {
-        // 뷰 전환 애니메이션 적용
         isShowingDetailView = true
     }
 }

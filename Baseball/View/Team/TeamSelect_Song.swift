@@ -49,10 +49,10 @@ struct TeamSelect_SongView: View {
                     viewModel.fetchSongs(for: selectedTeam)
                 }
                 .sheet(item: $selectedSong) { song in
-                    SongDetailView(song: song)
+                    SongDetailView(song: song, selectedTeam: selectedTeam)
                 }
                 // 하단부에 현재 음원 출력
-                MiniPlayerView()
+                MiniPlayerView(selectedTeam: selectedTeam)
             }
         }
     }

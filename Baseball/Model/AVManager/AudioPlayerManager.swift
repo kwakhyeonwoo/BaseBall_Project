@@ -61,7 +61,7 @@ class AudioPlayerManager: ObservableObject {
         }
         NotificationCenter.default.addObserver(self, selector: #selector(handlePlaybackEnded), name: .AVPlayerItemDidPlayToEndTime, object: playerItem)
 
-        playerObserver = player?.addPeriodicTimeObserver(forInterval: CMTime(seconds: 1, preferredTimescale: 1), queue: .main) { time in
+        playerObserver = player?.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.1, preferredTimescale: 600), queue: .main) { time in
             self.currentTime = CMTimeGetSeconds(time)
             self.backgroundManager.updateNowPlayingPlaybackState(for: self.player, duration: self.duration)
         }

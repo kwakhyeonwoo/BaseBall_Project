@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SongDetailView: View {
     let song: Song
+    let selectedTeam: String  // 추가된 팀 이름
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var playerManager = AudioPlayerManager.shared
 
@@ -29,10 +30,13 @@ struct SongDetailView: View {
                     .cornerRadius(10)
             }
 
-            // 음원 진행 상태 - 원형 마커 추가
+            // 팀 컬러 막대바
             if playerManager.duration > 0 {
-                CustomProgressBar(progress: .constant(playerManager.currentTime / playerManager.duration))
-                    .padding()
+                CustomProgressBar(
+                    progress: .constant(playerManager.currentTime / playerManager.duration),
+                    teamColor: TeamColorModel.shared.getColor(for: selectedTeam)
+                )
+                .padding()
                 
                 HStack {
                     Text("\(formatTime(playerManager.currentTime))")
@@ -41,7 +45,7 @@ struct SongDetailView: View {
                 }
                 .padding()
             }
-            
+
             // 음원 재생/일시정지 버튼
             Button(action: togglePlayPause) {
                 Text(playerManager.isPlaying ? "일시정지" : "재생")
@@ -57,10 +61,8 @@ struct SongDetailView: View {
         .onAppear(perform: setupPlayerIfNeeded)
         .onReceive(playerManager.$didFinishPlaying) { didFinish in
             if didFinish {
-                // 재생이 끝났을 때 화면 닫기
                 presentationMode.wrappedValue.dismiss()
 
-                // 상태 초기화
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     playerManager.didFinishPlaying = false
                 }
@@ -68,12 +70,8 @@ struct SongDetailView: View {
         }
     }
 
-    // 현재 곡과 다른 경우에만 플레이어를 새로 설정
     private func setupPlayerIfNeeded() {
-        guard playerManager.getCurrentUrl() != URL(string: song.audioUrl) else {
-            return  // 이미 같은 곡이 재생 중이면 건너뜀
-        }
-
+        guard playerManager.getCurrentUrl() != URL(string: song.audioUrl) else { return }
         guard let url = URL(string: song.audioUrl) else { return }
         playerManager.play(url: url, for: song)
     }
@@ -82,16 +80,14 @@ struct SongDetailView: View {
         if playerManager.isPlaying {
             playerManager.pause()
         } else {
-            // 이미 설정된 URL이 있다면, 해당 URL로 재생을 계속 진행
             if let currentUrl = playerManager.getCurrentUrl(), currentUrl == URL(string: song.audioUrl) {
-                playerManager.resume()  // 이어서 재생
+                playerManager.resume()
             } else {
-                // URL이 다를 경우 새로 재생
                 playerManager.play(url: URL(string: song.audioUrl)!, for: song)
             }
         }
     }
-    
+
     private func formatTime(_ time: Double) -> String {
         let minutes = Int(time) / 60
         let seconds = Int(time) % 60
