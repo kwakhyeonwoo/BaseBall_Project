@@ -10,6 +10,7 @@ import SwiftUI
 class TeamColorModel {
     static let shared = TeamColorModel()
 
+    // 팀 별 팀 컬러
     private let teamColors: [String: String] = [
         "SSG": "#CE0E2D",
         "Samsung": "#074CA1",

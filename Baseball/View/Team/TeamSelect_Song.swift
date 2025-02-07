@@ -14,7 +14,7 @@ struct TeamSelect_SongView: View {
     @StateObject private var viewModel = TeamSelectSongViewModel()
     @StateObject private var playerManager = AudioPlayerManager.shared
     @State private var player: AVPlayer? = nil
-    @State private var selectedSong: Song? = nil // 선택된 Song
+    @State private var selectedSong: Song? = nil
     @State private var isDetailPresented: Bool = false
 
     var body: some View {
@@ -52,7 +52,12 @@ struct TeamSelect_SongView: View {
                     SongDetailView(song: song, selectedTeam: selectedTeam)
                 }
                 // 하단부에 현재 음원 출력
-                MiniPlayerView(selectedTeam: selectedTeam)
+                if playerManager.currentSong != nil {
+                    MiniPlayerView(selectedTeam: selectedTeam)
+                        .padding(.bottom, 10)
+                        .transition(.move(edge: .bottom))
+                        .animation(.spring(), value: playerManager.currentSong)
+                }
             }
         }
     }
@@ -79,6 +84,7 @@ struct TeamSelect_SongView: View {
                 }
             }
             .padding()
+            .padding(.bottom, playerManager.currentSong == nil ? 0 : 100)
         }
     }
 
