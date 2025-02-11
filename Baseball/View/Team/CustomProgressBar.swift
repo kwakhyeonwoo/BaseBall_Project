@@ -16,35 +16,30 @@ struct CustomProgressBar: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
-                // 배경 막대
+                // 배경 및 막대
                 Rectangle()
                     .fill(Color.gray.opacity(0.3))
                     .frame(height: 4)
 
-                // 팀 컬러 막대
                 Rectangle()
                     .fill(teamColor)
                     .frame(width: max(0, CGFloat(progress) * geometry.size.width), height: 4)
 
-                // 원 포인터
                 Circle()
                     .fill(teamColor)
-                    .frame(width: 12, height: 12)  // 원 포인터 크기
-                    .offset(x: max(0, CGFloat(progress) * geometry.size.width - 6))
-//                    .contentShape(Rectangle().inset(by: -20))  // 터치 가능 영역 확장
-                    .gesture(
-                        DragGesture()
-                            .onChanged { value in
-                                isDragging = true
-                                let newProgress = max(0, min(value.location.x / geometry.size.width, 1))
-                                progress = newProgress
-                                onSeek(newProgress)
-                            }
-                            .onEnded { _ in
-                                isDragging = false
-                            }
-                    )
+                    .frame(width: 12, height: 12)
+                    .offset(x: max(0, min(CGFloat(progress), 1.0) * geometry.size.width - 6))
             }
+            .frame(height: 20)
+            .contentShape(Rectangle())  // 전체 진행 바에 대한 터치 영역 설정
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        let newProgress = max(0, min(value.location.x / geometry.size.width, 1))
+                        progress = newProgress
+                        onSeek(newProgress)
+                    }
+            )
             .frame(height: 20)
             .onTapGesture { location in
                 let tapLocation = location.x / geometry.size.width
