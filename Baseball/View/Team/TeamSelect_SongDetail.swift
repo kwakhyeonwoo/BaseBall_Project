@@ -34,15 +34,16 @@ struct SongDetailView: View {
             if playerManager.duration > 0 {
                 CustomProgressBar(
                     progress: .constant(playerManager.currentTime / playerManager.duration),
-                    //onSeek 클로저로 AudioPlayerManager seek 호출
                     onSeek: { newProgress in
                         let newTime = newProgress * playerManager.duration
-                        playerManager.seek(to: newTime)  // 새로운 시간으로 이동
+                        playerManager.seek(to: newTime)
                     },
                     teamColor: TeamColorModel.shared.getColor(for: selectedTeam)
                 )
-                .padding()
-                
+                .frame(height: 8)  // 높이를 줄여서 더 시각적으로 깔끔하게
+                .padding(.horizontal, 20)  // 기존과 유사한 간격 설정
+                .padding(.top, 5)  // 시간과의 간격 조정
+
                 HStack {
                     Text("\(formatTime(playerManager.currentTime))")
                     Spacer()

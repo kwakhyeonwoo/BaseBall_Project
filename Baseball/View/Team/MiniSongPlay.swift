@@ -19,15 +19,15 @@ struct MiniPlayerView: View {
             VStack(alignment: .leading) {
                 CustomProgressBar(
                     progress: .constant(playerManager.currentTime / playerManager.duration),
-                    //onSeek 클로저로 AudioPlayerManager seek 호출
                     onSeek: { newProgress in
                         let newTime = newProgress * playerManager.duration
-                        playerManager.seek(to: newTime)  // 새로운 시간으로 이동
+                        playerManager.seek(to: newTime)
                     },
                     teamColor: TeamColorModel.shared.getColor(for: selectedTeam)
                 )
-                .frame(height: 4)
-                .padding(.horizontal, 0)
+                .frame(height: 14)  // MiniPlayer에 적합한 높이로 조정
+                .padding(.horizontal, 10)  // 여백 설정
+
 
                 VStack(spacing: 10) {
                     miniPlayerContent(for: currentSong)

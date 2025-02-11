@@ -30,6 +30,15 @@ class AudioPlayerManager: ObservableObject {
         setupEndTimeObserver()
     }
     
+    var progress: Double {
+        get {
+            duration > 0 ? currentTime / duration : 0
+        }
+        set {
+            seek(to: newValue * duration)  // progress가 변경될 때 seek 호출
+        }
+    }
+    
     // MARK: - 재생 메서드
     func play(url: URL, for song: Song) {
         if currentUrl != url {
@@ -102,14 +111,11 @@ class AudioPlayerManager: ObservableObject {
     
     // MARK: 동영상 막대바 이동
     func seek(to time: Double) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { [self] in
-            guard let player = player else { return }
-            let newTime = CMTime(seconds: time, preferredTimescale: 600)
-            player.seek(to: newTime)
-            currentTime = time
-        }
+        guard let player = player else { return }
+        let newTime = CMTime(seconds: time, preferredTimescale: 600)
+        player.seek(to: newTime)
+        currentTime = time  // UI에 즉시 반영
     }
-
     
     // 종료 알림 설정
     private func setupEndTimeObserver() {
