@@ -100,6 +100,17 @@ class AudioPlayerManager: ObservableObject {
         return currentUrl
     }
     
+    // MARK: 동영상 막대바 이동
+    func seek(to time: Double) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { [self] in
+            guard let player = player else { return }
+            let newTime = CMTime(seconds: time, preferredTimescale: 600)
+            player.seek(to: newTime)
+            currentTime = time
+        }
+    }
+
+    
     // 종료 알림 설정
     private func setupEndTimeObserver() {
         NotificationCenter.default.addObserver(

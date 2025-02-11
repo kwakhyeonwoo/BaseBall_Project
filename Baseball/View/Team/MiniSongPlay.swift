@@ -19,6 +19,11 @@ struct MiniPlayerView: View {
             VStack(alignment: .leading) {
                 CustomProgressBar(
                     progress: .constant(playerManager.currentTime / playerManager.duration),
+                    //onSeek 클로저로 AudioPlayerManager seek 호출
+                    onSeek: { newProgress in
+                        let newTime = newProgress * playerManager.duration
+                        playerManager.seek(to: newTime)  // 새로운 시간으로 이동
+                    },
                     teamColor: TeamColorModel.shared.getColor(for: selectedTeam)
                 )
                 .frame(height: 4)
@@ -75,7 +80,14 @@ struct MiniPlayerView: View {
 
     private func playbackControls(for song: Song) -> some View {
         Button(action: {
-            playerManager.isPlaying ? playerManager.pause() : playerManager.play(url: playerManager.getCurrentUrl()!, for: song)
+            if playerManager.isPlaying {
+                playerManager.pause()
+            } else if let currentUrl = playerManager.getCurrentUrl() {
+                playerManager.play(url: currentUrl, for: song)
+            } else {
+                // 현재 URL이 없는 경우 새로 재생
+                playerManager.play(url: URL(string: song.audioUrl)!, for: song)
+            }
         }) {
             Image(systemName: playerManager.isPlaying ? "pause.fill" : "play.fill")
                 .foregroundColor(.primary)

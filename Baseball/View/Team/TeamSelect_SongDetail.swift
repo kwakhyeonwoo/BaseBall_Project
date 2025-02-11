@@ -34,6 +34,11 @@ struct SongDetailView: View {
             if playerManager.duration > 0 {
                 CustomProgressBar(
                     progress: .constant(playerManager.currentTime / playerManager.duration),
+                    //onSeek 클로저로 AudioPlayerManager seek 호출
+                    onSeek: { newProgress in
+                        let newTime = newProgress * playerManager.duration
+                        playerManager.seek(to: newTime)  // 새로운 시간으로 이동
+                    },
                     teamColor: TeamColorModel.shared.getColor(for: selectedTeam)
                 )
                 .padding()
