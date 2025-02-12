@@ -20,7 +20,9 @@ class SongDetailViewModel: ObservableObject {
 
     init() {
         playerManager.$isPlaying
+            //DispatchQueue 없이 메인 스레드 지정
             .receive(on: RunLoop.main)
+            //playerManager.$isPlaying가 변경되면 viewmodel.isPlaying에 업데이트 
             .assign(to: &$isPlaying)
         
         playerManager.$currentTime

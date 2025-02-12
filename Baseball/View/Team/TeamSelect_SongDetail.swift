@@ -55,7 +55,9 @@ struct SongDetailView: View {
             }
 
             HStack {
-                Button(action: viewModel.playPrevious) {
+                Button(action: {
+                    viewModel.playPrevious()
+                }) {
                     Image(systemName: "backward.fill")
                         .font(.system(size: 30))
                         .foregroundColor(viewModel.hasPreviousSong() ? .primary : .gray)
@@ -75,7 +77,9 @@ struct SongDetailView: View {
 
                 Spacer()
 
-                Button(action: viewModel.playNext) {
+                Button(action: {
+                    viewModel.playNext()
+                }) {
                     Image(systemName: "forward.fill")
                         .font(.system(size: 30))
                         .foregroundColor(viewModel.hasNextSong() ? .primary : .gray)
