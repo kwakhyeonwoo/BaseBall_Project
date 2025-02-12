@@ -42,6 +42,8 @@ class AudioPlayerManager: ObservableObject {
     // MARK: - 재생 메서드
     func play(url: URL, for song: Song) {
         if currentUrl != url {
+            stop()
+            
             setupPlayer(url: url, for: song)
             currentUrl = url
             currentSong = song
@@ -126,6 +128,29 @@ class AudioPlayerManager: ObservableObject {
             object: nil
         )
     }
+
+    // MARK: - 이전 / 다음 곡 지원
+    func playPrevious() {
+        // 이전 곡 재생 로직 추가 (예: 배열에서 이전 곡 찾기)
+        print("Playing previous song")
+    }
+
+    func playNext() {
+        // 다음 곡 재생 로직 추가 (예: 배열에서 다음 곡 찾기)
+        print("Playing next song")
+    }
+
+    // 이전/다음 곡 있는지 확인하는 함수 추가
+    func hasPreviousSong() -> Bool {
+        // 현재 재생 목록에서 이전 곡이 있는지 체크하는 로직 필요
+        return true // 예제 코드, 실제 구현 필요
+    }
+
+    func hasNextSong() -> Bool {
+        // 현재 재생 목록에서 다음 곡이 있는지 체크하는 로직 필요
+        return true // 예제 코드, 실제 구현 필요
+    }
+
     
     // 재생이 끝났을 때 호출되는 메서드
     @objc private func playerDidFinishPlaying() {

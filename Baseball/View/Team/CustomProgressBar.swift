@@ -23,7 +23,7 @@ struct CustomProgressBar: View {
 
                 Rectangle()
                     .fill(teamColor)
-                    .frame(width: max(0, CGFloat(progress) * geometry.size.width), height: 4)
+                    .frame(width: max(0, min(geometry.size.width, CGFloat(progress) * geometry.size.width)), height: 4)
 
                 Circle()
                     .fill(teamColor)

@@ -6,23 +6,25 @@
 //
 
 import SwiftUI
+import AVKit
+import AVFoundation
+import Combine
+import MediaPlayer
 
 struct SongDetailView: View {
     let song: Song
-    let selectedTeam: String  // 추가된 팀 이름
+    let selectedTeam: String
     @Environment(\.presentationMode) var presentationMode
-    @StateObject private var playerManager = AudioPlayerManager.shared
+    @StateObject private var viewModel = SongDetailViewModel()
 
     var body: some View {
         VStack(spacing: 20) {
-            // 제목
             Text(song.title)
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .multilineTextAlignment(.center)
                 .padding()
 
-            // 가사
             ScrollView {
                 Text(song.lyrics)
                     .padding()
@@ -30,70 +32,70 @@ struct SongDetailView: View {
                     .cornerRadius(10)
             }
 
-            // 팀 컬러 막대바
-            if playerManager.duration > 0 {
+            if viewModel.duration > 0 {
                 CustomProgressBar(
-                    progress: .constant(playerManager.currentTime / playerManager.duration),
+                    progress: $viewModel.progress, // ✅ Binding을 직접 사용하여 실시간 반영
                     onSeek: { newProgress in
-                        let newTime = newProgress * playerManager.duration
-                        playerManager.seek(to: newTime)
+                        let newTime = newProgress * max(1, viewModel.duration)
+                        viewModel.seek(to: newTime)
                     },
                     teamColor: TeamColorModel.shared.getColor(for: selectedTeam)
                 )
-                .frame(height: 8)  // 높이를 줄여서 더 시각적으로 깔끔하게
-                .padding(.horizontal, 20)  // 기존과 유사한 간격 설정
-                .padding(.top, 5)  // 시간과의 간격 조정
 
+                .frame(height: 8)
+                .padding(.horizontal, 20)
+                .padding(.top, 5)
+                
                 HStack {
-                    Text("\(formatTime(playerManager.currentTime))")
+                    Text(formatTime(viewModel.currentTime)) // ✅ 직접 값 참조
                     Spacer()
-                    Text("-\(formatTime(playerManager.duration - playerManager.currentTime))")
+                    Text("-" + formatTime(viewModel.duration - viewModel.currentTime)) // ✅ duration도 다시 참조 가능하도록 수정
                 }
                 .padding()
             }
 
-            // 음원 재생/일시정지 버튼
-            Button(action: togglePlayPause) {
-                Text(playerManager.isPlaying ? "일시정지" : "재생")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(playerManager.isPlaying ? Color.gray : Color.blue)
-                    .cornerRadius(10)
+            HStack {
+                Button(action: viewModel.playPrevious) {
+                    Image(systemName: "backward.fill")
+                        .font(.system(size: 30))
+                        .foregroundColor(viewModel.hasPreviousSong() ? .primary : .gray)
+                }
+                .disabled(!viewModel.hasPreviousSong())
+
+                Spacer()
+
+                Button(action: { viewModel.togglePlayPause(for: song) }) {
+                    Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+                        .font(.system(size: 40))
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(viewModel.isPlaying ? Color.gray : Color.blue)
+                        .clipShape(Circle())
+                }
+
+                Spacer()
+
+                Button(action: viewModel.playNext) {
+                    Image(systemName: "forward.fill")
+                        .font(.system(size: 30))
+                        .foregroundColor(viewModel.hasNextSong() ? .primary : .gray)
+                }
+                .disabled(!viewModel.hasNextSong())
             }
+            .padding(.top, 10)
         }
         .padding()
-        .onAppear(perform: setupPlayerIfNeeded)
-        .onReceive(playerManager.$didFinishPlaying) { didFinish in
+        .onAppear { viewModel.setupPlayerIfNeeded(for: song) }
+        .onReceive(viewModel.$didFinishPlaying) { didFinish in
             if didFinish {
                 presentationMode.wrappedValue.dismiss()
-
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    playerManager.didFinishPlaying = false
+                    viewModel.resetFinishState()
                 }
             }
         }
     }
-
-    private func setupPlayerIfNeeded() {
-        guard playerManager.getCurrentUrl() != URL(string: song.audioUrl) else { return }
-        guard let url = URL(string: song.audioUrl) else { return }
-        playerManager.play(url: url, for: song)
-    }
-
-    private func togglePlayPause() {
-        if playerManager.isPlaying {
-            playerManager.pause()
-        } else {
-            if let currentUrl = playerManager.getCurrentUrl(), currentUrl == URL(string: song.audioUrl) {
-                playerManager.resume()
-            } else {
-                playerManager.play(url: URL(string: song.audioUrl)!, for: song)
-            }
-        }
-    }
-
+    
     private func formatTime(_ time: Double) -> String {
         let minutes = Int(time) / 60
         let seconds = Int(time) % 60
