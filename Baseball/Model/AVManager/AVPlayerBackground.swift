@@ -19,15 +19,23 @@ class AVPlayerBackgroundManager {
     static func configureAudioSession() {
         do {
             let audioSession = AVAudioSession.sharedInstance()
+
+            // ✅ 기존 세션을 안전하게 비활성화
+            try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
+
+            // ✅ iOS 16+에서는 .defaultToSpeaker 옵션 추가 필요 (스피커로 재생 설정)
             try audioSession.setCategory(
                 .playback,
-                mode: .moviePlayback,  // 오디오 스트리밍 및 지속적 재생에 적합
-                options: [.allowAirPlay, .interruptSpokenAudioAndMixWithOthers]
+                mode: .default,
+                options: [.allowAirPlay, .defaultToSpeaker]
             )
+
+            // ✅ AVAudioSession 활성화
             try audioSession.setActive(true)
-            print("Audio session configured for playback.")
-        } catch {
-            print("Failed to configure audio session: \(error.localizedDescription)")
+
+            print("✅ Audio session configured and activated for playback.")
+        } catch let error as NSError {
+            print("❌ Failed to configure audio session: \(error), \(error.userInfo)")
         }
     }
 
@@ -63,17 +71,21 @@ class AVPlayerBackgroundManager {
 
     // MARK: - Now Playing 정보 설정
     func setupNowPlayingInfo(for song: Song, player: AVPlayer?) {
-        guard let player = player else { return }
-        
+        guard let player = player else {
+            print("❌ setupNowPlayingInfo - player가 nil 상태입니다.")
+            return
+        }
+
         let teamImage = UIImage(named: song.teamImageName) ?? UIImage()
         let imageWithWhiteBackground = addWhiteBackground(to: teamImage)
-        
+
         let artwork = MPMediaItemArtwork(boundsSize: imageWithWhiteBackground.size) { _ in
-                return imageWithWhiteBackground
-            }
-        
+            return imageWithWhiteBackground
+        }
+
         let nowPlayingInfo: [String: Any] = [
             MPMediaItemPropertyTitle: song.title,
+            MPMediaItemPropertyArtist: "응원가",
             MPNowPlayingInfoPropertyElapsedPlaybackTime: player.currentTime().seconds,
             MPMediaItemPropertyPlaybackDuration: player.currentItem?.duration.seconds ?? 0,
             MPNowPlayingInfoPropertyPlaybackRate: player.rate,
@@ -81,8 +93,9 @@ class AVPlayerBackgroundManager {
         ]
 
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+        print("✅ Now Playing 정보 업데이트됨: \(song.title), 시간: \(player.currentTime().seconds)")
     }
-    
+
     // MARK: 실시간 업데이트 현황
     func updateNowPlayingPlaybackState(for player: AVPlayer?, duration: Double) {
         guard let player = player else { return }

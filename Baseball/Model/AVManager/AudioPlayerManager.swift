@@ -51,8 +51,14 @@ class AudioPlayerManager: ObservableObject {
 
         player?.play()
         isPlaying = true
-        backgroundManager.setupNowPlayingInfo(for: song, player: player)
+
+        // ✅ Now Playing 정보 강제 업데이트
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.backgroundManager.setupNowPlayingInfo(for: song, player: self.player)
+        }
+
     }
+
 
     // MARK: - 플레이어 초기화
     private func setupPlayer(url: URL, for song: Song) {
