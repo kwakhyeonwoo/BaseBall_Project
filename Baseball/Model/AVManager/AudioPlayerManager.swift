@@ -51,12 +51,7 @@ class AudioPlayerManager: ObservableObject {
 
         player?.play()
         isPlaying = true
-
-        // ✅ Now Playing 정보 강제 업데이트
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            self.backgroundManager.setupNowPlayingInfo(for: song, player: self.player)
-        }
-
+        self.backgroundManager.setupNowPlayingInfo(for: song, player: self.player)
     }
 
 
@@ -170,6 +165,10 @@ class AudioPlayerManager: ObservableObject {
         let newTime = CMTime(seconds: time, preferredTimescale: 600)
         player.seek(to: newTime)
         currentTime = time
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.backgroundManager.setupNowPlayingInfo(for: self.currentSong!, player: self.player)
+        }
     }
     
     // 종료 알림 설정

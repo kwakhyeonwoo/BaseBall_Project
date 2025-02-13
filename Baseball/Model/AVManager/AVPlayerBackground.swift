@@ -67,6 +67,17 @@ class AVPlayerBackgroundManager {
             }
             return .success
         }
+        
+        commandCenter.changePlaybackPositionCommand.addTarget { [weak playerManager] event in
+            guard let playerManager = playerManager,
+                  let positionEvent = event as? MPChangePlaybackPositionCommandEvent else {
+                return .commandFailed
+            }
+            
+            print("🎵 사용자 요청 시크 위치: \(positionEvent.positionTime)초")
+            playerManager.seek(to: positionEvent.positionTime)
+            return .success
+        }
     }
 
     // MARK: - Now Playing 정보 설정
