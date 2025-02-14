@@ -19,14 +19,14 @@ struct SongDetailView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            Text(song.title)
+            Text(viewModel.currentSong?.title ?? song.title)
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .multilineTextAlignment(.center)
                 .padding()
 
             ScrollView {
-                Text(song.lyrics)
+                Text(viewModel.currentSong?.lyrics ?? song.lyrics)
                     .padding()
                     .background(Color(uiColor: .secondarySystemBackground))
                     .cornerRadius(10)
@@ -34,35 +34,32 @@ struct SongDetailView: View {
 
             if viewModel.duration > 0 {
                 CustomProgressBar(
-                    progress: $viewModel.progress, // ✅ Binding을 직접 사용하여 실시간 반영
+                    progress: $viewModel.progress, // ✅ 실시간 업데이트
                     onSeek: { newProgress in
                         let newTime = newProgress * max(1, viewModel.duration)
                         viewModel.seek(to: newTime)
                     },
                     teamColor: TeamColorModel.shared.getColor(for: selectedTeam)
                 )
-
                 .frame(height: 8)
                 .padding(.horizontal, 20)
                 .padding(.top, 5)
                 
                 HStack {
-                    Text(formatTime(viewModel.currentTime)) // ✅ 직접 값 참조
+                    Text(formatTime(viewModel.currentTime))
                     Spacer()
-                    Text("-" + formatTime(viewModel.duration - viewModel.currentTime)) // ✅ duration도 다시 참조 가능하도록 수정
+                    Text("-" + formatTime(viewModel.duration - viewModel.currentTime))
                 }
                 .padding()
             }
 
             HStack {
-                Button(action: {
-                    viewModel.playPrevious()
-                }) {
+                Button(action: { viewModel.playPrevious() }) {
                     Image(systemName: "backward.fill")
                         .font(.system(size: 30))
-                        .foregroundColor(viewModel.hasPreviousSong() ? .primary : .gray)
+                        .foregroundColor(viewModel.hasPrevSong ? .primary : .gray)
                 }
-                .disabled(!viewModel.hasPreviousSong())
+                .disabled(!viewModel.hasPrevSong)
 
                 Spacer()
 
@@ -77,14 +74,12 @@ struct SongDetailView: View {
 
                 Spacer()
 
-                Button(action: {
-                    viewModel.playNext()
-                }) {
+                Button(action: { viewModel.playNext() }) {
                     Image(systemName: "forward.fill")
                         .font(.system(size: 30))
-                        .foregroundColor(viewModel.hasNextSong() ? .primary : .gray)
+                        .foregroundColor(viewModel.hasNextSong ? .primary : .gray)
                 }
-                .disabled(!viewModel.hasNextSong())
+                .disabled(!viewModel.hasNextSong)
             }
             .padding(.top, 10)
         }

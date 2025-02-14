@@ -155,3 +155,83 @@ class TeamSelect_SongModel {
         }
     }
 }
+
+extension TeamSelect_SongModel {
+    /// 🔹 Firestore에서 모든 곡 불러오기
+    func getAllSongs(completion: @escaping ([Song]) -> Void) {
+        let teams = ["SSG", "Samsung", "LG", "Doosan", "Hanwha", "KIA", "Kiwoom", "Kt", "Lotte", "NC"]
+        var allSongs: [Song] = []
+        let group = DispatchGroup()
+
+        for team in teams {
+            group.enter()
+            db.collection("songs").document(team).collection("teamSongs").getDocuments { snapshot, error in
+                if let error = error {
+                    print("❌ Firestore에서 노래 목록을 불러오는 데 실패함: \(error.localizedDescription)")
+                    group.leave()
+                    return
+                }
+
+                guard let documents = snapshot?.documents else {
+                    print("⚠️ \(team)의 팀 응원가 없음")
+                    group.leave()
+                    return
+                }
+
+                for document in documents {
+                    let data = document.data()
+                    guard let title = data["title"] as? String,
+                          let audioUrl = data["audioUrl"] as? String,
+                          let lyrics = data["lyrics"] as? String else { continue }
+
+                    let song = Song(id: document.documentID, title: title, audioUrl: audioUrl, lyrics: lyrics, teamImageName: team)
+                    allSongs.append(song)
+                }
+
+                group.leave()
+            }
+        }
+
+        group.notify(queue: .main) {
+            completion(allSongs.sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending })
+        }
+    }
+
+
+    /// 🔹 Firestore에서 현재 곡의 이전 곡 찾기
+    func getPreviousSong(for song: Song, completion: @escaping (Song?) -> Void) {
+        getAllSongs { songs in
+            guard let index = songs.firstIndex(where: { $0.id == song.id }), index > 0 else {
+                completion(nil)
+                return
+            }
+            completion(songs[index - 1])
+        }
+    }
+
+    func getNextSong(for song: Song, completion: @escaping (Song?) -> Void) {
+        getAllSongs { songs in
+            guard let index = songs.firstIndex(where: { $0.id == song.id }), index < songs.count - 1 else {
+                completion(nil)
+                return
+            }
+            completion(songs[index + 1])
+        }
+    }
+
+    /// 🔹 Firestore에서 현재 곡의 이전 곡 존재 여부 확인
+    func hasPreviousSong(for song: Song, completion: @escaping (Bool) -> Void) {
+        getAllSongs { songs in
+            let hasPrevious = (songs.firstIndex(where: { $0.id == song.id }) ?? 0) > 0
+            completion(hasPrevious)
+        }
+    }
+
+    /// 🔹 Firestore에서 현재 곡의 다음 곡 존재 여부 확인
+    func hasNextSong(for song: Song, completion: @escaping (Bool) -> Void) {
+        getAllSongs { songs in
+            let hasNext = (songs.firstIndex(where: { $0.id == song.id }) ?? songs.count - 1) < songs.count - 1
+            completion(hasNext)
+        }
+    }
+}

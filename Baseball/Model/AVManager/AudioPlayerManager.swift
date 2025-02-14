@@ -11,17 +11,18 @@ import MediaPlayer
 
 class AudioPlayerManager: ObservableObject {
     static let shared = AudioPlayerManager()
+    private let firestoreService = TeamSelect_SongModel()
 
     @Published var isPlaying: Bool = false
     @Published var currentTime: Double = 0
     @Published var duration: Double = 0
     @Published var didFinishPlaying: Bool = false
     @Published private var currentIndex: Int? = nil
+    @Published var currentSong: Song?
 
     private var player: AVPlayer?
     private var playerObserver: Any?
     private var currentUrl: URL?
-    private(set) var currentSong: Song?
     private let backgroundManager = AVPlayerBackgroundManager()
     private var playlist: [Song] = []
 
@@ -88,44 +89,50 @@ class AudioPlayerManager: ObservableObject {
 
     // MARK: - 이전 / 다음 곡 재생
     func playPrevious() {
-        guard let currentIndex = currentIndex, currentIndex > 0 else {
-            print("⚠️ No previous song available.")
+        guard let currentSong = currentSong else {
+            print("⚠️ 현재 재생 중인 곡이 없습니다.")
             return
         }
-        let previousIndex = currentIndex - 1
-        self.currentIndex = previousIndex // ✅ 현재 인덱스 업데이트
 
-        if let previousSong = playlist[safe: previousIndex] {
-            play(url: URL(string: previousSong.audioUrl)!, for: previousSong)
+        firestoreService.getPreviousSong(for: currentSong) { [weak self] previousSong in
+            guard let self = self, let previousSong = previousSong else {
+                print("⚠️ Firestore에서 이전 곡을 찾을 수 없습니다.")
+                return
+            }
+            self.play(url: URL(string: previousSong.audioUrl)!, for: previousSong)
         }
     }
 
     func playNext() {
-        guard let currentIndex = currentIndex, currentIndex < playlist.count - 1 else {
-            print("⚠️ No next song available.")
+        guard let currentSong = currentSong else {
+            print("⚠️ 현재 재생 중인 곡이 없습니다.")
             return
         }
-        let nextIndex = currentIndex + 1
-        self.currentIndex = nextIndex // ✅ 현재 인덱스 업데이트
 
-        if let nextSong = playlist[safe: nextIndex] {
-            play(url: URL(string: nextSong.audioUrl)!, for: nextSong)
+        firestoreService.getNextSong(for: currentSong) { [weak self] nextSong in
+            guard let self = self, let nextSong = nextSong else {
+                print("⚠️ Firestore에서 다음 곡을 찾을 수 없습니다.")
+                return
+            }
+            self.play(url: URL(string: nextSong.audioUrl)!, for: nextSong)
+        }
+    }
+
+    // 🔹 Firestore 기반 이전 곡 여부 확인
+    func hasPreviousSong(for song: Song, completion: @escaping (Bool) -> Void) {
+        firestoreService.hasPreviousSong(for: song) { hasPrevious in
+            completion(hasPrevious)
+        }
+    }
+
+    // 🔹 Firestore 기반 다음 곡 여부 확인
+    func hasNextSong(for song: Song, completion: @escaping (Bool) -> Void) {
+        firestoreService.hasNextSong(for: song) { hasNext in
+            completion(hasNext)
         }
     }
 
 
-    // MARK: - 이전/다음 곡이 있는지 확인
-    func hasPreviousSong() -> Bool {
-        guard let currentIndex = currentIndex, !playlist.isEmpty else { return false }
-        return currentIndex > 0
-    }
-
-    func hasNextSong() -> Bool {
-        guard let currentIndex = currentIndex, !playlist.isEmpty else { return false }
-        return currentIndex < playlist.count - 1
-    }
-
-    
     // MARK: - 일시정지
     func pause() {
         player?.pause()
@@ -183,9 +190,9 @@ class AudioPlayerManager: ObservableObject {
     
     // 재생이 끝났을 때 호출되는 메서드
     @objc private func playerDidFinishPlaying() {
-        playNext()
-    }
-    
+            playNext()
+        }
+
     @objc private func handlePlaybackEnded(){
         DispatchQueue.main.async{
             self.didFinishPlaying = true
