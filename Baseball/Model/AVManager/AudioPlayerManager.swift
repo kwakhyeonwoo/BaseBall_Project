@@ -44,15 +44,18 @@ class AudioPlayerManager: ObservableObject {
     // MARK: - 재생 메서드
     func play(url: URL, for song: Song) {
         if currentUrl != url {
+            stop()
             setupPlayer(url: url, for: song)
             currentUrl = url
             currentSong = song
             currentIndex = playlist.firstIndex(where: { $0.id == song.id })
         }
-
-        player?.play()
-        isPlaying = true
-        self.backgroundManager.setupNowPlayingInfo(for: song, player: self.player)
+        DispatchQueue.main.async { [weak self] in
+            self?.player?.play()
+            self?.isPlaying = true
+            self?.backgroundManager.setupNowPlayingInfo(for: song, player: self?.player)
+            print("Now Playing: \(song.title)")
+        }
     }
 
 
@@ -99,7 +102,11 @@ class AudioPlayerManager: ObservableObject {
                 print("⚠️ Firestore에서 이전 곡을 찾을 수 없습니다.")
                 return
             }
-            self.play(url: URL(string: previousSong.audioUrl)!, for: previousSong)
+
+            DispatchQueue.main.async {
+                self.currentSong = previousSong  // ✅ 현재 곡 업데이트
+                self.play(url: URL(string: previousSong.audioUrl)!, for: previousSong) // ✅ 즉시 재생
+            }
         }
     }
 
@@ -114,9 +121,14 @@ class AudioPlayerManager: ObservableObject {
                 print("⚠️ Firestore에서 다음 곡을 찾을 수 없습니다.")
                 return
             }
-            self.play(url: URL(string: nextSong.audioUrl)!, for: nextSong)
+
+            DispatchQueue.main.async {
+                self.currentSong = nextSong  // ✅ 현재 곡 업데이트
+                self.play(url: URL(string: nextSong.audioUrl)!, for: nextSong) // ✅ 즉시 재생
+            }
         }
     }
+
 
     // 🔹 Firestore 기반 이전 곡 여부 확인
     func hasPreviousSong(for song: Song, completion: @escaping (Bool) -> Void) {

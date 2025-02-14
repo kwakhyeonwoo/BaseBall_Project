@@ -157,7 +157,7 @@ class TeamSelect_SongModel {
 }
 
 extension TeamSelect_SongModel {
-    /// 🔹 Firestore에서 모든 곡 불러오기
+    /// 🔹 Firestore에서 모든 곡 불러오기 rotlqkf wrkxek
     func getAllSongs(completion: @escaping ([Song]) -> Void) {
         let teams = ["SSG", "Samsung", "LG", "Doosan", "Hanwha", "KIA", "Kiwoom", "Kt", "Lotte", "NC"]
         var allSongs: [Song] = []

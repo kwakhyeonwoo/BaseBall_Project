@@ -85,6 +85,7 @@ class SongDetailViewModel: ObservableObject {
         }
     }
 
+
     func playPrevious() {
         guard let currentSong = playerManager.currentSong else { return }
         playerManager.playPrevious()
