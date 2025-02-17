@@ -115,38 +115,50 @@ class AudioPlayerManager: ObservableObject {
     // MARK: - 이전 / 다음 곡 재생
     func playPrevious() {
         guard let currentSong = currentSong else {
-            print("⚠️ 현재 재생 중인 곡이 없습니다.")
+            print("⚠️ No currently playing song.")
             return
         }
 
         firestoreService.getPreviousSong(for: currentSong) { [weak self] previousSong in
             guard let self = self, let previousSong = previousSong else {
-                print("⚠️ Firestore에서 이전 곡을 찾을 수 없습니다.")
+                print("⚠️ No previous song found.")
                 return
             }
 
-            DispatchQueue.main.async {
-                self.currentSong = previousSong  // ✅ 여기에서 업데이트
-                self.play(url: URL(string: previousSong.audioUrl)!, for: previousSong) // ✅ 즉시 재생
+            self.firestoreService.getDownloadURL(for: previousSong.audioUrl) { url in
+                DispatchQueue.main.async {
+                    if let url = url {
+                        self.currentSong = previousSong
+                        self.play(url: url, for: previousSong) // ✅ Play the converted URL
+                    } else {
+                        print("❌ Error: Failed to convert gs:// URL for \(previousSong.title)")
+                    }
+                }
             }
         }
     }
 
     func playNext() {
         guard let currentSong = currentSong else {
-            print("⚠️ 현재 재생 중인 곡이 없습니다.")
+            print("⚠️ No currently playing song.")
             return
         }
 
         firestoreService.getNextSong(for: currentSong) { [weak self] nextSong in
             guard let self = self, let nextSong = nextSong else {
-                print("⚠️ Firestore에서 다음 곡을 찾을 수 없습니다.")
+                print("⚠️ No next song found.")
                 return
             }
 
-            DispatchQueue.main.async {
-                self.currentSong = nextSong  // ✅ 여기에서 업데이트
-                self.play(url: URL(string: nextSong.audioUrl)!, for: nextSong) // ✅ 즉시 재생
+            self.firestoreService.getDownloadURL(for: nextSong.audioUrl) { url in
+                DispatchQueue.main.async {
+                    if let url = url {
+                        self.currentSong = nextSong
+                        self.play(url: url, for: nextSong) // ✅ Play the converted URL
+                    } else {
+                        print("❌ Error: Failed to convert gs:// URL for \(nextSong.title)")
+                    }
+                }
             }
         }
     }
