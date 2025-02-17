@@ -42,24 +42,27 @@ class AudioPlayerManager: ObservableObject {
     }
     
     // MARK: - 재생 메서드
-    func play(url: URL, for song: Song) {
-        if currentUrl != url {
-            stop()  // ✅ 기존 플레이어 정리 후 새로운 곡 로드
-            setupPlayer(url: url, for: song)
-            currentUrl = url  // ✅ 새로운 URL 업데이트
-            currentSong = song
+    func play(url: URL?, for song: Song) {
+        guard let url = url else {
+            print("❌ Error: URL is nil for song \(song.title)")
+            return
         }
+
+        stop()  // ✅ Stop any current playback
+        setupPlayer(url: url, for: song)
+        currentUrl = url  // ✅ 새로운 URL 업데이트
+        currentSong = song
 
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
 
-            // ✅ 재생 전에 currentSong을 확실하게 설정
+            // ✅ Make sure currentSong is set before playing
             self.currentSong = song
 
             self.player?.play()
             self.isPlaying = true
             self.backgroundManager.setupNowPlayingInfo(for: song, player: self.player)
-            print("🎵 Now Playing: \(song.title), URL: \(song.audioUrl)")
+            print("🎵 Now Playing: \(song.title), URL: \(url)")
         }
     }
 

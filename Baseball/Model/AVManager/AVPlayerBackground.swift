@@ -39,7 +39,8 @@ class AVPlayerBackgroundManager {
 //                name: AVAudioSession.routeChangeNotification,
 //                object: nil
 //            )
-
+//아 시발 개좆가텐 갑자기 왜 이지랄나냐
+//개시발 병신같은 앱
 //        } catch let error as NSError {
 //            print("❌ Failed to configure audio session: \(error.localizedDescription), \(error.userInfo)")
 //        }
