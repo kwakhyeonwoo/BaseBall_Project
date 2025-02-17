@@ -16,28 +16,63 @@ class AVPlayerBackgroundManager {
         NotificationCenter.default.addObserver(self, selector: #selector(handleRouteChange), name: AVAudioSession.routeChangeNotification, object: nil)
     }
 
-    static func configureAudioSession() {
-        do {
-            let audioSession = AVAudioSession.sharedInstance()
+//    //에러 버전
+//    static func configureAudioSession() {
+//        let audioSession = AVAudioSession.sharedInstance()
+//
+//        do {
+//            // ✅ 1. 기존 오디오 세션을 안전하게 비활성화하지 않고 바로 설정 진행
+//            try audioSession.setCategory(.playback, mode: .default, options: [.allowAirPlay])
+//            
+//            // ✅ 2. 강제로 스피커 사용 설정 (필요 시)
+//            try audioSession.overrideOutputAudioPort(.speaker)
+//
+//            // ✅ 3. 오디오 세션 활성화는 마지막에 호출해야 함
+//            try audioSession.setActive(true, options: [])
+//
+//            print("✅ Audio session successfully configured and activated.")
+//
+//            // ✅ 4. 오디오 경로 변경 감지 추가 (이어폰 연결/해제 대응)
+//            NotificationCenter.default.addObserver(
+//                self,
+//                selector: #selector(handleRouteChange),
+//                name: AVAudioSession.routeChangeNotification,
+//                object: nil
+//            )
 
-            // ✅ 기존 세션을 안전하게 비활성화
-            try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
+//        } catch let error as NSError {
+//            print("❌ Failed to configure audio session: \(error.localizedDescription), \(error.userInfo)")
+//        }
+//    }
+    //성공 버전
+     static func configureAudioSession() {
+         let audioSession = AVAudioSession.sharedInstance()
 
-            // ✅ iOS 16+에서는 .defaultToSpeaker 옵션 추가 필요 (스피커로 재생 설정)
-            try audioSession.setCategory(
-                .playback,
-                mode: .default,
-                options: [.allowAirPlay, .defaultToSpeaker]
-            )
+         do {
+             // ✅ 1. Set category first (NO INVALID OPTIONS)
+             try audioSession.setCategory(.playback, mode: .default, options: [])
 
-            // ✅ AVAudioSession 활성화
-            try audioSession.setActive(true)
+              //✅ 2. Activate session LAST (ONLY if not already active)
+             if !audioSession.isOtherAudioPlaying {
+                 try audioSession.setActive(true, options: [])
+                 print("✅ Audio session configured and activated successfully.")
+             } else {
+                 print("⚠️ Another audio is already playing. Skipping activation.")
+             }
 
-            print("✅ Audio session configured and activated for playback.")
-        } catch let error as NSError {
-            print("❌ Failed to configure audio session: \(error), \(error.userInfo)")
-        }
-    }
+              //✅ 3. Listen for route changes (e.g., Bluetooth, AirPods disconnect)
+             NotificationCenter.default.addObserver(
+                 self,
+                 selector: #selector(handleRouteChange),
+                 name: AVAudioSession.routeChangeNotification,
+                 object: nil
+             )
+
+         } catch let error {
+             print("❌ Failed to configure audio session: \(error.localizedDescription)")
+         }
+     }
+
 
     // MARK: - 제어센터 명령 설정
     func configureRemoteCommandCenter(for playerManager: AudioPlayerManager) {
@@ -137,16 +172,34 @@ class AVPlayerBackgroundManager {
         }
     }
 
+    // MARK: 오디오 경로 변경 감지
     @objc private func handleRouteChange(notification: Notification) {
-        guard let info = notification.userInfo,
-              let reasonValue = info[AVAudioSessionRouteChangeReasonKey] as? UInt,
+        guard let userInfo = notification.userInfo,
+              let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
               let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else { return }
 
-        if reason == .oldDeviceUnavailable {
-            AudioPlayerManager.shared.pause()
+        switch reason {
+        case .oldDeviceUnavailable:
+            // ✅ 이어폰이 뽑혔을 때 → 스피커로 자동 전환 후 재생 유지
+            DispatchQueue.main.async {
+                if AudioPlayerManager.shared.isPlaying {
+                    AudioPlayerManager.shared.player?.play()
+                    print("🎧 이어폰이 제거됨 → 스피커로 전환 후 자동 재생")
+                }
+            }
+        case .newDeviceAvailable:
+            // ✅ 새 오디오 장치 연결됨 (예: 블루투스 이어폰) → 자동 재생
+            DispatchQueue.main.async {
+                if AudioPlayerManager.shared.isPlaying {
+                    AudioPlayerManager.shared.player?.play()
+                    print("🔊 새로운 오디오 장치 연결됨 → 자동 재생")
+                }
+            }
+        default:
+            break
         }
     }
-    
+
     // MARK: 이미지를 감싸는 배경 색 변경
     private func addWhiteBackground(to image: UIImage) -> UIImage {
         let newSize = CGSize(width: image.size.width, height: image.size.height)

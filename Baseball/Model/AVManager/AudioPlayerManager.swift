@@ -20,7 +20,7 @@ class AudioPlayerManager: ObservableObject {
     @Published private var currentIndex: Int? = nil
     @Published var currentSong: Song?
 
-    private var player: AVPlayer?
+    var player: AVPlayer?
     private var playerObserver: Any?
     private var currentUrl: URL?
     private let backgroundManager = AVPlayerBackgroundManager()
@@ -44,40 +44,59 @@ class AudioPlayerManager: ObservableObject {
     // MARK: - 재생 메서드
     func play(url: URL, for song: Song) {
         if currentUrl != url {
-            stop()
+            stop()  // ✅ 기존 플레이어 정리 후 새로운 곡 로드
             setupPlayer(url: url, for: song)
-            currentUrl = url
+            currentUrl = url  // ✅ 새로운 URL 업데이트
             currentSong = song
-            currentIndex = playlist.firstIndex(where: { $0.id == song.id })
         }
+
         DispatchQueue.main.async { [weak self] in
-            self?.player?.play()
-            self?.isPlaying = true
-            self?.backgroundManager.setupNowPlayingInfo(for: song, player: self?.player)
-            print("Now Playing: \(song.title)")
+            guard let self = self else { return }
+
+            // ✅ 재생 전에 currentSong을 확실하게 설정
+            self.currentSong = song
+
+            self.player?.play()
+            self.isPlaying = true
+            self.backgroundManager.setupNowPlayingInfo(for: song, player: self.player)
+            print("🎵 Now Playing: \(song.title), URL: \(song.audioUrl)")
         }
     }
 
 
+
     // MARK: - 플레이어 초기화
     private func setupPlayer(url: URL, for song: Song) {
-        stop()
+        stop()  // ✅ 기존 플레이어 정리
+
         let playerItem = AVPlayerItem(url: url)
         player = AVPlayer(playerItem: playerItem)
-        
+
         playerItem.preferredForwardBufferDuration = 5
-        
+
         playerItem.asset.loadValuesAsynchronously(forKeys: ["duration"]) {
-            DispatchQueue.main.async {
-                self.duration = CMTimeGetSeconds(playerItem.asset.duration)
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                
+                if self.player?.currentItem !== playerItem {
+                    print("⚠️ AVPlayerItem 교체 확인 실패")
+                    return
+                }
+
+                self.duration = CMTimeGetSeconds(playerItem.duration)
                 self.backgroundManager.setupNowPlayingInfo(for: song, player: self.player)
+
+                print("✅ 새로운 곡 로드 완료: \(song.title)")
             }
         }
+
         NotificationCenter.default.addObserver(self, selector: #selector(handlePlaybackEnded), name: .AVPlayerItemDidPlayToEndTime, object: playerItem)
 
         playerObserver = player?.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.1, preferredTimescale: 600), queue: .main) { time in
-            self.currentTime = CMTimeGetSeconds(time)
-            self.backgroundManager.updateNowPlayingPlaybackState(for: self.player, duration: self.duration)
+            DispatchQueue.main.async {
+                self.currentTime = CMTimeGetSeconds(time)
+                self.backgroundManager.updateNowPlayingPlaybackState(for: self.player, duration: self.duration)
+            }
         }
     }
 
@@ -104,7 +123,7 @@ class AudioPlayerManager: ObservableObject {
             }
 
             DispatchQueue.main.async {
-                self.currentSong = previousSong  // ✅ 현재 곡 업데이트
+                self.currentSong = previousSong  // ✅ 여기에서 업데이트
                 self.play(url: URL(string: previousSong.audioUrl)!, for: previousSong) // ✅ 즉시 재생
             }
         }
@@ -123,12 +142,11 @@ class AudioPlayerManager: ObservableObject {
             }
 
             DispatchQueue.main.async {
-                self.currentSong = nextSong  // ✅ 현재 곡 업데이트
+                self.currentSong = nextSong  // ✅ 여기에서 업데이트
                 self.play(url: URL(string: nextSong.audioUrl)!, for: nextSong) // ✅ 즉시 재생
             }
         }
     }
-
 
     // 🔹 Firestore 기반 이전 곡 여부 확인
     func hasPreviousSong(for song: Song, completion: @escaping (Bool) -> Void) {
@@ -161,12 +179,16 @@ class AudioPlayerManager: ObservableObject {
     // MARK: - 음원 종료시 메모리 해제
     func stop() {
         player?.pause()
+        // ✅ 현재 재생 중인 AVPlayerItem을 완전히 해제
+        player?.replaceCurrentItem(with: nil)
+        
         player = nil
-        currentUrl = nil
+        currentUrl = nil  // ✅ 기존 URL 완전히 초기화
         currentTime = 0
         duration = 0
         isPlaying = false
         
+        // ✅ 기존 timeObserver 제거 (안 그러면 메모리 누수 가능성 있음)
         if let observer = playerObserver {
             player?.removeTimeObserver(observer)
             playerObserver = nil
