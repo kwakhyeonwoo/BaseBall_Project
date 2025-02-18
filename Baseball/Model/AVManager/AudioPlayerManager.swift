@@ -124,11 +124,12 @@ class AudioPlayerManager: ObservableObject {
                 print("⚠️ No previous song found.")
                 return
             }
-
+            //getDownloadURL에서 gs -> https로 변경하기
             self.firestoreService.getDownloadURL(for: previousSong.audioUrl) { url in
                 DispatchQueue.main.async {
                     if let url = url {
                         self.currentSong = previousSong
+                        self.currentUrl = URL(string: previousSong.audioUrl)
                         self.play(url: url, for: previousSong) // ✅ Play the converted URL
                     } else {
                         print("❌ Error: Failed to convert gs:// URL for \(previousSong.title)")
@@ -154,6 +155,7 @@ class AudioPlayerManager: ObservableObject {
                 DispatchQueue.main.async {
                     if let url = url {
                         self.currentSong = nextSong
+                        self.currentUrl = URL(string: nextSong.audioUrl)
                         self.play(url: url, for: nextSong) // ✅ Play the converted URL
                     } else {
                         print("❌ Error: Failed to convert gs:// URL for \(nextSong.title)")
@@ -171,24 +173,56 @@ class AudioPlayerManager: ObservableObject {
     }
 
     // 🔹 Firestore 기반 다음 곡 여부 확인
+    // completion에서 false발생
     func hasNextSong(for song: Song, completion: @escaping (Bool) -> Void) {
-        firestoreService.hasNextSong(for: song) { hasNext in
+        firestoreService.getAllSongs { songs in
+            guard let index = songs.firstIndex(where: { $0.id == song.id }) else {
+                print("⚠️ Current song not found in playlist: \(song.title)")
+                completion(false)
+                return
+            }
+
+            let hasNext = index < songs.count - 1
+            print("🔍 Checking next song availability for \(song.title) at index \(index). Has Next: \(hasNext)")
             completion(hasNext)
         }
     }
 
-
     // MARK: - 일시정지
     func pause() {
-        player?.pause()
+        guard let player = player else {
+            print("❌ Error: Player is nil, cannot pause playback.")
+            return
+        }
+        
+        print("⏸️ Pausing playback...")
+        
+        player.pause()
         isPlaying = false
         backgroundManager.updateNowPlayingPlaybackState(for: player, duration: duration)
     }
     
     // MARK: - 다시 시작
     func resume() {
-        player?.play()
-        isPlaying = true
+        guard let player = player else {
+            print("❌ Error: Player is nil. Cannot resume playback.")
+            return
+        }
+
+        if let currentUrl = currentUrl, let currentSong = currentSong {
+            print("▶️ Resuming playback of: \(currentSong.title), URL: \(currentUrl)")
+
+            if player.currentItem == nil {
+                print("⚠️ AVPlayerItem is nil, reloading song...")
+                play(url: currentUrl, for: currentSong) // Reload and play
+            } else {
+                player.play()
+                isPlaying = true
+                backgroundManager.setupNowPlayingInfo(for: currentSong, player: player)
+            }
+        } else {
+            print("❌ Error: currentUrl or currentSong is nil, cannot resume playback.")
+        }
     }
 
     // MARK: - 음원 종료시 메모리 해제
@@ -198,7 +232,7 @@ class AudioPlayerManager: ObservableObject {
         player?.replaceCurrentItem(with: nil)
         
         player = nil
-        currentUrl = nil  // ✅ 기존 URL 완전히 초기화
+//        currentUrl = nil  // ✅ 기존 URL 완전히 초기화
         currentTime = 0
         duration = 0
         isPlaying = false

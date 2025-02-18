@@ -7,6 +7,7 @@
 
 import FirebaseFirestore
 import FirebaseStorage
+import Firebase
 import AVFoundation
 
 struct Song: Identifiable, Equatable {
@@ -60,10 +61,8 @@ class TeamSelect_SongModel {
                 let teamImageName = determineTeamImageName(for: team)
 
                 if let cachedUrl = self.cachedUrls[gsUrl] {
-                    // 캐시된 URL을 사용
                     songs.append(Song(id: doc.documentID, title: title, audioUrl: cachedUrl.absoluteString, lyrics: lyrics, teamImageName: teamImageName))
                 } else {
-                    // URL 다운로드 작업을 그룹에 추가
                     group.enter()
                     self.getDownloadURL(for: gsUrl) { [weak self] httpUrl in
                         if let httpUrl = httpUrl {
@@ -72,40 +71,45 @@ class TeamSelect_SongModel {
                         } else {
                             print("Failed to fetch URL for song: \(title)")
                         }
-                        group.leave()  // 비동기 작업이 완료되면 그룹에서 작업 제거
+                        group.leave()
                     }
                 }
             }
 
-            // 모든 비동기 작업이 완료되면 UI 업데이트
-            // 리스트 오름차순
+            // ✅ 모든 URL 변환 작업 완료 후 정렬 적용
             group.notify(queue: .main) {
-                let sortedSongs = songs.sorted { lhs, rhs in
-                    let lhsIsEnglish = lhs.title.range(of: "^[A-Za-z]", options: .regularExpression) != nil
-                    let rhsIsEnglish = rhs.title.range(of: "^[A-Za-z]", options: .regularExpression) != nil
-
-                    // 영어 제목이 우선 정렬
-                    if lhsIsEnglish && !rhsIsEnglish {
-                        return true
-                    } else if !lhsIsEnglish && rhsIsEnglish {
-                        return false
-                    }
-
-                    // 영어 또는 한국어끼리는 자연 정렬 (숫자 포함)
-                    let lhsComponents = lhs.title.components(separatedBy: CharacterSet.decimalDigits.inverted).compactMap { Int($0) }
-                    let rhsComponents = rhs.title.components(separatedBy: CharacterSet.decimalDigits.inverted).compactMap { Int($0) }
-
-                    if let lhsNumber = lhsComponents.first, let rhsNumber = rhsComponents.first {
-                        return lhsNumber < rhsNumber
-                    }
-
-                    return lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
-                }
-
+                let sortedSongs = self.customSort(songs)
                 completion(sortedSongs)
             }
         }
     }
+
+    //MARK: 리스트 오름차순
+    private func customSort(_ songs: [Song]) -> [Song] {
+        return songs.sorted { lhs, rhs in
+            let lhsIsEnglish = lhs.title.range(of: "^[A-Za-z]", options: .regularExpression) != nil
+            let rhsIsEnglish = rhs.title.range(of: "^[A-Za-z]", options: .regularExpression) != nil
+
+            // 영어 먼저 정렬
+            if lhsIsEnglish && !rhsIsEnglish {
+                return true
+            } else if !lhsIsEnglish && rhsIsEnglish {
+                return false
+            }
+
+            // ✅ 2. Extract numeric components for sorting numbers (e.g., "Song 1" < "Song 2")
+            let lhsNumbers = lhs.title.components(separatedBy: CharacterSet.decimalDigits.inverted).compactMap { Int($0) }
+            let rhsNumbers = rhs.title.components(separatedBy: CharacterSet.decimalDigits.inverted).compactMap { Int($0) }
+
+            if let lhsNumber = lhsNumbers.first, let rhsNumber = rhsNumbers.first {
+                return lhsNumber < rhsNumber
+            }
+
+            // ✅ 3. Final fallback: Sort by localized standard comparison
+            return lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
+        }
+    }
+
 
     // Firebase Storage URL 가져오기
     func getDownloadURL(for gsUrl: String, completion: @escaping (URL?) -> Void) {
