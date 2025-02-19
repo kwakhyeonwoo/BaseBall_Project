@@ -27,62 +27,12 @@ class TeamSelect_SongModel {
     // 노래 목록 가져오기
     // firebase와 네트워크 연동
     func fetchSongs(for team: String, category: SongCategory, completion: @escaping ([Song]) -> Void) {
-        print("Fetching \(category == .teamSongs ? "team songs" : "player songs") for team: \(team)")
-
-        let collectionName = category == .teamSongs ? "teamSongs" : "playerSongs"
-        db.collection("songs").document(team).collection(collectionName).getDocuments { [weak self] snapshot, error in
-            guard let self = self else { return }
-
-            if let error = error {
-                print("Error fetching songs: \(error.localizedDescription)")
-                completion([])
-                return
-            }
-
-            guard let documents = snapshot?.documents else {
-                print("No songs found for \(category.rawValue) in team: \(team)")
-                completion([])
-                return
-            }
-
-            print("Fetched \(documents.count) documents for \(category.rawValue)")
-
-            var songs: [Song] = []
-            let group = DispatchGroup()
-
-            for doc in documents {
-                let data = doc.data()
-                guard let title = data["title"] as? String,
-                      let gsUrl = data["audioUrl"] as? String,
-                      let lyrics = data["lyrics"] as? String else {
-                    continue
-                }
-
-                let teamImageName = determineTeamImageName(for: team)
-
-                if let cachedUrl = self.cachedUrls[gsUrl] {
-                    songs.append(Song(id: doc.documentID, title: title, audioUrl: cachedUrl.absoluteString, lyrics: lyrics, teamImageName: teamImageName))
-                } else {
-                    group.enter()
-                    self.getDownloadURL(for: gsUrl) { [weak self] httpUrl in
-                        if let httpUrl = httpUrl {
-                            self?.cachedUrls[gsUrl] = httpUrl
-                            songs.append(Song(id: doc.documentID, title: title, audioUrl: httpUrl.absoluteString, lyrics: lyrics, teamImageName: teamImageName))
-                        } else {
-                            print("Failed to fetch URL for song: \(title)")
-                        }
-                        group.leave()
-                    }
-                }
-            }
-
-            // ✅ 모든 URL 변환 작업 완료 후 정렬 적용
-            group.notify(queue: .main) {
-                let sortedSongs = self.customSort(songs)
-                completion(sortedSongs)
-            }
+        getAllSongs { allSongs in
+            let teamSongs = allSongs.filter { $0.teamImageName == team }
+            completion(teamSongs)
         }
     }
+
 
     //MARK: 리스트 오름차순
     private func customSort(_ songs: [Song]) -> [Song] {
@@ -197,7 +147,8 @@ extension TeamSelect_SongModel {
         }
 
         group.notify(queue: .main) {
-            completion(allSongs.sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending })
+            let sortedSongs = self.customSort(allSongs)  // ✅ Apply the same sorting
+            completion(sortedSongs)
         }
     }
 
@@ -205,21 +156,30 @@ extension TeamSelect_SongModel {
     /// 🔹 Firestore에서 현재 곡의 이전 곡 찾기
     func getPreviousSong(for song: Song, completion: @escaping (Song?) -> Void) {
         getAllSongs { songs in
-            guard let index = songs.firstIndex(where: { $0.id == song.id }), index > 0 else {
+            guard let index = songs.firstIndex(where: { $0.id == song.id }) else {
+                print("❌ Error: Song not found in playlist.")
                 completion(nil)
                 return
             }
-            completion(songs[index - 1])
+            let prevIndex = (index == 0) ? songs.count - 1 : index - 1  // ✅ Loop to last song if at start
+            _ = songs[prevIndex]
+            completion(songs[prevIndex])
         }
     }
 
     func getNextSong(for song: Song, completion: @escaping (Song?) -> Void) {
         getAllSongs { songs in
-            guard let index = songs.firstIndex(where: { $0.id == song.id }), index < songs.count - 1 else {
+            guard let index = songs.firstIndex(where: { $0.id == song.id }) else {
+                print("❌ Error: Current song not found in the playlist")
                 completion(nil)
                 return
             }
-            completion(songs[index + 1])
+
+            let nextIndex = (index + 1) % songs.count // ✅ Loop to first song if at the end
+            let nextSong = songs[nextIndex]
+            
+            print("🎵 Next Song: \(nextSong.title) at Index \(nextIndex)")
+            completion(nextSong)
         }
     }
 

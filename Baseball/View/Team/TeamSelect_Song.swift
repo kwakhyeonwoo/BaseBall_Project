@@ -48,7 +48,10 @@ struct TeamSelect_SongView: View {
                 .onAppear {
                     viewModel.fetchSongs(for: selectedTeam)
                 }
-                .sheet(item: $selectedSong) { song in
+                .sheet(item: $selectedSong, onDismiss: {
+                    // ✅ Ensure selectedSong is reset when detail view is dismissed
+                    selectedSong = nil
+                }) { song in
                     SongDetailView(song: song, selectedTeam: selectedTeam)
                 }
                 // 하단부에 현재 음원 출력
@@ -103,6 +106,7 @@ struct TeamSelect_SongView: View {
                 .padding(.leading, 10)
                 .onTapGesture {
                     selectedSong = song
+                    viewModel.setupAndPlaySong(song)
                 }
             
             Spacer()

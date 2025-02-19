@@ -30,6 +30,50 @@ class TeamSelectSongViewModel: ObservableObject {
             }
         }
     }
+    
+    func setupAndPlaySong(_ song: Song) {
+        model.getAllSongs { [weak self] allSongs in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                
+                if allSongs.isEmpty {
+                    print("❌ Error: No songs available.")
+                    return
+                }
+
+                self.songs = allSongs  // ✅ Update song list
+                
+                if let index = allSongs.firstIndex(where: { $0.id == song.id }) {
+                    let selectedSong = allSongs[index]
+                    
+                    // ✅ Convert gs:// to https:// before playing
+                    self.model.getDownloadURL(for: selectedSong.audioUrl) { url in
+                        DispatchQueue.main.async {
+                            if let url = url {
+                                // ✅ Create a new `Song` instance with updated URL
+                                let updatedSong = Song(
+                                    id: selectedSong.id,
+                                    title: selectedSong.title,
+                                    audioUrl: url.absoluteString,  // ✅ Assign converted URL here
+                                    lyrics: selectedSong.lyrics,
+                                    teamImageName: selectedSong.teamImageName
+                                )
+                                
+                                // ✅ Start playing with converted URL
+                                AudioPlayerManager.shared.setPlaylist(songs: allSongs, startIndex: index)
+                                AudioPlayerManager.shared.play(url: url, for: updatedSong)
+                            } else {
+                                print("❌ Error: Failed to convert gs:// URL for \(selectedSong.title)")
+                            }
+                        }
+                    }
+                } else {
+                    print("❌ Error: Selected song not found in playlist.")
+                }
+            }
+        }
+    }
+
 
     // MARK: - Toggle Favorite
     func toggleFavorite(song: Song) {

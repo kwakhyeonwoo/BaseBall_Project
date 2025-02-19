@@ -68,7 +68,7 @@ class SignInViewModel: ObservableObject {
                     self?.alertMessage = "로그인 성공! 환영합니다, \(user.email ?? "사용자")"
                     self?.isTeamSelectActive = true
                     self?.isLoggedIn = true
-                case .failure(let error):
+                case .failure(_):
                     self?.alertMessage = ("비밀번호가 틀렸습니다.")
                     self?.showAlert = true
                 }

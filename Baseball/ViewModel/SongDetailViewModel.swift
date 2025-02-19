@@ -77,22 +77,28 @@ class SongDetailViewModel: ObservableObject {
         if playerManager.isPlaying {
             playerManager.pause()
         } else {
-            if let currentUrl = playerManager.getCurrentUrl(), currentUrl == URL(string: song.audioUrl) {
+            // Ensure the song URL is valid
+            guard let songUrl = URL(string: song.audioUrl) else {
+                print("❌ Error: Invalid URL for song \(song.title)")
+                return
+            }
+            
+            if let currentUrl = playerManager.getCurrentUrl(), currentUrl == songUrl {
                 playerManager.resume()
             } else {
-                playerManager.play(url: URL(string: song.audioUrl)!, for: song)
+                playerManager.play(url: songUrl, for: song)
             }
         }
     }
 
 
     func playPrevious() {
-        guard let currentSong = playerManager.currentSong else { return }
+        guard playerManager.currentSong != nil else { return }
         playerManager.playPrevious()
     }
 
     func playNext() {
-        guard let currentSong = playerManager.currentSong else { return }
+        guard playerManager.currentSong != nil else { return }
         playerManager.playNext()
     }
 

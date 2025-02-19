@@ -21,8 +21,8 @@ class AudioPlayerManager: ObservableObject {
     @Published var currentSong: Song?
 
     var player: AVPlayer?
+    var currentUrl: URL?
     private var playerObserver: Any?
-    private var currentUrl: URL?
     private let backgroundManager = AVPlayerBackgroundManager()
     private var playlist: [Song] = []
 
@@ -107,9 +107,16 @@ class AudioPlayerManager: ObservableObject {
     func setPlaylist(songs: [Song], startIndex: Int) {
         playlist = songs
         currentIndex = startIndex
-        if let song = playlist[safe: startIndex] {
-            play(url: URL(string: song.audioUrl)!, for: song)
+        guard let song = playlist[safe: startIndex] else {
+            print("❌ Error: Invalid start index for playlist.")
+            return
         }
+        if let url = URL(string: song.audioUrl) {
+            play(url: url, for: song)
+        } else {
+            print("❌ Error: Invalid URL for song \(song.title)")
+        }
+
     }
 
     // MARK: - 이전 / 다음 곡 재생
@@ -120,21 +127,36 @@ class AudioPlayerManager: ObservableObject {
         }
 
         firestoreService.getPreviousSong(for: currentSong) { [weak self] previousSong in
-            guard let self = self, let previousSong = previousSong else {
-                print("⚠️ No previous song found.")
-                return
-            }
-            //getDownloadURL에서 gs -> https로 변경하기
-            self.firestoreService.getDownloadURL(for: previousSong.audioUrl) { url in
-                DispatchQueue.main.async {
-                    if let url = url {
-                        self.currentSong = previousSong
-                        self.currentUrl = URL(string: previousSong.audioUrl)
-                        self.play(url: url, for: previousSong) // ✅ Play the converted URL
-                    } else {
-                        print("❌ Error: Failed to convert gs:// URL for \(previousSong.title)")
+            guard let self = self else { return }
+
+            if let previousSong = previousSong {
+                print("✅ Previous song found: \(previousSong.title)")
+
+                // ✅ Convert gs:// to https:// before playback
+                self.firestoreService.getDownloadURL(for: previousSong.audioUrl) { url in
+                    DispatchQueue.main.async {
+                        if let url = url {
+                            print("🔗 Converted URL for previous song: \(url.absoluteString)")
+
+                            // ✅ Create new Song instance to update audioUrl
+                            let updatedPreviousSong = Song(
+                                id: previousSong.id,
+                                title: previousSong.title,
+                                audioUrl: url.absoluteString, // ✅ Assign converted URL
+                                lyrics: previousSong.lyrics,
+                                teamImageName: previousSong.teamImageName
+                            )
+
+                            self.currentSong = updatedPreviousSong
+                            self.currentUrl = url
+                            self.play(url: url, for: updatedPreviousSong)
+                        } else {
+                            print("❌ Error: Failed to convert gs:// URL for previous song")
+                        }
                     }
                 }
+            } else {
+                print("⚠️ No previous song available.")
             }
         }
     }
@@ -146,45 +168,58 @@ class AudioPlayerManager: ObservableObject {
         }
 
         firestoreService.getNextSong(for: currentSong) { [weak self] nextSong in
-            guard let self = self, let nextSong = nextSong else {
-                print("⚠️ No next song found.")
-                return
-            }
+            guard let self = self else { return }
 
-            self.firestoreService.getDownloadURL(for: nextSong.audioUrl) { url in
-                DispatchQueue.main.async {
-                    if let url = url {
-                        self.currentSong = nextSong
-                        self.currentUrl = URL(string: nextSong.audioUrl)
-                        self.play(url: url, for: nextSong) // ✅ Play the converted URL
-                    } else {
-                        print("❌ Error: Failed to convert gs:// URL for \(nextSong.title)")
+            if let nextSong = nextSong {
+                print("✅ Next song found: \(nextSong.title)")
+
+                // ✅ Convert gs:// to https://
+                self.firestoreService.getDownloadURL(for: nextSong.audioUrl) { url in
+                    DispatchQueue.main.async {
+                        if let url = url {
+                            print("🔗 Converted URL for next song: \(url.absoluteString)")
+
+                            // ✅ Create new Song instance to update audioUrl
+                            let updatedNextSong = Song(
+                                id: nextSong.id,
+                                title: nextSong.title,
+                                audioUrl: url.absoluteString, // ✅ Assign converted URL
+                                lyrics: nextSong.lyrics,
+                                teamImageName: nextSong.teamImageName
+                            )
+
+                            self.currentSong = updatedNextSong
+                            self.currentUrl = url
+                            self.play(url: url, for: updatedNextSong)
+                        } else {
+                            print("❌ Error: Failed to convert gs:// URL for next song")
+                        }
                     }
                 }
+            } else {
+                print("⚠️ No next song available.")
             }
         }
     }
 
     // 🔹 Firestore 기반 이전 곡 여부 확인
-    func hasPreviousSong(for song: Song, completion: @escaping (Bool) -> Void) {
-        firestoreService.hasPreviousSong(for: song) { hasPrevious in
-            completion(hasPrevious)
-        }
-    }
-
-    // 🔹 Firestore 기반 다음 곡 여부 확인
-    // completion에서 false발생
     func hasNextSong(for song: Song, completion: @escaping (Bool) -> Void) {
         firestoreService.getAllSongs { songs in
             guard let index = songs.firstIndex(where: { $0.id == song.id }) else {
-                print("⚠️ Current song not found in playlist: \(song.title)")
-                completion(false)
+                completion(false) // ✅ Song not found, return false
                 return
             }
+            completion(songs.indices.contains(index + 1)) // ✅ Check if next song exists
+        }
+    }
 
-            let hasNext = index < songs.count - 1
-            print("🔍 Checking next song availability for \(song.title) at index \(index). Has Next: \(hasNext)")
-            completion(hasNext)
+    func hasPreviousSong(for song: Song, completion: @escaping (Bool) -> Void) {
+        firestoreService.getAllSongs { songs in
+            guard let index = songs.firstIndex(where: { $0.id == song.id }) else {
+                completion(false) // ✅ Song not found, return false
+                return
+            }
+            completion(songs.indices.contains(index - 1)) // ✅ Check if previous song exists
         }
     }
 
@@ -210,8 +245,6 @@ class AudioPlayerManager: ObservableObject {
         }
 
         if let currentUrl = currentUrl, let currentSong = currentSong {
-            print("▶️ Resuming playback of: \(currentSong.title), URL: \(currentUrl)")
-
             if player.currentItem == nil {
                 print("⚠️ AVPlayerItem is nil, reloading song...")
                 play(url: currentUrl, for: currentSong) // Reload and play
@@ -249,7 +282,7 @@ class AudioPlayerManager: ObservableObject {
         return currentUrl
     }
     
-    // MARK: - 동영상 막대바 이동
+    // MARK: - 동영상 막대바 이동 - 언래핑
     func seek(to time: Double) {
         guard let player = player else { return }
         let newTime = CMTime(seconds: time, preferredTimescale: 600)
@@ -257,7 +290,11 @@ class AudioPlayerManager: ObservableObject {
         currentTime = time
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            self.backgroundManager.setupNowPlayingInfo(for: self.currentSong!, player: self.player)
+            guard let currentSong = self.currentSong else {
+                print("❌ Error: No current song found while seeking")
+                return
+            }
+            self.backgroundManager.setupNowPlayingInfo(for: currentSong, player: self.player)
         }
     }
     
@@ -274,7 +311,7 @@ class AudioPlayerManager: ObservableObject {
     // 재생이 끝났을 때 호출되는 메서드
     @objc private func playerDidFinishPlaying() {
             playNext()
-        }
+    }
 
     @objc private func handlePlaybackEnded(){
         DispatchQueue.main.async{

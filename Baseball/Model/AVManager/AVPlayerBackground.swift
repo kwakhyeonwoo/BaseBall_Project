@@ -16,35 +16,6 @@ class AVPlayerBackgroundManager {
         NotificationCenter.default.addObserver(self, selector: #selector(handleRouteChange), name: AVAudioSession.routeChangeNotification, object: nil)
     }
 
-//    //에러 버전
-//    static func configureAudioSession() {
-//        let audioSession = AVAudioSession.sharedInstance()
-//
-//        do {
-//            // ✅ 1. 기존 오디오 세션을 안전하게 비활성화하지 않고 바로 설정 진행
-//            try audioSession.setCategory(.playback, mode: .default, options: [.allowAirPlay])
-//            
-//            // ✅ 2. 강제로 스피커 사용 설정 (필요 시)
-//            try audioSession.overrideOutputAudioPort(.speaker)
-//
-//            // ✅ 3. 오디오 세션 활성화는 마지막에 호출해야 함
-//            try audioSession.setActive(true, options: [])
-//
-//            print("✅ Audio session successfully configured and activated.")
-//
-//            // ✅ 4. 오디오 경로 변경 감지 추가 (이어폰 연결/해제 대응)
-//            NotificationCenter.default.addObserver(
-//                self,
-//                selector: #selector(handleRouteChange),
-//                name: AVAudioSession.routeChangeNotification,
-//                object: nil
-//            )
-//아 시발 개좆가텐 갑자기 왜 이지랄나냐
-//개시발 병신같은 앱
-//        } catch let error as NSError {
-//            print("❌ Failed to configure audio session: \(error.localizedDescription), \(error.userInfo)")
-//        }
-//    }
     //성공 버전
      static func configureAudioSession() {
          let audioSession = AVAudioSession.sharedInstance()

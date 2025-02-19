@@ -82,11 +82,19 @@ struct MiniPlayerView: View {
         Button(action: {
             if playerManager.isPlaying {
                 playerManager.pause()
-            } else if let currentUrl = playerManager.getCurrentUrl() {
-                playerManager.play(url: currentUrl, for: song)
             } else {
-                // 현재 URL이 없는 경우 새로 재생
-                playerManager.play(url: URL(string: song.audioUrl)!, for: song)
+                if playerManager.currentUrl == URL(string: song.audioUrl) {
+                    // ✅ Resume playback instead of reloading the song
+                    playerManager.resume()
+                } else {
+                    // ✅ If a different song is selected, start playback from the beginning
+                    if let url = URL(string: song.audioUrl) {
+                        playerManager.play(url: url, for: song)
+                    } else {
+                        print("❌ Error: Invalid URL for song \(song.title)")
+                    }
+
+                }
             }
         }) {
             Image(systemName: playerManager.isPlaying ? "pause.fill" : "play.fill")
@@ -97,6 +105,7 @@ struct MiniPlayerView: View {
                 .clipShape(Circle())
         }
     }
+
 
     private func showSongDetailView() {
         isShowingDetailView = true
