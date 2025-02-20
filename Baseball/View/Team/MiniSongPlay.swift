@@ -38,6 +38,9 @@ struct MiniPlayerView: View {
                 .shadow(radius: 2)
                 .sheet(isPresented: $isShowingDetailView) {
                     SongDetailView(song: currentSong, selectedTeam: selectedTeam)  // 팀 이름 전달
+                        .onAppear {
+                            AVPlayerBackgroundManager.configureAudioSession() // 🔥 Re-enable background audio session
+                        }
                 }
             }
             .animation(.spring(), value: playerManager.isPlaying)

@@ -16,42 +16,43 @@ class AVPlayerBackgroundManager {
         NotificationCenter.default.addObserver(self, selector: #selector(handleRouteChange), name: AVAudioSession.routeChangeNotification, object: nil)
     }
 
-    //성공 버전
-     static func configureAudioSession() {
-         let audioSession = AVAudioSession.sharedInstance()
-
-         do {
-             // ✅ 1. Set category first (NO INVALID OPTIONS)
-             try audioSession.setCategory(.playback, mode: .default, options: [])
-
-              //✅ 2. Activate session LAST (ONLY if not already active)
-             if !audioSession.isOtherAudioPlaying {
-                 try audioSession.setActive(true, options: [])
-                 print("✅ Audio session configured and activated successfully.")
-             } else {
-                 print("⚠️ Another audio is already playing. Skipping activation.")
-             }
-
-              //✅ 3. Listen for route changes (e.g., Bluetooth, AirPods disconnect)
-             NotificationCenter.default.addObserver(
-                 self,
-                 selector: #selector(handleRouteChange),
-                 name: AVAudioSession.routeChangeNotification,
-                 object: nil
-             )
-
-         } catch let error {
-             print("❌ Failed to configure audio session: \(error.localizedDescription)")
-         }
-     }
-
+    /// ✅ **오디오 세션 설정** (백그라운드에서도 재생 유지)
+    static func configureAudioSession() {
+        let audioSession = AVAudioSession.sharedInstance()
+        
+        do {
+            // ✅ 1. Set category first (NO INVALID OPTIONS)
+            try audioSession.setCategory(.playback, mode: .default, options: [])
+            
+            //✅ 2. Activate session LAST (ONLY if not already active)
+            if !audioSession.isOtherAudioPlaying {
+                try audioSession.setActive(true, options: [])
+                print("✅ Audio session configured and activated successfully.")
+            } else {
+                print("⚠️ Another audio is already playing. Skipping activation.")
+            }
+            
+            //✅ 3. Listen for route changes (e.g., Bluetooth, AirPods disconnect)
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(handleRouteChange),
+                name: AVAudioSession.routeChangeNotification,
+                object: nil
+            )
+            
+        } catch let error {
+            print("❌ Failed to configure audio session: \(error.localizedDescription)")
+        }
+    }
 
     // MARK: - 제어센터 명령 설정
     func configureRemoteCommandCenter(for playerManager: AudioPlayerManager) {
         let commandCenter = MPRemoteCommandCenter.shared()
 
         commandCenter.playCommand.addTarget { [weak playerManager] _ in
-            guard let playerManager = playerManager, let currentUrl = playerManager.getCurrentUrl(), let currentSong = playerManager.currentSong else { return .commandFailed }
+            guard let playerManager = playerManager,
+                  let currentUrl = playerManager.getCurrentUrl(),
+                  let currentSong = playerManager.currentSong else { return .commandFailed }
 
             if !playerManager.isPlaying {
                 playerManager.play(url: currentUrl, for: currentSong)
@@ -65,7 +66,9 @@ class AVPlayerBackgroundManager {
         }
 
         commandCenter.togglePlayPauseCommand.addTarget { [weak playerManager] _ in
-            guard let playerManager = playerManager, let currentUrl = playerManager.getCurrentUrl(), let currentSong = playerManager.currentSong else { return .commandFailed }
+            guard let playerManager = playerManager,
+                  let currentUrl = playerManager.getCurrentUrl(),
+                  let currentSong = playerManager.currentSong else { return .commandFailed }
 
             if playerManager.isPlaying {
                 playerManager.pause()
@@ -152,7 +155,6 @@ class AVPlayerBackgroundManager {
 
         switch reason {
         case .oldDeviceUnavailable:
-            // ✅ 이어폰이 뽑혔을 때 → 스피커로 자동 전환 후 재생 유지
             DispatchQueue.main.async {
                 if AudioPlayerManager.shared.isPlaying {
                     AudioPlayerManager.shared.player?.play()
@@ -160,7 +162,6 @@ class AVPlayerBackgroundManager {
                 }
             }
         case .newDeviceAvailable:
-            // ✅ 새 오디오 장치 연결됨 (예: 블루투스 이어폰) → 자동 재생
             DispatchQueue.main.async {
                 if AudioPlayerManager.shared.isPlaying {
                     AudioPlayerManager.shared.player?.play()
@@ -176,15 +177,14 @@ class AVPlayerBackgroundManager {
     private func addWhiteBackground(to image: UIImage) -> UIImage {
         let newSize = CGSize(width: image.size.width, height: image.size.height)
         
-        UIGraphicsBeginImageContextWithOptions(newSize, true, 0.0)  // 불투명(true)로 설정하여 흰 배경 생성
-        UIColor.white.setFill()  // 배경색을 흰색으로 설정
-        UIRectFill(CGRect(origin: .zero, size: newSize))  // 흰색으로 채우기
+        UIGraphicsBeginImageContextWithOptions(newSize, true, 0.0)
+        UIColor.white.setFill()
+        UIRectFill(CGRect(origin: .zero, size: newSize))
 
-        image.draw(in: CGRect(origin: .zero, size: newSize))  // 원본 이미지를 그리기
+        image.draw(in: CGRect(origin: .zero, size: newSize))
         let imageWithBackground = UIGraphicsGetImageFromCurrentImageContext() ?? image
         UIGraphicsEndImageContext()
 
         return imageWithBackground
     }
 }
-

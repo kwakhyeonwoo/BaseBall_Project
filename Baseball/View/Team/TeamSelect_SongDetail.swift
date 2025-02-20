@@ -84,7 +84,10 @@ struct SongDetailView: View {
             .padding(.top, 10)
         }
         .padding()
-        .onAppear { viewModel.setupPlayerIfNeeded(for: song) }
+        .onAppear {
+            viewModel.setupPlayerIfNeeded(for: song)
+            AVPlayerBackgroundManager.configureAudioSession()
+        }
         .onReceive(viewModel.$didFinishPlaying) { didFinish in
             if didFinish {
                 presentationMode.wrappedValue.dismiss()
