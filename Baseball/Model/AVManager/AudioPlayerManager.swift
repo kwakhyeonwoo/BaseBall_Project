@@ -66,9 +66,7 @@ class AudioPlayerManager: ObservableObject {
         }
     }
 
-
-
-    // MARK: - 플레이어 초기화
+    // MARK: - 플레이어 초기화 -> 초기화해서 불러올때 gs://로 불러옴. 
     private func setupPlayer(url: URL, for song: Song) {
         stop()  // ✅ 기존 플레이어 정리
 

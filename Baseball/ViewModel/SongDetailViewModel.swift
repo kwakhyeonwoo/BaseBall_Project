@@ -71,6 +71,7 @@ class SongDetailViewModel: ObservableObject {
 
         checkPreviousSongAvailability(for: song)
         checkNextSongAvailability(for: song)
+        
     }
     
     func togglePlayPause(for song: Song) {
