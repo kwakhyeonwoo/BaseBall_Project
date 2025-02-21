@@ -1,6 +1,6 @@
 //
 //  SwiftUIView.swift
-//     
+//
 //
 //  Created by 곽현우 on 1/24/25.
 //
@@ -85,7 +85,9 @@ struct SongDetailView: View {
         }
         .padding()
         .onAppear {
-            viewModel.setupPlayerIfNeeded(for: song)
+            if viewModel.currentSong?.id != song.id { // ✅ 같은 곡이면 새로 로드하지 않음
+                viewModel.setupPlayerIfNeeded(for: song)
+            }
             AVPlayerBackgroundManager.configureAudioSession()
         }
         .onReceive(viewModel.$didFinishPlaying) { didFinish in

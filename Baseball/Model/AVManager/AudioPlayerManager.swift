@@ -66,7 +66,7 @@ class AudioPlayerManager: ObservableObject {
         }
     }
 
-    // MARK: - 플레이어 초기화 -> 초기화해서 불러올때 gs://로 불러옴. 
+    // MARK: - 플레이어 초기화 -> 초기화해서 불러올때 gs://로 불러옴.
     private func setupPlayer(url: URL, for song: Song) {
         stop()  // ✅ 기존 플레이어 정리
 
@@ -130,24 +130,25 @@ class AudioPlayerManager: ObservableObject {
             if let previousSong = previousSong {
                 print("✅ Previous song found: \(previousSong.title)")
 
-                // ✅ Convert gs:// to https:// before playback
                 self.firestoreService.getDownloadURL(for: previousSong.audioUrl) { url in
                     DispatchQueue.main.async {
                         if let url = url {
                             print("🔗 Converted URL for previous song: \(url.absoluteString)")
 
-                            // ✅ Create new Song instance to update audioUrl
-                            let updatedPreviousSong = Song(
+                            // ✅ 최신 곡으로 업데이트
+                            self.currentSong = Song(
                                 id: previousSong.id,
                                 title: previousSong.title,
-                                audioUrl: url.absoluteString, // ✅ Assign converted URL
+                                audioUrl: url.absoluteString,
                                 lyrics: previousSong.lyrics,
                                 teamImageName: previousSong.teamImageName
                             )
 
-                            self.currentSong = updatedPreviousSong
                             self.currentUrl = url
-                            self.play(url: url, for: updatedPreviousSong)
+                                self.currentSong = self.currentSong  // ✅ playerManager에 반영
+                            self.currentUrl = self.currentUrl  // ✅ 최신 URL 저장
+
+                            self.play(url: url, for: self.currentSong!)
                         } else {
                             print("❌ Error: Failed to convert gs:// URL for previous song")
                         }
@@ -171,24 +172,25 @@ class AudioPlayerManager: ObservableObject {
             if let nextSong = nextSong {
                 print("✅ Next song found: \(nextSong.title)")
 
-                // ✅ Convert gs:// to https://
                 self.firestoreService.getDownloadURL(for: nextSong.audioUrl) { url in
                     DispatchQueue.main.async {
                         if let url = url {
                             print("🔗 Converted URL for next song: \(url.absoluteString)")
 
-                            // ✅ Create new Song instance to update audioUrl
-                            let updatedNextSong = Song(
+                            // ✅ 최신 곡으로 업데이트
+                            self.currentSong = Song(
                                 id: nextSong.id,
                                 title: nextSong.title,
-                                audioUrl: url.absoluteString, // ✅ Assign converted URL
+                                audioUrl: url.absoluteString,
                                 lyrics: nextSong.lyrics,
                                 teamImageName: nextSong.teamImageName
                             )
 
-                            self.currentSong = updatedNextSong
                             self.currentUrl = url
-                            self.play(url: url, for: updatedNextSong)
+                            self.currentSong = self.currentSong  // ✅ playerManager에 반영
+                            self.currentUrl = self.currentUrl  // ✅ 최신 URL 저장
+
+                            self.play(url: url, for: self.currentSong!)
                         } else {
                             print("❌ Error: Failed to convert gs:// URL for next song")
                         }

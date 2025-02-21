@@ -19,6 +19,7 @@ class TeamSelectSongViewModel: ObservableObject {
     @Published var selectedCategory: SongCategory = .teamSongs // 현재 선택된 카테고리
 
     private let model = TeamSelect_SongModel()
+    
 
     // MARK: - Fetch Songs
     func fetchSongs(for team: String) {
@@ -31,6 +32,7 @@ class TeamSelectSongViewModel: ObservableObject {
         }
     }
     
+    //곡 선택 시 gs:// -> https://로 변환
     func setupAndPlaySong(_ song: Song) {
         model.getAllSongs { [weak self] allSongs in
             DispatchQueue.main.async {

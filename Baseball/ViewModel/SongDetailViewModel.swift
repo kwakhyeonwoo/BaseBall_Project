@@ -25,7 +25,7 @@ class SongDetailViewModel: ObservableObject {
     init() {
         setupBindings()
     }
-
+    
     private func setupBindings() {
         // ✅ 플레이어 상태 동기화
         playerManager.$isPlaying
@@ -63,31 +63,43 @@ class SongDetailViewModel: ObservableObject {
             }
             .store(in: &cancellables)
     }
-    
-    func setupPlayerIfNeeded(for song: Song) {
-        guard playerManager.getCurrentUrl() != URL(string: song.audioUrl) else { return }
-        guard let url = URL(string: song.audioUrl) else { return }
-        playerManager.play(url: url, for: song)
 
-        checkPreviousSongAvailability(for: song)
-        checkNextSongAvailability(for: song)
-        
+    //선택한 곡을 현재 재생 중인 곡이랑 비교, 새로 재생할지 결정하는 함수
+    func setupPlayerIfNeeded(for song: Song) {
+        songModel.getDownloadURL(for: song.audioUrl) { [weak self] url in
+            guard let self = self, let url = url else {
+                print("❌ URL 변환 실패: \(song.audioUrl)")
+                return
+            }
+
+            if let currentUrl = playerManager.getCurrentUrl(),
+               let player = playerManager.player,
+               currentUrl == url, player.currentItem != nil {
+                return // ✅ 같은 곡이면 초기화하지 않음
+            }
+
+            playerManager.play(url: url, for: song)
+        }
     }
-    
+
     func togglePlayPause(for song: Song) {
         if playerManager.isPlaying {
             playerManager.pause()
         } else {
-            // Ensure the song URL is valid
-            guard let songUrl = URL(string: song.audioUrl) else {
-                print("❌ Error: Invalid URL for song \(song.title)")
-                return
-            }
-            
-            if let currentUrl = playerManager.getCurrentUrl(), currentUrl == songUrl {
+            if let currentUrl = playerManager.getCurrentUrl(),
+               let player = playerManager.player,
+               currentUrl == playerManager.currentUrl, player.currentItem != nil {
                 playerManager.resume()
             } else {
-                playerManager.play(url: songUrl, for: song)
+                let validUrl = playerManager.currentUrl ?? URL(string: song.audioUrl)
+
+                if let url = validUrl {
+                    // ✅ 변경 감지를 강제하여 SwiftUI에서 반영되도록 함
+                    playerManager.objectWillChange.send()
+                    playerManager.play(url: url, for: song)
+                } else {
+                    print("❌ Error: Invalid URL for song \(song.title)")
+                }
             }
         }
     }

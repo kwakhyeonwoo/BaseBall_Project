@@ -24,9 +24,9 @@ class AVPlayerBackgroundManager {
             name: AVAudioSession.routeChangeNotification,
             object: nil
         )
-
+        
     }
-
+    
     /// ✅ **오디오 세션 설정** (백그라운드에서도 재생 유지)
     static func configureAudioSession() {
         let audioSession = AVAudioSession.sharedInstance()
@@ -57,35 +57,35 @@ class AVPlayerBackgroundManager {
             print("❌ Failed to configure audio session: \(error.localizedDescription)")
         }
     }
-
+    
     // MARK: - 제어센터 명령 설정
     func configureRemoteCommandCenter(for playerManager: AudioPlayerManager) {
         let commandCenter = MPRemoteCommandCenter.shared()
-
+        
         //재생
         commandCenter.playCommand.addTarget { [weak playerManager] _ in
             guard let playerManager = playerManager,
                   let currentUrl = playerManager.getCurrentUrl(),
                   let currentSong = playerManager.currentSong else { return .commandFailed }
-
+            
             if !playerManager.isPlaying {
                 playerManager.play(url: currentUrl, for: currentSong)
             }
             return .success
         }
-
+        
         //일시정지
         commandCenter.pauseCommand.addTarget { [weak playerManager] _ in
             playerManager?.pause()
             return .success
         }
-
+        
         //재생, 일시정지 토글
         commandCenter.togglePlayPauseCommand.addTarget { [weak playerManager] _ in
             guard let playerManager = playerManager,
                   let currentUrl = playerManager.getCurrentUrl(),
                   let currentSong = playerManager.currentSong else { return .commandFailed }
-
+            
             if playerManager.isPlaying {
                 playerManager.pause()
             } else {
@@ -96,25 +96,25 @@ class AVPlayerBackgroundManager {
         
         //이전 음원
         commandCenter.previousTrackCommand.addTarget { [weak playerManager] _ in
-                guard let playerManager = playerManager else { return .commandFailed }
-                
-                if let currentSong = playerManager.currentSong {
-                    playerManager.playPrevious()
-                    return .success
-                }
-                return .commandFailed
+            guard let playerManager = playerManager else { return .commandFailed }
+            
+            if let currentSong = playerManager.currentSong {
+                playerManager.playPrevious()
+                return .success
             }
+            return .commandFailed
+        }
         
         //다음 음원
         commandCenter.nextTrackCommand.addTarget { [weak playerManager] _ in
-                guard let playerManager = playerManager else { return .commandFailed }
-                
-                if let currentSong = playerManager.currentSong {
-                    playerManager.playNext()
-                    return .success
-                }
-                return .commandFailed
+            guard let playerManager = playerManager else { return .commandFailed }
+            
+            if let currentSong = playerManager.currentSong {
+                playerManager.playNext()
+                return .success
             }
+            return .commandFailed
+        }
         
         //seek, 막대바 이동
         commandCenter.changePlaybackPositionCommand.addTarget { [weak playerManager] event in
@@ -128,21 +128,21 @@ class AVPlayerBackgroundManager {
             return .success
         }
     }
-
+    
     // MARK: - Now Playing 정보 설정
     func setupNowPlayingInfo(for song: Song, player: AVPlayer?) {
         guard let player = player else {
             print("❌ setupNowPlayingInfo - player가 nil 상태입니다.")
             return
         }
-
+        
         let teamImage = UIImage(named: song.teamImageName) ?? UIImage()
         let imageWithWhiteBackground = addWhiteBackground(to: teamImage)
-
+        
         let artwork = MPMediaItemArtwork(boundsSize: imageWithWhiteBackground.size) { _ in
             return imageWithWhiteBackground
         }
-
+        
         var nowPlayingInfo: [String: Any] = [
             MPMediaItemPropertyTitle: song.title,
             MPMediaItemPropertyArtist: "응원가",
@@ -155,20 +155,20 @@ class AVPlayerBackgroundManager {
         //이전, 다음 음원 조작
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackQueueIndex] = player.rate > 0 ? 1 : 0
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackQueueCount] = 1
-
+        
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
         print("✅ Now Playing 정보 업데이트됨: \(song.title), 시간: \(player.currentTime().seconds)")
     }
-
+    
     // MARK: 실시간 업데이트 현황
     func updateNowPlayingPlaybackState(for player: AVPlayer?, duration: Double) {
         guard let player = player else { return }
-
+        
         var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
         nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = player.currentTime().seconds
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = player.rate
         nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = player.currentItem?.duration.seconds ?? duration
-
+        
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
     
@@ -179,20 +179,20 @@ class AVPlayerBackgroundManager {
         UIGraphicsBeginImageContextWithOptions(newSize, true, 0.0)
         UIColor.white.setFill()
         UIRectFill(CGRect(origin: .zero, size: newSize))
-
+        
         image.draw(in: CGRect(origin: .zero, size: newSize))
         let imageWithBackground = UIGraphicsGetImageFromCurrentImageContext() ?? image
         UIGraphicsEndImageContext()
-
+        
         return imageWithBackground
     }
-
+    
     // MARK: - 인터럽션 및 라우트 변경 처리
     @objc private func handleInterruption(notification: Notification) {
         guard let info = notification.userInfo,
               let typeValue = info[AVAudioSessionInterruptionTypeKey] as? UInt,
               let type = AVAudioSession.InterruptionType(rawValue: typeValue) else { return }
-
+        
         if type == .began {
             AudioPlayerManager.shared.pause()
         } else if type == .ended {
@@ -204,13 +204,13 @@ class AVPlayerBackgroundManager {
             }
         }
     }
-
+    
     // MARK: 오디오 경로 변경 감지
     @objc private func handleRouteChange(notification: Notification) {
         guard let userInfo = notification.userInfo,
               let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
               let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else { return }
-
+        
         switch reason {
         case .oldDeviceUnavailable:
             DispatchQueue.main.async {
