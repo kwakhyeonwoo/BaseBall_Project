@@ -11,6 +11,7 @@ import MediaPlayer
 class AVPlayerBackgroundManager {
     
     // MARK: - 오디오 세션 설정 및 알림
+    // 오디오 인터럽션 감지.
     func setupAudioSessionNotifications() {
         NotificationCenter.default.addObserver(
             self,
@@ -24,7 +25,21 @@ class AVPlayerBackgroundManager {
             name: AVAudioSession.routeChangeNotification,
             object: nil
         )
+    }
+    func setupBackgroundPlaybackNotifications() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAppDidEnterBackground),
+            name: UIApplication.didEnterBackgroundNotification,
+            object: nil
+        )
 
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAppWillEnterForeground),
+            name: UIApplication.willEnterForegroundNotification,
+            object: nil
+        )
     }
 
     /// ✅ **오디오 세션 설정** (백그라운드에서도 재생 유지)
@@ -197,23 +212,8 @@ class AVPlayerBackgroundManager {
 
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
-    
-    func setupBackgroundPlaybackNotifications() {
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleAppDidEnterBackground),
-            name: UIApplication.didEnterBackgroundNotification,
-            object: nil
-        )
 
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleAppWillEnterForeground),
-            name: UIApplication.willEnterForegroundNotification,
-            object: nil
-        )
-    }
-
+    // 앱 백그라운드 감지 및 대응
     @objc private func handleAppDidEnterBackground() {
         print("📲 App moved to background - ensuring audio stays active")
         AVPlayerBackgroundManager.configureAudioSession()

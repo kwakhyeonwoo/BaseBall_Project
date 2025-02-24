@@ -43,7 +43,7 @@ struct TeamSelect: View {
     
     // MARK: - 선택 안내 텍스트
     func teamSelectionInstructions() -> some View {
-        Text("선택한 팀은 바꿀 수 없으니 신중하게 골라주세요")
+        Text("응원하실 팀을 선택해주세요")
             .foregroundStyle(.gray)
             .padding(.bottom, 20)
     }

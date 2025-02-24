@@ -18,6 +18,7 @@ class SongDetailViewModel: ObservableObject {
     @Published var hasPrevSong: Bool = false
     @Published var hasNextSong: Bool = false
     @Published var currentSong: Song?
+    @Published var lyricsStartTime: Double = 0.0
 
     private let playerManager = AudioPlayerManager.shared
     private let songModel = TeamSelect_SongModel() // Firestore에서 데이터 가져오기
@@ -60,6 +61,7 @@ class SongDetailViewModel: ObservableObject {
                 if let song = newSong {
                     self.checkPreviousSongAvailability(for: song)
                     self.checkNextSongAvailability(for: song)
+                    //self.lyricsStartTime = song.lyricsStartTime
                 }
             }
             .store(in: &cancellables)

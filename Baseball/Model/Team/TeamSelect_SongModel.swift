@@ -16,6 +16,7 @@ struct Song: Identifiable, Equatable, Codable {
     let audioUrl: String
     let lyrics: String
     let teamImageName: String
+    let lyricsStartTime: Double
 }
 
 class TeamSelect_SongModel {
@@ -136,9 +137,10 @@ extension TeamSelect_SongModel {
                     let data = document.data()
                     guard let title = data["title"] as? String,
                           let audioUrl = data["audioUrl"] as? String,
-                          let lyrics = data["lyrics"] as? String else { continue }
+                          let lyrics = data["lyrics"] as? String,
+                          let lyricsStartTime = data["lyricsStartTime"] as? Double else { continue }
 
-                    let song = Song(id: document.documentID, title: title, audioUrl: audioUrl, lyrics: lyrics, teamImageName: team)
+                    let song = Song(id: document.documentID, title: title, audioUrl: audioUrl, lyrics: lyrics, teamImageName: team, lyricsStartTime: lyricsStartTime)
                     allSongs.append(song)
                 }
 
