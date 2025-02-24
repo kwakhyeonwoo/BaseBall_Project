@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import AVFoundation
 
 class SongDetailViewModel: ObservableObject {
     @Published var isPlaying: Bool = false
@@ -78,27 +79,45 @@ class SongDetailViewModel: ObservableObject {
                 return // ✅ 같은 곡이면 초기화하지 않음
             }
 
+            print("🎵 새로운 곡 로드: \(song.title)")
             playerManager.play(url: url, for: song)
+
+            // ✅ Now Playing 정보 즉시 업데이트
+            DispatchQueue.main.async {
+                self.playerManager.backgroundManager.updateNowPlayingInfo()
+            }
         }
     }
 
     func togglePlayPause(for song: Song) {
-        if playerManager.isPlaying {
-            playerManager.pause()
+        if AudioPlayerManager.shared.isPlaying {
+            AudioPlayerManager.shared.pause()
         } else {
-            if let currentUrl = playerManager.getCurrentUrl(),
-               let player = playerManager.player,
-               currentUrl == playerManager.currentUrl, player.currentItem != nil {
-                playerManager.resume()
-            } else {
-                let validUrl = playerManager.currentUrl ?? URL(string: song.audioUrl)
+            if let player = AudioPlayerManager.shared.player,
+               let currentSong = AudioPlayerManager.shared.currentSong,
+               let currentUrl = AudioPlayerManager.shared.getCurrentUrl(),
+               currentUrl == URL(string: currentSong.audioUrl), player.currentItem != nil {
+                
+                let savedTime = AudioPlayerManager.shared.currentTime // ✅ 이전 재생 위치 저장
+                print("🔄 제어센터에서 재생 버튼 눌림, 이전 재생 위치: \(savedTime)초")
 
-                if let url = validUrl {
-                    // ✅ 변경 감지를 강제하여 SwiftUI에서 반영되도록 함
-                    playerManager.objectWillChange.send()
-                    playerManager.play(url: url, for: song)
+                player.seek(to: CMTime(seconds: savedTime, preferredTimescale: 600)) // ✅ 이전 위치 유지
+                player.play()
+                AudioPlayerManager.shared.isPlaying = true
+                AudioPlayerManager.shared.objectWillChange.send()
+
+                // ✅ Now Playing 정보 업데이트
+                DispatchQueue.main.async {
+                    AudioPlayerManager.shared.backgroundManager.updateNowPlayingInfo()
+                }
+
+            } else {
+                // ✅ 기존 곡 정보 유지하여 새로 로드하지 않음
+                if let validUrl = URL(string: AudioPlayerManager.shared.currentSong?.audioUrl ?? "") {
+                    print("🔄 기존 곡 유지하여 다시 재생: \(AudioPlayerManager.shared.currentSong?.title ?? "Unknown")")
+                    AudioPlayerManager.shared.play(url: validUrl, for: AudioPlayerManager.shared.currentSong!)
                 } else {
-                    print("❌ Error: Invalid URL for song \(song.title)")
+                    print("❌ Error: Invalid URL for song \(AudioPlayerManager.shared.currentSong?.title ?? "Unknown")")
                 }
             }
         }

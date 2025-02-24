@@ -10,7 +10,7 @@ import FirebaseStorage
 import Firebase
 import AVFoundation
 
-struct Song: Identifiable, Equatable {
+struct Song: Identifiable, Equatable, Codable {
     let id: String
     let title: String
     let audioUrl: String
