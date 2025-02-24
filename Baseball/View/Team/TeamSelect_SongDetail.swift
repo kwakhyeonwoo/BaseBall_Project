@@ -29,16 +29,17 @@ struct SongDetailView: View {
 
             ScrollViewReader { proxy in
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 30) {
                         ForEach(lyricsLines.indices, id: \.self) { index in
                             Text(lyricsLines[index])
                                 .font(.title3)
                                 .fontWeight(index == activeLineIndex ? .bold : .regular)
                                 .foregroundColor(index == activeLineIndex ? .green : .primary)
+                                .padding(.vertical, 5)
                                 .id(index)
                         }
                     }
-                    .padding()
+                    .padding(.horizontal, 50)
                 }
                 .onAppear { scrollProxy = proxy }
             }
@@ -101,7 +102,6 @@ struct SongDetailView: View {
                 viewModel.setupPlayerIfNeeded(for: song)
             }
             lyricsLines = formatLyrics(song.lyrics)
-            //lyricsLines = song.lyrics.components(separatedBy: "\n") // 가사 줄 단위로 나누기
             viewModel.lyricsStartTime = song.lyricsStartTime
             AVPlayerBackgroundManager.configureAudioSession()
         }
