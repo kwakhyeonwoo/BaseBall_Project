@@ -29,17 +29,19 @@ struct SongDetailView: View {
 
             ScrollViewReader { proxy in
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 30) {
+                    VStack(alignment: .leading, spacing: 20) {
                         ForEach(lyricsLines.indices, id: \.self) { index in
                             Text(lyricsLines[index])
-                                .font(.title3)
+                                .font(.title2)
                                 .fontWeight(index == activeLineIndex ? .bold : .regular)
                                 .foregroundColor(index == activeLineIndex ? .green : .primary)
-                                .padding(.vertical, 5)
+                                .multilineTextAlignment(.center)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
                                 .id(index)
                         }
                     }
-                    .padding(.horizontal, 50)
+                    .padding(.horizontal, 40)
                 }
                 .onAppear { scrollProxy = proxy }
             }
@@ -125,42 +127,58 @@ struct SongDetailView: View {
     /// 🔹 가사를 줄 단위로 변환하는 함수
     private func formatLyrics(_ lyrics: String) -> [String] {
         return lyrics
-            .replacingOccurrences(of: ")", with: ")\n") // 🔹 특정 구문 뒤에서 개행 추가
-            .components(separatedBy: "\n") // 🔹 개행을 기준으로 분리
+            .replacingOccurrences(of: "\\n\\n", with: "\n\n")
+            .components(separatedBy: "\n\n") // 🔹 개행을 기준으로 분리
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) } // 🔹 공백 제거
             .filter { !$0.isEmpty } // 🔹 빈 줄 제거
     }
     
     // 🔥 가사가 실제로 시작되는 타이밍을 감지하고, 줄별로 색상을 변경하는 함수
     private func updateHighlightedLyric(for time: Double) {
-        guard lyricsLines.count > 0 else { return }
-        
-        // 🔥 가사 시작 전까지는 하이라이트하지 않음
+        var timestamps = viewModel.timestamps // ✅ Firestore에서 가져온 timestamps
+
+        // 🔹 timestamps 배열과 lyricsLines 배열 개수가 다르면 보정
+        if timestamps.count != lyricsLines.count - 1 {
+            print("⚠️ timestamps(\(timestamps.count))와 lyricsLines(\(lyricsLines.count)) 개수가 다름 → 자동 조정")
+            while timestamps.count < lyricsLines.count - 1 { timestamps.append(timestamps.last ?? viewModel.lyricsStartTime) }
+            while timestamps.count > lyricsLines.count - 1 { timestamps.removeLast() }
+        }
+
+        // 🔹 가사 시작 전이면 하이라이트 없음
         if time < viewModel.lyricsStartTime {
             activeLineIndex = -1
             return
         }
-        
-        let adjustedTime = time - viewModel.lyricsStartTime // 🔥 가사 시작 이후의 경과 시간
-        let estimatedTimePerLine = viewModel.duration > 0
-        ? (viewModel.duration - viewModel.lyricsStartTime) / Double(lyricsLines.count)
-        : 2.7 // 기본값 2.7초 후 줄바꿈
-        
-        // 🔥 NaN 또는 Infinite 값 방지
-        guard estimatedTimePerLine.isFinite, !estimatedTimePerLine.isNaN, estimatedTimePerLine > 0 else { return }
-        
-        // 🔥 현재 줄 계산 (소수점 절삭하여 int 변환)
-        let newIndex = min(max(0, Int(adjustedTime / estimatedTimePerLine)), lyricsLines.count - 1)
-        
-        // 🔥 현재 줄이 변경될 경우만 업데이트
-        if newIndex != activeLineIndex {
-            activeLineIndex = newIndex
-            withAnimation {
-                scrollProxy?.scrollTo(newIndex, anchor: .center)
+
+        let adjustedTime = time // ✅ 전체 시간을 사용하여 timestamps 매칭
+
+        // ✅ 첫 번째 가사는 lyricsStartTime 기준으로 처리
+        if timestamps.isEmpty || adjustedTime < timestamps[0] {
+            if activeLineIndex != 0 {
+                activeLineIndex = 0
+                withAnimation {
+                    scrollProxy?.scrollTo(0, anchor: .center)
+                }
             }
+            return
+        }
+
+        // ✅ timestamps에서 현재 시간과 가장 가까운 값을 찾기
+        if let newIndex = timestamps.lastIndex(where: { $0 <= adjustedTime }) {
+            let highlightIndex = min(newIndex + 1, lyricsLines.count - 1) // ✅ 첫 번째 가사는 timestamps에 없으므로 +1 적용
+
+            if highlightIndex != activeLineIndex {
+                activeLineIndex = highlightIndex
+                withAnimation {
+                    scrollProxy?.scrollTo(highlightIndex, anchor: .center)
+                }
+            }
+        } else {
+            // 🔹 마지막 줄까지 도달한 경우 마지막 줄 유지
+            activeLineIndex = lyricsLines.count - 1
         }
     }
-    
+
     private func formatTime(_ time: Double) -> String {
         let minutes = Int(time) / 60
         let seconds = Int(time) % 60

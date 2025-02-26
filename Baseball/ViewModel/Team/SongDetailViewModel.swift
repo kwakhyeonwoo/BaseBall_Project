@@ -19,6 +19,7 @@ class SongDetailViewModel: ObservableObject {
     @Published var hasNextSong: Bool = false
     @Published var currentSong: Song?
     @Published var lyricsStartTime: Double = 0.0
+    @Published var timestamps: [Double] = [] // ✅ Firestore에서 가져온 timestamps 저장
 
     private let playerManager = AudioPlayerManager.shared
     private let songModel = TeamSelect_SongModel() // Firestore에서 데이터 가져오기
@@ -57,17 +58,23 @@ class SongDetailViewModel: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] newSong in
                 guard let self = self else { return }
-                self.currentSong = newSong
-                if let song = newSong {
-                    self.checkPreviousSongAvailability(for: song)
-                    self.checkNextSongAvailability(for: song)
-                    //self.lyricsStartTime = song.lyricsStartTime
-                }
+                self.updateCurrentSong(newSong)
             }
             .store(in: &cancellables)
     }
 
-    //선택한 곡을 현재 재생 중인 곡이랑 비교, 새로 재생할지 결정하는 함수
+    /// 🔹 새로운 곡 정보 업데이트 및 `timestamps` 불러오기
+    private func updateCurrentSong(_ newSong: Song?) {
+        guard let song = newSong else { return }
+        self.currentSong = song
+        self.lyricsStartTime = song.lyricsStartTime // ✅ Firestore에서 가져온 시작 시간 반영
+        self.timestamps = song.timestamps // ✅ Firestore에서 가져온 timestamps 반영
+        
+        checkPreviousSongAvailability(for: song)
+        checkNextSongAvailability(for: song)
+    }
+
+    // 🔹 선택한 곡을 현재 재생 중인 곡과 비교, 새로 재생할지 결정하는 함수
     func setupPlayerIfNeeded(for song: Song) {
         songModel.getDownloadURL(for: song.audioUrl) { [weak self] url in
             guard let self = self, let url = url else {
@@ -124,7 +131,6 @@ class SongDetailViewModel: ObservableObject {
             }
         }
     }
-
 
     func playPrevious() {
         guard playerManager.currentSong != nil else { return }

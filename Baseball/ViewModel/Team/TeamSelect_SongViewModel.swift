@@ -59,7 +59,8 @@ class TeamSelectSongViewModel: ObservableObject {
                                     audioUrl: url.absoluteString,  // ✅ Assign converted URL here
                                     lyrics: selectedSong.lyrics,
                                     teamImageName: selectedSong.teamImageName,
-                                    lyricsStartTime: selectedSong.lyricsStartTime
+                                    lyricsStartTime: selectedSong.lyricsStartTime,
+                                    timestamps: selectedSong.timestamps
                                 )
                                 
                                 // ✅ Start playing with converted URL

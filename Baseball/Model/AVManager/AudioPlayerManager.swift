@@ -161,7 +161,8 @@ class AudioPlayerManager: ObservableObject {
                                 audioUrl: url.absoluteString,
                                 lyrics: previousSong.lyrics,
                                 teamImageName: previousSong.teamImageName,
-                                lyricsStartTime: previousSong.lyricsStartTime
+                                lyricsStartTime: previousSong.lyricsStartTime,
+                                timestamps: previousSong.timestamps
                             )
 
                             self.currentUrl = url
@@ -198,7 +199,8 @@ class AudioPlayerManager: ObservableObject {
                                 audioUrl: url.absoluteString,
                                 lyrics: nextSong.lyrics,
                                 teamImageName: nextSong.teamImageName,
-                                lyricsStartTime: nextSong.lyricsStartTime
+                                lyricsStartTime: nextSong.lyricsStartTime,
+                                timestamps: nextSong.timestamps
                             )
 
                             self.currentSong = updatedNextSong
