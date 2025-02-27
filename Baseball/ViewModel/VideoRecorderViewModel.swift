@@ -15,10 +15,19 @@ struct VideoRecorderViewModel: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.delegate = context.coordinator
-        picker.sourceType = .camera
-        picker.mediaTypes = ["public.movie"] // 동영상 녹화 활성화
-        picker.videoQuality = .typeHigh // 고화질 설정
-        picker.cameraCaptureMode = .video
+        
+        // 카메라 사용 가능 여부 확인
+        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+            picker.sourceType = .camera
+            picker.mediaTypes = ["public.movie"] // 동영상 녹화 활성화
+            picker.videoQuality = .typeHigh // 고화질 설정
+            picker.cameraCaptureMode = .video
+        } else {
+            // 카메라가 없으면 갤러리에서 선택하도록 변경
+            picker.sourceType = .photoLibrary
+            picker.mediaTypes = ["public.movie"]
+        }
+
         return picker
     }
 
@@ -51,4 +60,3 @@ struct VideoRecorderViewModel: UIViewControllerRepresentable {
         }
     }
 }
-
