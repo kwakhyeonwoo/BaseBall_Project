@@ -13,7 +13,9 @@ struct CalendarView: View {
     let selectedTeamImage: String
     @State private var selectedTab: String? = "경기일정"
     @State private var showVideoRecorder: Bool = false
-    @State private var navigateToSongView: Bool = false
+    @State private var recordedVideoURL: URL? // 녹화된 영상 저장
+    @State private var navigateToPreview = false // VideoPreviewView 이동
+    @State private var navigateToCheckAllVideo = false
 
     var body: some View {
         NavigationStack {
@@ -29,24 +31,25 @@ struct CalendarView: View {
             .sheet(isPresented: $showVideoRecorder) {
                 VideoRecorderViewModel { videoURL in
                     if let videoURL = videoURL {
-                        print("녹화된 동영상 경로: \(videoURL)")
+                        print("🎬 녹화된 동영상: \(videoURL)")
+                        navigateToCheckAllVideo = true // ✅ 바로 "응원가 확인하기" 이동
                     } else {
-                        print("녹화가 취소되었습니다.")
+                        print("❌ 녹화가 취소되었습니다.")
                     }
                 }
             }
             .background(
                 NavigationLink(
-                    destination: TeamSelect_SongView(selectedTeam: selectedTeam, selectedTeamImage: selectedTeamImage),
-                    isActive: $navigateToSongView
+                    destination: CheckAllVideo(), // ✅ 바로 "응원가 확인하기" 화면으로 이동
+                    isActive: $navigateToCheckAllVideo
                 ) {
                     EmptyView()
                 }
-                .hidden()
+                    .hidden()
             )
         }
     }
-
+    
     func teamHeader() -> some View {
         VStack(spacing: 20) {
             HStack {
@@ -69,9 +72,9 @@ struct CalendarView: View {
     func tabView() -> some View {
         HStack(spacing: 0) {
             tabButton(label: "경기일정", icon: "calendar", tag: "경기일정")
-            tabButton(label: "공식 응원가", icon: "music.note", tag: "공식 응원가", isMultiline: true)
-            tabButton(label: "응원가 업로드", icon: "arrow.up.circle", tag: "응원가 업로드", isMultiline: true)
-            tabButton(label: "응원가 확인하기", icon: "play.rectangle", tag: "응원가 확인하기", isMultiline: true)
+            tabButton(label: "공식 응원가", icon: "music.note", tag: "공식 응원가")
+            tabButton(label: "응원가 업로드", icon: "arrow.up.circle", tag: "응원가 업로드")
+            tabButton(label: "응원가 확인하기", icon: "play.rectangle", tag: "응원가 확인하기")
             tabButton(label: "보관함", icon: "tray.full", tag: "보관함")
         }
         .frame(height: 80)
@@ -79,30 +82,23 @@ struct CalendarView: View {
         .padding(.horizontal, 10)
     }
 
-    func tabButton(label: String, icon: String, tag: String, isMultiline: Bool = false) -> some View {
+    func tabButton(label: String, icon: String, tag: String) -> some View {
         Button(action: {
             selectedTab = tag
             if tag == "응원가 업로드" {
                 showVideoRecorder = true
-            } else if tag == "공식 응원가" {
-                navigateToSongView = true
             }
         }) {
-            VStack(spacing: 3) {
+            VStack(spacing: 5) {
                 Image(systemName: icon)
                     .font(.system(size: selectedTab == tag ? 26 : 24, weight: selectedTab == tag ? .bold : .regular))
                     .foregroundColor(.black)
-                    .frame(height: 24) // 아이콘 높이 통일
                 Text(label)
                     .font(.footnote)
-                    .fontWeight(selectedTab == tag ? .bold : .regular)
                     .foregroundColor(.black)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(height: isMultiline ? 30 : 14) // 텍스트 높이 통일
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.vertical, 5) // 전체 높이 균형 맞추기
+            .padding(.vertical, 10)
         }
         .buttonStyle(PlainButtonStyle())
     }

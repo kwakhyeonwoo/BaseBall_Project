@@ -15,15 +15,13 @@ struct VideoRecorderViewModel: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.delegate = context.coordinator
-        
-        // 카메라 사용 가능 여부 확인
+
         if UIImagePickerController.isSourceTypeAvailable(.camera) {
             picker.sourceType = .camera
-            picker.mediaTypes = ["public.movie"] // 동영상 녹화 활성화
-            picker.videoQuality = .typeHigh // 고화질 설정
+            picker.mediaTypes = ["public.movie"]
+            picker.videoQuality = .typeHigh
             picker.cameraCaptureMode = .video
         } else {
-            // 카메라가 없으면 갤러리에서 선택하도록 변경
             picker.sourceType = .photoLibrary
             picker.mediaTypes = ["public.movie"]
         }
@@ -45,13 +43,12 @@ struct VideoRecorderViewModel: UIViewControllerRepresentable {
         }
 
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
-            // 동영상 URL 가져오기
             if let videoURL = info[.mediaURL] as? URL {
-                parent.onVideoRecorded(videoURL)
-            } else {
-                parent.onVideoRecorded(nil)
+                DispatchQueue.main.async {
+                    self.parent.onVideoRecorded(videoURL)
+                }
             }
-            parent.presentationMode.wrappedValue.dismiss()
+            parent.presentationMode.wrappedValue.dismiss() // ✅ "Use Video" 클릭 시 즉시 닫힘
         }
 
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
