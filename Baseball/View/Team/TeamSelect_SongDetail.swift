@@ -20,84 +20,100 @@ struct SongDetailView: View {
     @State private var scrollProxy: ScrollViewProxy? = nil
 
     var body: some View {
-        VStack(spacing: 20) {
-            Text(viewModel.currentSong?.title ?? song.title)
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .multilineTextAlignment(.center)
-                .padding()
-
-            ScrollViewReader { proxy in
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        ForEach(lyricsLines.indices, id: \.self) { index in
-                            Text(lyricsLines[index])
-                                .font(.title2)
-                                .fontWeight(index == activeLineIndex ? .bold : .regular)
-                                .foregroundColor(index == activeLineIndex ? .green : .primary)
-                                .multilineTextAlignment(.center)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 8)
-                                .id(index)
+        ZStack {
+            // ✅ 배경에 팀 로고 추가
+            Image("\(selectedTeam)") // Assets에서 로고 이미지 불러오기
+                .resizable()
+                .scaledToFit()
+                .frame(width: 250, height: 250) // 로고 크기 조절
+                .opacity(0.3) // 투명도 50% 적용
+                .offset(y: -30) // 위치 조정 (필요 시 수정 가능)
+            
+            VStack(spacing: 20) {
+                Text(viewModel.currentSong?.title ?? song.title)
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .multilineTextAlignment(.center)
+                    .padding()
+                
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 20) {
+                            ForEach(lyricsLines.indices, id: \.self) { index in
+                                Text(lyricsLines[index])
+                                    .font(.title2)
+                                    .fontWeight(index == activeLineIndex ? .bold : .regular)
+                                    .foregroundColor(index == activeLineIndex ? .green : .primary)
+                                    .multilineTextAlignment(.center)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
+                                    .id(index)
+                            }
                         }
+                        .padding(.horizontal, 40)
                     }
-                    .padding(.horizontal, 40)
+                    .onAppear { scrollProxy = proxy }
                 }
-                .onAppear { scrollProxy = proxy }
-            }
-
-            if viewModel.duration > 0 {
-                CustomProgressBar(
-                    progress: $viewModel.progress,
-                    onSeek: { newProgress in
-                        let newTime = newProgress * max(1, viewModel.duration)
-                        viewModel.seek(to: newTime)
-                    },
-                    teamColor: TeamColorModel.shared.getColor(for: selectedTeam)
-                )
-                .frame(height: 8)
-                .padding(.horizontal, 20)
-                .padding(.top, 5)
+                
+                if viewModel.duration > 0 {
+                    CustomProgressBar(
+                        progress: $viewModel.progress,
+                        onSeek: { newProgress in
+                            let newTime = newProgress * max(1, viewModel.duration)
+                            viewModel.seek(to: newTime)
+                        },
+                        teamColor: TeamColorModel.shared.getColor(for: selectedTeam)
+                    )
+                    .frame(height: 8)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 5)
+                    
+                    HStack {
+                        Text(formatTime(viewModel.currentTime))
+                        Spacer()
+                        Text("-" + formatTime(viewModel.duration - viewModel.currentTime))
+                    }
+                    .padding()
+                }
                 
                 HStack {
-                    Text(formatTime(viewModel.currentTime))
+                    Button(action: { viewModel.playPrevious() }) {
+                        Image(systemName: "backward.fill")
+                            .font(.system(size: 30))
+                            .foregroundColor(viewModel.hasPrevSong ? .primary : .gray)
+                            .offset(y: -40)
+                    }
+                    .disabled(!viewModel.hasPrevSong)
+                    
                     Spacer()
-                    Text("-" + formatTime(viewModel.duration - viewModel.currentTime))
+                    
+                    Button(action: { viewModel.togglePlayPause(for: song) }) {
+                        Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+                            .font(.system(size: 40))
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(viewModel.isPlaying ? Color.gray : Color.blue)
+                            .clipShape(Circle())
+                            .offset(y: -40)
+                    }
+                    
+                    Spacer()
+                    
+                    Button(action: { viewModel.playNext() }) {
+                        Image(systemName: "forward.fill")
+                            .font(.system(size: 30))
+                            .foregroundColor(viewModel.hasNextSong ? .primary : .gray)
+                            .offset(y: -40)
+                    }
+                    .disabled(!viewModel.hasNextSong)
                 }
-                .padding()
+                .padding(.top, 10)
             }
-
-            HStack {
-                Button(action: { viewModel.playPrevious() }) {
-                    Image(systemName: "backward.fill")
-                        .font(.system(size: 30))
-                        .foregroundColor(viewModel.hasPrevSong ? .primary : .gray)
-                }
-                .disabled(!viewModel.hasPrevSong)
-
-                Spacer()
-
-                Button(action: { viewModel.togglePlayPause(for: song) }) {
-                    Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-                        .font(.system(size: 40))
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(viewModel.isPlaying ? Color.gray : Color.blue)
-                        .clipShape(Circle())
-                }
-
-                Spacer()
-
-                Button(action: { viewModel.playNext() }) {
-                    Image(systemName: "forward.fill")
-                        .font(.system(size: 30))
-                        .foregroundColor(viewModel.hasNextSong ? .primary : .gray)
-                }
-                .disabled(!viewModel.hasNextSong)
-            }
-            .padding(.top, 10)
+            .padding()
         }
-        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.white) // 배경색 추가 (필요하면 제거 가능)
+        .edgesIgnoringSafeArea(.all) // 전체 화면 적용
         .onAppear {
             updateLyrics(for: song)
             if viewModel.currentSong?.id != song.id {
@@ -116,6 +132,7 @@ struct SongDetailView: View {
             updateHighlightedLyric(for: currentTime)
         }
     }
+
     /// 🔹 새로운 곡이 로드될 때 가사 업데이트
     private func updateLyrics(for song: Song) {
         lyricsLines = formatLyrics(song.lyrics) // ✅ 줄 단위 변환
