@@ -14,8 +14,8 @@ struct CalendarView: View {
     @State private var selectedTab: String? = "경기일정"
     @State private var showVideoRecorder: Bool = false
     @State private var recordedVideoURL: URL? // 녹화된 영상 저장
-    @State private var navigateToPreview = false // VideoPreviewView 이동
     @State private var navigateToCheckAllVideo = false
+    @State private var navigateToSongView = false // ✅ 공식 응원가 이동
 
     var body: some View {
         NavigationStack {
@@ -32,24 +32,36 @@ struct CalendarView: View {
                 VideoRecorderViewModel { videoURL in
                     if let videoURL = videoURL {
                         print("🎬 녹화된 동영상: \(videoURL)")
-                        navigateToCheckAllVideo = true // ✅ 바로 "응원가 확인하기" 이동
+                        navigateToCheckAllVideo = true
                     } else {
                         print("❌ 녹화가 취소되었습니다.")
                     }
                 }
             }
             .background(
-                NavigationLink(
-                    destination: CheckAllVideo(), // ✅ 바로 "응원가 확인하기" 화면으로 이동
-                    isActive: $navigateToCheckAllVideo
-                ) {
-                    EmptyView()
-                }
+                VStack {
+                    // ✅ "응원가 확인하기" 이동 NavigationLink
+                    NavigationLink(
+                        destination: CheckAllVideo(),
+                        isActive: $navigateToCheckAllVideo
+                    ) {
+                        EmptyView()
+                    }
                     .hidden()
+
+                    // ✅ "공식 응원가" 이동 NavigationLink 추가
+                    NavigationLink(
+                        destination: TeamSelect_SongView(selectedTeam: selectedTeam, selectedTeamImage: selectedTeamImage),
+                        isActive: $navigateToSongView
+                    ) {
+                        EmptyView()
+                    }
+                    .hidden()
+                }
             )
         }
     }
-    
+
     func teamHeader() -> some View {
         VStack(spacing: 20) {
             HStack {
@@ -87,6 +99,8 @@ struct CalendarView: View {
             selectedTab = tag
             if tag == "응원가 업로드" {
                 showVideoRecorder = true
+            } else if tag == "공식 응원가" {
+                navigateToSongView = true // ✅ TeamSelect_SongView로 이동
             }
         }) {
             VStack(spacing: 5) {
