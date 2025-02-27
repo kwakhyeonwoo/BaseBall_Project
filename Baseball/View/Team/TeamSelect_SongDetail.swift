@@ -81,7 +81,7 @@ struct SongDetailView: View {
                         Image(systemName: "backward.fill")
                             .font(.system(size: 30))
                             .foregroundColor(viewModel.hasPrevSong ? .primary : .gray)
-                            .offset(y: -40)
+                            .frame(width: 50, height: 50)
                     }
                     .disabled(!viewModel.hasPrevSong)
                     
@@ -94,7 +94,7 @@ struct SongDetailView: View {
                             .padding()
                             .background(viewModel.isPlaying ? Color.gray : Color.blue)
                             .clipShape(Circle())
-                            .offset(y: -40)
+                            .frame(width: 70, height: 70)
                     }
                     
                     Spacer()
@@ -103,11 +103,12 @@ struct SongDetailView: View {
                         Image(systemName: "forward.fill")
                             .font(.system(size: 30))
                             .foregroundColor(viewModel.hasNextSong ? .primary : .gray)
-                            .offset(y: -40)
+                            .frame(width: 50, height: 50)
                     }
                     .disabled(!viewModel.hasNextSong)
                 }
-                .padding(.top, 10)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
             }
             .padding()
         }
