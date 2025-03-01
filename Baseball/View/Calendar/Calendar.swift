@@ -16,6 +16,7 @@ struct CalendarView: View {
     @State private var recordedVideoURL: URL? // 녹화된 영상 저장
     @State private var navigateToCheckAllVideo = false
     @State private var navigateToSongView = false // ✅ 공식 응원가 이동
+    @State private var navigateToTitleInput = false
 
     var body: some View {
         NavigationStack {
@@ -30,19 +31,37 @@ struct CalendarView: View {
             }
             .sheet(isPresented: $showVideoRecorder) {
                 VideoRecorderViewModel { videoURL in
-                    if let videoURL = videoURL {
-                        print("🎬 녹화된 동영상: \(videoURL)")
-                        navigateToCheckAllVideo = true
-                    } else {
-                        print("❌ 녹화가 취소되었습니다.")
+                    DispatchQueue.main.async {
+                        if let videoURL = videoURL {
+                            print("🎬 녹화된 동영상: \(videoURL)")
+                            //navigateToCheckAllVideo = true
+                            recordedVideoURL = videoURL
+                            navigateToTitleInput = true
+                        } else {
+                            print("❌ 녹화가 취소되었습니다.")
+                        }
                     }
                 }
             }
+
             .background(
                 VStack {
+                    // ✅ "응원가 제목 입력 화면"으로 이동하는 NavigationLink
+                    NavigationLink(
+                        destination: UploadSongTitleView(
+                            selectedTeam: selectedTeam,
+                            selectedTeamImage: selectedTeamImage,
+                            videoURL: recordedVideoURL
+                        ),
+                        isActive: $navigateToTitleInput
+                    ) {
+                        EmptyView()
+                    }
+                    .hidden()
+                    
                     // ✅ "응원가 확인하기" 이동 NavigationLink
                     NavigationLink(
-                        destination: CheckAllVideo(),
+                        destination: CheckAllVideo(selectedTeam: selectedTeam, selectedTeamImage: selectedTeamImage),
                         isActive: $navigateToCheckAllVideo
                     ) {
                         EmptyView()

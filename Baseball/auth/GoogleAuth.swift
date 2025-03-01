@@ -71,6 +71,4 @@ class GoogleAuth: ObservableObject, AuthProvider {
             self.isLoggedIn = false
         }
     }
-    
-    
 }

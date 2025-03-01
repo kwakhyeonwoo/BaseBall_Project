@@ -10,21 +10,15 @@ import UIKit
 
 struct VideoRecorderViewModel: UIViewControllerRepresentable {
     @Environment(\.presentationMode) var presentationMode
-    var onVideoRecorded: (URL?) -> Void
+    var onRecordingComplete: (URL?) -> Void
 
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.delegate = context.coordinator
-
-        if UIImagePickerController.isSourceTypeAvailable(.camera) {
-            picker.sourceType = .camera
-            picker.mediaTypes = ["public.movie"]
-            picker.videoQuality = .typeHigh
-            picker.cameraCaptureMode = .video
-        } else {
-            picker.sourceType = .photoLibrary
-            picker.mediaTypes = ["public.movie"]
-        }
+        picker.sourceType = .camera
+        picker.mediaTypes = ["public.movie"]
+        picker.videoQuality = .typeHigh
+        picker.cameraCaptureMode = .video
 
         return picker
     }
@@ -32,7 +26,7 @@ struct VideoRecorderViewModel: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(self)
+        return Coordinator(self)
     }
 
     class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
@@ -44,15 +38,23 @@ struct VideoRecorderViewModel: UIViewControllerRepresentable {
 
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
             if let videoURL = info[.mediaURL] as? URL {
+                print("🎬 녹화된 동영상: \(videoURL.absoluteString)")
                 DispatchQueue.main.async {
-                    self.parent.onVideoRecorded(videoURL)
+                    print("✅ 비디오 녹화 완료: \(videoURL.absoluteString)")
+                    self.parent.onRecordingComplete(videoURL)
+                }
+            } else {
+                DispatchQueue.main.async {
+                    print("❌ 녹화된 비디오를 찾을 수 없음")
+                    self.parent.onRecordingComplete(nil)
                 }
             }
-            parent.presentationMode.wrappedValue.dismiss() // ✅ "Use Video" 클릭 시 즉시 닫힘
+            parent.presentationMode.wrappedValue.dismiss()
         }
 
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-            parent.onVideoRecorded(nil)
+            print("❌ 녹화가 취소되었습니다.")
+            parent.onRecordingComplete(nil)
             parent.presentationMode.wrappedValue.dismiss()
         }
     }
