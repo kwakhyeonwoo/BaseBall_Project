@@ -65,10 +65,10 @@ class GoogleAuth: ObservableObject, AuthProvider {
         return rootVC ?? UIViewController()
     }
     
-    func logOut() {
-        GIDSignIn.sharedInstance.signOut()  // 구글 로그아웃
-        DispatchQueue.main.async {
-            self.isLoggedIn = false
-        }
-    }
+//    func logOut() {
+//        GIDSignIn.sharedInstance.signOut()  // 구글 로그아웃
+//        DispatchQueue.main.async {
+//            self.isLoggedIn = false
+//        }
+//    }
 }

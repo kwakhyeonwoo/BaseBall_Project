@@ -9,6 +9,7 @@ import SwiftUI
 import AVKit
 import FirebaseFirestore
 
+//응원가 확인하기 뷰
 struct CheckAllVideo: View {
     let selectedTeam: String
     let selectedTeamImage: String
