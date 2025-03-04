@@ -48,22 +48,41 @@ class TeamSelectSongViewModel: ObservableObject {
                 if let index = allSongs.firstIndex(where: { $0.id == song.id }) {
                     let selectedSong = allSongs[index]
                     
-                    // ✅ Convert gs:// to https:// before playing
+                    // ✅ 1️⃣ 먼저 convertToHttp()를 사용해서 직접 변환 시도
+                    if let convertedUrlString = self.model.convertToHttp(gsUrl: selectedSong.audioUrl),
+                       let url = URL(string: convertedUrlString) {
+                        print("✅ [convertToHttp] Converted gs:// URL: \(convertedUrlString)")
+
+                        let updatedSong = Song(
+                            id: selectedSong.id,
+                            title: selectedSong.title,
+                            audioUrl: url.absoluteString,
+                            lyrics: selectedSong.lyrics,
+                            teamImageName: selectedSong.teamImageName,
+                            lyricsStartTime: selectedSong.lyricsStartTime,
+                            timestamps: selectedSong.timestamps
+                        )
+
+                        AudioPlayerManager.shared.setPlaylist(songs: allSongs, startIndex: index)
+                        AudioPlayerManager.shared.play(url: url, for: updatedSong)
+                        return
+                    }
+
+                    // ✅ 2️⃣ convertToHttp() 실패 시, Firebase Storage에서 URL 가져오기
                     self.model.getDownloadURL(for: selectedSong.audioUrl) { url in
                         DispatchQueue.main.async {
                             if let url = url {
-                                // ✅ Create a new `Song` instance with updated URL
+                                print("✅ [Firebase] Retrieved URL: \(url.absoluteString)")
                                 let updatedSong = Song(
                                     id: selectedSong.id,
                                     title: selectedSong.title,
-                                    audioUrl: url.absoluteString,  // ✅ Assign converted URL here
+                                    audioUrl: url.absoluteString,
                                     lyrics: selectedSong.lyrics,
                                     teamImageName: selectedSong.teamImageName,
                                     lyricsStartTime: selectedSong.lyricsStartTime,
                                     timestamps: selectedSong.timestamps
                                 )
-                                
-                                // ✅ Start playing with converted URL
+
                                 AudioPlayerManager.shared.setPlaylist(songs: allSongs, startIndex: index)
                                 AudioPlayerManager.shared.play(url: url, for: updatedSong)
                             } else {

@@ -94,6 +94,28 @@ class TeamSelect_SongModel {
         }
     }
     
+    func convertToHttp(gsUrl: String) -> String? {
+        print("📌 [DEBUG] 변환 요청된 gs:// URL: \(gsUrl)")
+
+        guard gsUrl.starts(with: "gs://") else {
+            print("❌ [ERROR] Invalid gs:// URL: \(gsUrl)")
+            return nil
+        }
+
+        // ✅ Firebase Storage 버킷 이름 (⚠️ `gs://` 빼고 `appspot.com` 형식으로 설정!)
+        let storageBucket = "baseball-642ed.appspot.com"
+
+        // ✅ 파일 경로 추출 (gs://baseball-642ed.firebasestorage.app/SSG/ssg_22.mp3 → SSG/ssg_22.mp3)
+        let path = gsUrl.replacingOccurrences(of: "gs://\(storageBucket)/", with: "")
+
+        // ✅ 변환된 URL
+        let convertedUrl = "https://firebasestorage.googleapis.com/v0/b/\(storageBucket)/o/\(path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "")?alt=media"
+
+        print("✅ [SUCCESS] 변환된 URL: \(convertedUrl)")
+        return convertedUrl
+    }
+
+    
     // MARK: 팀 선택시 제어 화면에서 보이는 팀 이미지
     private func determineTeamImageName(for team: String) -> String {
         switch team {

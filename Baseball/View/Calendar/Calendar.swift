@@ -121,7 +121,7 @@ struct CalendarView: View {
             } else if tag == "공식 응원가" {
                 navigateToSongView = true // ✅ TeamSelect_SongView로 이동
             } else if tag == "응원가 확인"{
-                navigateToCheckAllVideo = true 
+                navigateToCheckAllVideo = true
             }
         }) {
             VStack(spacing: 5) {
