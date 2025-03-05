@@ -99,34 +99,57 @@ class SongDetailViewModel: ObservableObject {
     }
 
     func togglePlayPause(for song: Song) {
-        if AudioPlayerManager.shared.isPlaying {
-            AudioPlayerManager.shared.pause()
-        } else {
-            if let player = AudioPlayerManager.shared.player,
-               let currentSong = AudioPlayerManager.shared.currentSong,
-               let currentUrl = AudioPlayerManager.shared.getCurrentUrl(),
-               currentUrl == URL(string: currentSong.audioUrl), player.currentItem != nil {
-                
-                let savedTime = AudioPlayerManager.shared.currentTime // ✅ 이전 재생 위치 저장
-                print("🔄 제어센터에서 재생 버튼 눌림, 이전 재생 위치: \(savedTime)초")
+        let playerManager = AudioPlayerManager.shared
 
-                player.seek(to: CMTime(seconds: savedTime, preferredTimescale: 600)) // ✅ 이전 위치 유지
-                player.play()
-                AudioPlayerManager.shared.isPlaying = true
-                AudioPlayerManager.shared.objectWillChange.send()
+        if playerManager.isPlaying {
+            playerManager.pause()
+            return
+        }
 
-                // ✅ Now Playing 정보 업데이트
-                DispatchQueue.main.async {
-                    AudioPlayerManager.shared.backgroundManager.updateNowPlayingInfo()
-                }
+        // ✅ Always ensure we have a correct URL before playing
+        songModel.getDownloadURL(for: song.audioUrl) { [weak self] url in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
 
-            } else {
-                // ✅ 기존 곡 정보 유지하여 새로 로드하지 않음
-                if let validUrl = URL(string: AudioPlayerManager.shared.currentSong?.audioUrl ?? "") {
-                    print("🔄 기존 곡 유지하여 다시 재생: \(AudioPlayerManager.shared.currentSong?.title ?? "Unknown")")
-                    AudioPlayerManager.shared.play(url: validUrl, for: AudioPlayerManager.shared.currentSong!)
+                if let validUrl = url {
+                    print("🎵 [DEBUG] Resuming playback for: \(song.title) | URL: \(validUrl.absoluteString)")
+
+                    if let player = playerManager.player,
+                       let currentSong = playerManager.currentSong,
+                       let currentUrl = playerManager.getCurrentUrl(),
+                       currentUrl.absoluteString == currentSong.audioUrl, player.currentItem != nil {
+
+                        // ✅ Resume playback from last saved position
+                        let savedTime = playerManager.currentTime
+                        print("🔄 Resuming at: \(savedTime) seconds")
+
+                        player.seek(to: CMTime(seconds: savedTime, preferredTimescale: 600))
+                        player.play()
+                        playerManager.isPlaying = true
+                        playerManager.objectWillChange.send()
+
+                        // ✅ Now Playing 정보 업데이트
+                        DispatchQueue.main.async {
+                            playerManager.backgroundManager.updateNowPlayingInfo()
+                        }
+                    } else {
+                        // ✅ If the song was reset, play it again with the correct URL
+                        print("🎵 Restarting song: \(song.title) from the beginning")
+
+                        let updatedSong = Song(
+                            id: song.id,
+                            title: song.title,
+                            audioUrl: validUrl.absoluteString, // ✅ Ensure correct URL is used
+                            lyrics: song.lyrics,
+                            teamImageName: song.teamImageName,
+                            lyricsStartTime: song.lyricsStartTime,
+                            timestamps: song.timestamps
+                        )
+
+                        playerManager.play(url: validUrl, for: updatedSong)
+                    }
                 } else {
-                    print("❌ Error: Invalid URL for song \(AudioPlayerManager.shared.currentSong?.title ?? "Unknown")")
+                    print("❌ [ERROR] Failed to convert gs:// to https:// for \(song.title)")
                 }
             }
         }

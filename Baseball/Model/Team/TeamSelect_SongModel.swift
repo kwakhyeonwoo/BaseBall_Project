@@ -9,6 +9,7 @@ import FirebaseFirestore
 import FirebaseStorage
 import Firebase
 import AVFoundation
+import FirebaseAuth
 
 struct Song: Identifiable, Equatable, Codable {
     let id: String
@@ -61,8 +62,7 @@ class TeamSelect_SongModel {
             return lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
         }
     }
-
-
+    
     // Firebase Storage URL 가져오기
     func getDownloadURL(for gsUrl: String, completion: @escaping (URL?) -> Void) {
         guard let range = gsUrl.range(of: "gs://") else {
@@ -97,23 +97,31 @@ class TeamSelect_SongModel {
     func convertToHttp(gsUrl: String) -> String? {
         print("📌 [DEBUG] 변환 요청된 gs:// URL: \(gsUrl)")
 
+        // ✅ 1️⃣ 올바른 gs:// 형식인지 확인
         guard gsUrl.starts(with: "gs://") else {
             print("❌ [ERROR] Invalid gs:// URL: \(gsUrl)")
             return nil
         }
 
-        // ✅ Firebase Storage 버킷 이름 (⚠️ `gs://` 빼고 `appspot.com` 형식으로 설정!)
-        let storageBucket = "baseball-642ed.appspot.com"
+        // ✅ 2️⃣ Firebase Storage 버킷 이름 설정
+        let storageBucket = "baseball-642ed.firebasestorage.app" // 🔥 기존 appspot.com과 다름!
 
-        // ✅ 파일 경로 추출 (gs://baseball-642ed.firebasestorage.app/SSG/ssg_22.mp3 → SSG/ssg_22.mp3)
+        // ✅ 3️⃣ gs:// 제거하고 파일 경로 추출
         let path = gsUrl.replacingOccurrences(of: "gs://\(storageBucket)/", with: "")
 
-        // ✅ 변환된 URL
-        let convertedUrl = "https://firebasestorage.googleapis.com/v0/b/\(storageBucket)/o/\(path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "")?alt=media"
+        // ✅ 4️⃣ URL 인코딩 적용 (공백 & 특수문자 처리)
+        guard let encodedPath = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
+            print("❌ [ERROR] URL 인코딩 실패: \(path)")
+            return nil
+        }
+
+        // ✅ 5️⃣ 최종 변환된 Firebase Storage URL
+        let convertedUrl = "https://firebasestorage.googleapis.com/v0/b/\(storageBucket)/o/\(encodedPath)?alt=media"
 
         print("✅ [SUCCESS] 변환된 URL: \(convertedUrl)")
         return convertedUrl
     }
+
 
     
     // MARK: 팀 선택시 제어 화면에서 보이는 팀 이미지

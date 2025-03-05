@@ -48,10 +48,10 @@ class TeamSelectSongViewModel: ObservableObject {
                 if let index = allSongs.firstIndex(where: { $0.id == song.id }) {
                     let selectedSong = allSongs[index]
                     
-                    // ✅ 1️⃣ 먼저 convertToHttp()를 사용해서 직접 변환 시도
+                    // ✅ 1️⃣ convertToHttp()로 URL 변환 시도
                     if let convertedUrlString = self.model.convertToHttp(gsUrl: selectedSong.audioUrl),
                        let url = URL(string: convertedUrlString) {
-                        print("✅ [convertToHttp] Converted gs:// URL: \(convertedUrlString)")
+                        print("✅ [convertToHttp] 변환 성공: \(convertedUrlString)")
 
                         let updatedSong = Song(
                             id: selectedSong.id,
@@ -68,7 +68,7 @@ class TeamSelectSongViewModel: ObservableObject {
                         return
                     }
 
-                    // ✅ 2️⃣ convertToHttp() 실패 시, Firebase Storage에서 URL 가져오기
+                    // ✅ 2️⃣ convertToHttp() 실패 시 Firebase에서 getDownloadURL() 호출
                     self.model.getDownloadURL(for: selectedSong.audioUrl) { url in
                         DispatchQueue.main.async {
                             if let url = url {
