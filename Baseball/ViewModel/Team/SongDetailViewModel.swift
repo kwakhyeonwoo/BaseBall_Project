@@ -101,6 +101,11 @@ class SongDetailViewModel: ObservableObject {
     func togglePlayPause(for song: Song) {
         let playerManager = AudioPlayerManager.shared
 
+        guard let currentSong = playerManager.currentSong else {
+            print("❌ [ERROR] No current song available to play/pause.")
+            return
+        }
+        
         if playerManager.isPlaying {
             playerManager.pause()
             return
@@ -117,20 +122,22 @@ class SongDetailViewModel: ObservableObject {
                     if let player = playerManager.player,
                        let currentSong = playerManager.currentSong,
                        let currentUrl = playerManager.getCurrentUrl(),
+                       //validUrl.absoluteString으로 하면 이전 다음버튼시 재생이 안되네
                        currentUrl.absoluteString == currentSong.audioUrl, player.currentItem != nil {
 
                         // ✅ Resume playback from last saved position
                         let savedTime = playerManager.currentTime
                         print("🔄 Resuming at: \(savedTime) seconds")
 
-                        player.seek(to: CMTime(seconds: savedTime, preferredTimescale: 600))
-                        player.play()
-                        playerManager.isPlaying = true
-                        playerManager.objectWillChange.send()
-
-                        // ✅ Now Playing 정보 업데이트
-                        DispatchQueue.main.async {
-                            playerManager.backgroundManager.updateNowPlayingInfo()
+                        player.seek(to: CMTime(seconds: savedTime, preferredTimescale: 600)) { _ in
+                            player.play()
+                            playerManager.isPlaying = true
+                            playerManager.objectWillChange.send()
+                            
+                            // ✅ Ensure Now Playing Info is updated
+                            DispatchQueue.main.async {
+                                playerManager.backgroundManager.updateNowPlayingInfo()
+                            }
                         }
                     } else {
                         // ✅ If the song was reset, play it again with the correct URL
@@ -139,13 +146,14 @@ class SongDetailViewModel: ObservableObject {
                         let updatedSong = Song(
                             id: song.id,
                             title: song.title,
-                            audioUrl: validUrl.absoluteString, // ✅ Ensure correct URL is used
+                            audioUrl: validUrl.absoluteString,
                             lyrics: song.lyrics,
                             teamImageName: song.teamImageName,
                             lyricsStartTime: song.lyricsStartTime,
                             timestamps: song.timestamps
                         )
 
+                        playerManager.currentSong = updatedSong 
                         playerManager.play(url: validUrl, for: updatedSong)
                     }
                 } else {

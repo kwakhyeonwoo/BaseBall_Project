@@ -138,10 +138,7 @@ class AudioPlayerManager: ObservableObject {
 
     // MARK: - 이전 / 다음 곡 재생
     func playPrevious() {
-        guard let currentSong = currentSong else {
-            print("⚠️ No currently playing song.")
-            return
-        }
+        guard let currentSong = self.currentSong else { return }
 
         firestoreService.getPreviousSong(for: currentSong) { [weak self] previousSong in
             guard let self = self else { return }
@@ -155,7 +152,7 @@ class AudioPlayerManager: ObservableObject {
                             print("🔗 Converted URL for previous song: \(url.absoluteString)")
 
                             // ✅ 최신 곡으로 업데이트
-                            self.currentSong = Song(
+                            let updatedPreviousSong = Song(
                                 id: previousSong.id,
                                 title: previousSong.title,
                                 audioUrl: url.absoluteString,
@@ -165,11 +162,16 @@ class AudioPlayerManager: ObservableObject {
                                 timestamps: previousSong.timestamps
                             )
 
+                            self.currentSong = updatedPreviousSong
                             self.currentUrl = url
-                                self.currentSong = self.currentSong  // ✅ playerManager에 반영
-                            self.currentUrl = self.currentUrl  // ✅ 최신 URL 저장
+                            self.currentSong = self.currentSong  // ✅ playerManager에 반영
 
-                            self.play(url: url, for: self.currentSong!)
+                            if self.isPlaying {
+                                print("🎵 [DEBUG] Auto-playing previous song: \(updatedPreviousSong.title)")
+                                self.play(url: url, for: updatedPreviousSong)
+                            } else {
+                                print("⏸ [DEBUG] Previous song loaded but playback is paused")
+                            }
                         } else {
                             print("❌ Error: Failed to convert gs:// URL for previous song")
                         }
@@ -207,7 +209,12 @@ class AudioPlayerManager: ObservableObject {
                             self.currentUrl = url
                             self.objectWillChange.send()
 
-                            self.play(url: url, for: updatedNextSong)
+                            if self.isPlaying {
+                                print("🎵 [DEBUG] Auto-playing next song: \(updatedNextSong.title)")
+                                self.play(url: url, for: updatedNextSong)
+                            } else {
+                                print("⏸ [DEBUG] Next song loaded but playback is paused")
+                            }
 
                             // ✅ Immediately update Control Center with new song
                             self.backgroundManager.setupNowPlayingInfo(for: updatedNextSong, player: self.player)

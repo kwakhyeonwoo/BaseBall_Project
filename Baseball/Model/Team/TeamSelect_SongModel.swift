@@ -65,35 +65,30 @@ class TeamSelect_SongModel {
     
     // Firebase Storage URL 가져오기
     func getDownloadURL(for gsUrl: String, completion: @escaping (URL?) -> Void) {
-        guard let range = gsUrl.range(of: "gs://") else {
+        guard gsUrl.starts(with: "gs://") else {
+            print("❌ [ERROR] Invalid gs:// URL: \(gsUrl)")
             completion(nil)
             return
         }
 
-        let path = String(gsUrl[range.upperBound...])
-        guard let slashIndex = path.firstIndex(of: "/") else {
-            completion(nil)
-            return
-        }
+        let storage = Storage.storage()
+        let storageRef = storage.reference(forURL: gsUrl)
 
-        let storagePath = String(path[slashIndex...]).dropFirst()
-        let storageRef = Storage.storage().reference(withPath: String(storagePath))
+        print("📌 [DEBUG] Fetching Download URL for: \(gsUrl)")
 
-        //다운로드 URL을 백그라운드로 가져오고 메인 쓰레드에서 결과 처리 
-        DispatchQueue.global(qos: .userInitiated).async {
-            storageRef.downloadURL { url, error in
-                DispatchQueue.main.async {
-                    if let error = error {
-                        print("Error fetching download URL: \(error.localizedDescription)")
-                        completion(nil)
-                    } else {
-                        completion(url)
-                    }
+        storageRef.downloadURL { url, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ [ERROR] Failed to fetch URL: \(error.localizedDescription)")
+                    completion(nil)
+                } else if let url = url {
+                    print("✅ [SUCCESS] Converted URL: \(url.absoluteString)")
+                    completion(url)
                 }
             }
         }
     }
-    
+
     func convertToHttp(gsUrl: String) -> String? {
         print("📌 [DEBUG] 변환 요청된 gs:// URL: \(gsUrl)")
 
