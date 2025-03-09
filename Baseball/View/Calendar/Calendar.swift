@@ -29,14 +29,16 @@ struct CalendarView: View {
             .onAppear {
                 viewModel.fetchGameSchedules(for: selectedTeam)
             }
-            .sheet(isPresented: $showVideoRecorder) {
+            .sheet(isPresented: $showVideoRecorder, onDismiss: {
+                if recordedVideoURL != nil {
+                    navigateToTitleInput = true
+                }
+            }) {
                 VideoRecorderViewModel { videoURL in
                     DispatchQueue.main.async {
                         if let videoURL = videoURL {
                             print("🎬 녹화된 동영상: \(videoURL)")
-                            //navigateToCheckAllVideo = true
                             recordedVideoURL = videoURL
-                            navigateToTitleInput = true
                         } else {
                             print("❌ 녹화가 취소되었습니다.")
                         }

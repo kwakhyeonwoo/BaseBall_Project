@@ -77,19 +77,28 @@ struct UploadSongTitleView: View {
     }
 
     private func uploadToFirestore(title: String, videoURL: URL, uploader: String) {
-        UploadedSongsManager().uploadVideo(
-            title: title,
-            videoURL: videoURL,
-            selectedTeam: selectedTeam
-        ) { success in
-            if success {
-                navigateToCheckAllVideo = true
-            } else {
-                alertMessage = "업로드에 실패했습니다."
-                showAlert = true
+        // 1️⃣ 먼저 UI 변경 (업로드 성공한 것처럼 보이게 함)
+        navigateToCheckAllVideo = true
+
+        // 2️⃣ Firestore 업로드를 비동기로 처리
+        DispatchQueue.global(qos: .background).async {
+            UploadedSongsManager().uploadVideo(
+                title: title,
+                videoURL: videoURL,
+                selectedTeam: selectedTeam
+            ) { success in
+                if !success {
+                    // 3️⃣ Firestore 업로드 실패 시 UI 복구
+                    DispatchQueue.main.async {
+                        alertMessage = "업로드에 실패했습니다."
+                        showAlert = true
+                        navigateToCheckAllVideo = false // 업로드 실패 시 되돌리기
+                    }
+                }
             }
         }
     }
+
 }
 
 //#Preview {
