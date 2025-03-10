@@ -22,33 +22,26 @@ class UploadedSongsManager {
             return
         }
 
-        let uploaderUID = currentUser.uid  // ✅ Firebase Auth의 UID 사용
+        let uploaderUID = currentUser.uid
         let userEmail = currentUser.email ?? "익명"
 
-        // ✅ Firestore에서 사용자의 ID 가져오기
         fetchUserID(uid: uploaderUID) { userID in
-            var uploaderID = "익명"  // 기본값은 "익명"
+            var uploaderID = userID ?? "익명"
 
-            // ✅ Firestore에서 ID를 가져왔을 경우, ID가 존재하면 사용
-            if let fetchedID = userID, !fetchedID.isEmpty {
-                uploaderID = fetchedID
-            }
-
-            // ✅ Firebase Auth에서 제공하는 email이 Google/Kakao 이메일이라면 무조건 "익명" 처리
             if self.isSocialLogin(email: userEmail) {
                 uploaderID = "익명"
             }
 
             print("✅ Firestore에서 가져온 사용자 ID (또는 익명): \(uploaderID)")
 
-            // ✅ 앱 내부 tmp 경로의 파일을 Firebase Storage로 업로드
             guard let videoData = try? Data(contentsOf: videoURL) else {
                 print("❌ 비디오 데이터를 가져올 수 없습니다.")
                 completion(false)
                 return
             }
 
-            let storageRef = self.storage.reference().child("uploadedVideos/\(UUID().uuidString).mov")
+            let fileName = "\(UUID().uuidString).mov"
+            let storageRef = self.storage.reference().child("uploadedVideos/\(fileName)")
 
             storageRef.putData(videoData, metadata: nil) { metadata, error in
                 if let error = error {
@@ -57,7 +50,6 @@ class UploadedSongsManager {
                     return
                 }
 
-                // ✅ Firebase Storage URL 가져오기
                 storageRef.downloadURL { url, error in
                     if let error = error {
                         print("❌ Firebase Storage URL 가져오기 실패: \(error.localizedDescription)")
@@ -71,10 +63,18 @@ class UploadedSongsManager {
                         return
                     }
 
-                    print("✅ Firebase Storage 업로드 성공: \(downloadURL)")
+                    // ✅ URL에서 :443 제거
+                    let correctedURL = downloadURL.replacingOccurrences(of: ":443", with: "")
 
-                    // ✅ Firestore에 저장 (사용자의 ID 또는 익명 저장)
-                    self.saveSongToFirestore(title: title, videoURL: downloadURL, uploaderID: uploaderID, selectedTeam: selectedTeam, completion: completion)
+                    // ✅ 퍼센트 인코딩 문제 해결: %252F → %2F 복구
+                    if let fixedURL = correctedURL.removingPercentEncoding {
+                        print("✅ 최종 Firestore에 저장될 Firebase Storage URL: \(fixedURL)")
+
+                        self.saveSongToFirestore(title: title, videoURL: fixedURL, uploaderID: uploaderID, selectedTeam: selectedTeam, completion: completion)
+                    } else {
+                        print("❌ URL 디코딩 실패")
+                        completion(false)
+                    }
                 }
             }
         }

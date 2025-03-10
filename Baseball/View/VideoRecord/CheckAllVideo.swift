@@ -5,17 +5,17 @@
 //  Created by 곽현우 on 2/27/25.
 //
 
-import SwiftUI
 import AVKit
+import SwiftUI
 import FirebaseFirestore
 
-//응원가 확인하기 뷰
+// 응원가 확인하기 뷰
 struct CheckAllVideo: View {
     let selectedTeam: String
     let selectedTeamImage: String
     @State private var selectedCategory: UploadedSongCategory = .uploaded
     @State private var uploadedSongs: [UploadedSong] = []
-    @State private var favoriteSongs: Set<String> = [] // 하트 기능
+    @StateObject private var viewModel = CheckAllVideoViewModel()
     private let db = Firestore.firestore()
     
     var body: some View {
@@ -23,16 +23,18 @@ struct CheckAllVideo: View {
             VStack {
                 categoryPicker()
                 songListView()
-                Spacer()
             }
             .padding()
-            .navigationTitle("업로드된 응원가")
             .onAppear {
+                loadUploadedSongs()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("RefreshUploadedSongs"))) { _ in
                 loadUploadedSongs()
             }
         }
     }
     
+    // MARK: 업로드 / 인기 응원가 카테고리
     private func categoryPicker() -> some View {
         Picker("Category", selection: $selectedCategory) {
             Text("업로드 응원가").tag(UploadedSongCategory.uploaded)
@@ -45,17 +47,22 @@ struct CheckAllVideo: View {
         }
     }
     
+    // MARK: 응원가 리스트 뷰
     private func songListView() -> some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: 15) {
                 ForEach(uploadedSongs) { song in
                     songCard(song: song)
+                        .onTapGesture {
+                            playVideo(song: song) // ✅ 동영상 클릭 시 재생
+                        }
                 }
             }
             .padding()
         }
     }
     
+    // MARK: 개별 응원가 카드 UI
     private func songCard(song: UploadedSong) -> some View {
         HStack {
             Image(selectedTeamImage)
@@ -63,38 +70,41 @@ struct CheckAllVideo: View {
                 .scaledToFit()
                 .frame(width: 50, height: 50)
                 .clipShape(Circle())
-                
-            VStack(alignment: .leading) {
+
+            VStack(alignment: .leading, spacing: 5) {
                 Text(song.uploader)
-                    .font(.headline)
-                Text(song.title)
-                    .font(.subheadline)
+                    .font(.footnote)
                     .foregroundColor(.gray)
+                
+                Text(song.title)
+                    .font(.headline)
+                    .foregroundColor(.primary)
             }
-            Spacer()
             
-            Button(action: {
-                toggleFavorite(song: song)
-            }) {
-                Image(systemName: favoriteSongs.contains(song.id) ? "heart.fill" : "heart")
-                    .foregroundColor(favoriteSongs.contains(song.id) ? .red : .gray)
-                    .font(.title2)
+            Spacer()
+
+            VStack {
+                Button(action: {
+                    viewModel.toggleLike(for: song)
+                }) {
+                    Image(systemName: viewModel.likedSongs.contains(song.id) ? "heart.fill" : "heart")
+                        .foregroundColor(viewModel.likedSongs.contains(song.id) ? .red : .gray)
+                        .font(.title2)
+                }
+                
+                Text("\(viewModel.likeCounts[song.id, default: 0])")
+                    .font(.footnote)
+                    .foregroundColor(.gray)
             }
         }
         .padding()
+        .frame(maxWidth: .infinity, minHeight: 80) // ✅ 카드 크기 통일 (가로/세로)
         .background(Color(uiColor: .secondarySystemBackground))
         .cornerRadius(10)
-        .shadow(radius: 5)
+        .shadow(radius: 2)
     }
-    
-    private func toggleFavorite(song: UploadedSong) {
-        if favoriteSongs.contains(song.id) {
-            favoriteSongs.remove(song.id)
-        } else {
-            favoriteSongs.insert(song.id)
-        }
-    }
-    
+
+    // MARK: Firestore에서 데이터 가져오기
     private func loadUploadedSongs() {
         db.collection("uploadedSongs").getDocuments { snapshot, error in
             guard let documents = snapshot?.documents, error == nil else {
@@ -108,54 +118,46 @@ struct CheckAllVideo: View {
                     return UploadedSong(
                         id: document.documentID,
                         title: data["title"] as? String ?? "Unknown Title",
-                        uploader: data["uploader"] as? String ?? "익명"
+                        uploader: data["uploader"] as? String ?? "익명",
+                        videoURL: data["videoURL"] as? String ?? "" // ✅ Firestore에서 가져온 videoURL 추가
                     )
                 }
             }
         }
     }
-    
-    func uploadNewSong(title: String, uploader: String) {
-        let newSong: [String: Any] = [
-            "title": title,
-            "uploader": uploader
-        ]
-        
-        db.collection("uploadedSongs").addDocument(data: newSong) { error in
-            if let error = error {
-                print("Error uploading song: \(error.localizedDescription)")
+
+    // MARK: 동영상 재생 함수 (AVPlayer)
+    private func playVideo(song: UploadedSong) {
+        // ✅ Firestore에서 가져온 URL을 디코딩하여 AVPlayer가 인식하도록 수정
+        if let decodedURLString = song.videoURL.removingPercentEncoding,
+           let validURL = URL(string: decodedURLString) {
+            print("✅ AVPlayer에 전달할 URL: \(validURL.absoluteString)")
+
+            let player = AVPlayer(url: validURL)
+            let playerController = AVPlayerViewController()
+            playerController.player = player
+            
+            // ✅ iOS 15 이상에서는 keyWindow 사용이 불가능하므로, 적절한 방식으로 present
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let rootViewController = windowScene.windows.first?.rootViewController {
+                rootViewController.present(playerController, animated: true) {
+                    player.play()
+                }
             } else {
-                print("✅ 응원가 업로드 완료: \(title)")
-                loadUploadedSongs() // 새로고침
+                print("❌ AVPlayer를 실행할 수 없습니다.")
             }
+        } else {
+            print("❌ AVPlayer에서 URL을 인식하지 못함: \(song.videoURL)")
         }
-    }
-    
-    private func fetchUploadedSongs() {
-        db.collection("uploadedSongs")
-            .getDocuments { snapshot, error in
-                if let error = error {
-                    print("❌ Firestore에서 응원가 불러오기 실패: \(error.localizedDescription)")
-                    return
-                }
-                
-                guard let documents = snapshot?.documents else { return }
-                uploadedSongs = documents.map { doc in
-                    let data = doc.data()
-                    return UploadedSong(
-                        id: doc.documentID,
-                        title: data["title"] as? String ?? "제목 없음",
-                        uploader: data["uploader"] as? String ?? "익명"
-                    )
-                }
-            }
     }
 }
 
+// MARK: Firestore에서 가져오는 데이터 모델
 struct UploadedSong: Identifiable {
     let id: String
     let title: String
     let uploader: String
+    let videoURL: String // ✅ Firestore에서 동영상 URL을 가져오기 위해 추가
 }
 
 enum UploadedSongCategory {

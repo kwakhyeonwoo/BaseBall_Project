@@ -13,9 +13,6 @@ struct FindPassword: View {
     var body: some View {
         NavigationStack {
             VStack {
-                headerSection()
-                    .padding(.bottom, 30)
-
                 idInputSection()
                     .padding(.horizontal, 20)
                     .padding(.bottom, 20)
@@ -33,16 +30,6 @@ struct FindPassword: View {
                     dismissButton: .default(Text("확인"))
                 )
             }
-        }
-    }
-
-    // MARK: - 헤더 섹션
-    func headerSection() -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("비밀번호 찾기")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(.blue)
         }
     }
 

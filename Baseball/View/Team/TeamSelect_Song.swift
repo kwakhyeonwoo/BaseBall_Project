@@ -43,7 +43,6 @@ struct TeamSelect_SongView: View {
                     }
                     Spacer()
                     
-                    
                 }
                 .onAppear {
                     viewModel.fetchSongs(for: selectedTeam)
