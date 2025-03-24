@@ -48,45 +48,48 @@ class TeamSelectSongViewModel: ObservableObject {
                 if let index = allSongs.firstIndex(where: { $0.id == song.id }) {
                     let selectedSong = allSongs[index]
                     
-                    // ✅ 1️⃣ convertToHttp()로 URL 변환 시도
+                    // ✅ 1️⃣ convertToHttp()로 URL 변환 시도 (HLS URL 사용)
                     if let convertedUrlString = self.model.convertToHttp(gsUrl: selectedSong.audioUrl),
+                       convertedUrlString.hasSuffix(".m3u8"),
                        let url = URL(string: convertedUrlString) {
-                        print("✅ [convertToHttp] 변환 성공: \(convertedUrlString)")
+                        print("✅ [convertToHttp] 변환 성공 (HLS): \(convertedUrlString)")
 
                         let updatedSong = Song(
                             id: selectedSong.id,
                             title: selectedSong.title,
-                            audioUrl: url.absoluteString,
+                            audioUrl: url.absoluteString, // ✅ HLS 스트리밍 URL 적용
                             lyrics: selectedSong.lyrics,
                             teamImageName: selectedSong.teamImageName,
                             lyricsStartTime: selectedSong.lyricsStartTime,
                             timestamps: selectedSong.timestamps
                         )
 
+                        // ✅ AVPlayer를 사용하여 HLS 스트리밍 재생
                         AudioPlayerManager.shared.setPlaylist(songs: allSongs, startIndex: index)
                         AudioPlayerManager.shared.play(url: url, for: updatedSong)
                         return
                     }
 
-                    // ✅ 2️⃣ convertToHttp() 실패 시 Firebase에서 getDownloadURL() 호출
+                    // ✅ 2️⃣ Firebase에서 getDownloadURL() 호출하여 .m3u8 파일 가져오기
                     self.model.getDownloadURL(for: selectedSong.audioUrl) { url in
                         DispatchQueue.main.async {
-                            if let url = url {
-                                print("✅ [Firebase] Retrieved URL: \(url.absoluteString)")
+                            if let url = url, url.absoluteString.hasSuffix(".m3u8") {
+                                print("✅ [Firebase] HLS URL 가져옴: \(url.absoluteString)")
                                 let updatedSong = Song(
                                     id: selectedSong.id,
                                     title: selectedSong.title,
-                                    audioUrl: url.absoluteString,
+                                    audioUrl: url.absoluteString, // ✅ HLS 스트리밍 URL 적용
                                     lyrics: selectedSong.lyrics,
                                     teamImageName: selectedSong.teamImageName,
                                     lyricsStartTime: selectedSong.lyricsStartTime,
                                     timestamps: selectedSong.timestamps
                                 )
 
+                                // ✅ AVPlayer를 사용하여 HLS 스트리밍 재생
                                 AudioPlayerManager.shared.setPlaylist(songs: allSongs, startIndex: index)
                                 AudioPlayerManager.shared.play(url: url, for: updatedSong)
                             } else {
-                                print("❌ Error: Failed to convert gs:// URL for \(selectedSong.title)")
+                                print("❌ Error: Failed to get HLS URL for \(selectedSong.title)")
                             }
                         }
                     }
@@ -96,6 +99,7 @@ class TeamSelectSongViewModel: ObservableObject {
             }
         }
     }
+
 
 
     // MARK: - Toggle Favorite

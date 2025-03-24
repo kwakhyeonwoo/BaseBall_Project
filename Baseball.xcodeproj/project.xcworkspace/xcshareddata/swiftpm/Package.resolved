@@ -1,5 +1,5 @@
 {
-  "originHash" : "62759afaa474374b2d10ed997a293ad2eae351a5f182a312f7e6fa8508844b10",
+  "originHash" : "51bdf7e353551eef0bcb5f8cfbae062311ac8a633ccf3786aefaff38b0e94488",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -44,6 +44,15 @@
       "state" : {
         "branch" : "main",
         "revision" : "314444e6f487510ea8c80038f5ba6a7b906b7ae9"
+      }
+    },
+    {
+      "identity" : "ffmpeg-kit-spm",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tylerjonesio/ffmpeg-kit-spm",
+      "state" : {
+        "branch" : "main",
+        "revision" : "6053b0e4f8607314ff5e14e0b18fc250c0f87c9b"
       }
     },
     {

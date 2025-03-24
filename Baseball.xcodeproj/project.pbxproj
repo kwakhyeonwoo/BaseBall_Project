@@ -31,6 +31,10 @@
 		672A181B2D2FA24D00D68719 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 672A181A2D2FA24D00D68719 /* FirebaseStorage */; };
 		672A181D2D2FA24D00D68719 /* FirebaseStorageCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 672A181C2D2FA24D00D68719 /* FirebaseStorageCombine-Community */; };
 		672A181F2D2FA24D00D68719 /* FirebaseVertexAI in Frameworks */ = {isa = PBXBuildFile; productRef = 672A181E2D2FA24D00D68719 /* FirebaseVertexAI */; };
+		675A16622D8B0D1D00672450 /* FFmpeg in Frameworks */ = {isa = PBXBuildFile; productRef = 675A16612D8B0D1D00672450 /* FFmpeg */; };
+		675A16642D8B0D1D00672450 /* FFmpeg-Kit in Frameworks */ = {isa = PBXBuildFile; productRef = 675A16632D8B0D1D00672450 /* FFmpeg-Kit */; };
+		675A16662D8B0EFB00672450 /* FFmpeg in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 675A16612D8B0D1D00672450 /* FFmpeg */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		675A16682D8B0EFD00672450 /* FFmpeg-Kit in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 675A16632D8B0D1D00672450 /* FFmpeg-Kit */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		675F54AC2D265AFF00706702 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 675F54AB2D265AFF00706702 /* GoogleSignIn */; };
 		675F54AE2D265AFF00706702 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 675F54AD2D265AFF00706702 /* GoogleSignInSwift */; };
 		67C259BE2D22714800CB8CF0 /* DotEnv in Frameworks */ = {isa = PBXBuildFile; productRef = 67C259BD2D22714800CB8CF0 /* DotEnv */; };
@@ -65,6 +69,21 @@
 			remoteInfo = Baseball_Project;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		675A16672D8B0EFB00672450 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				675A16682D8B0EFD00672450 /* FFmpeg-Kit in Embed Frameworks */,
+				675A16662D8B0EFB00672450 /* FFmpeg in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		67C2594B2D2009F100CB8CF0 /*    .app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "   .app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -155,6 +174,8 @@
 				67C259CC2D22739400CB8CF0 /* KakaoSDKCert in Frameworks */,
 				672A18112D2FA24D00D68719 /* FirebaseInstallations in Frameworks */,
 				672A18012D2FA24D00D68719 /* FirebaseCrashlytics in Frameworks */,
+				675A16642D8B0D1D00672450 /* FFmpeg-Kit in Frameworks */,
+				675A16622D8B0D1D00672450 /* FFmpeg in Frameworks */,
 				672A17FB2D2FA24D00D68719 /* FirebaseAuth in Frameworks */,
 				675F54AC2D265AFF00706702 /* GoogleSignIn in Frameworks */,
 				672A181F2D2FA24D00D68719 /* FirebaseVertexAI in Frameworks */,
@@ -179,6 +200,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		675A16652D8B0ECC00672450 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		67C259422D2009F100CB8CF0 = {
 			isa = PBXGroup;
 			children = (
@@ -186,6 +214,7 @@
 				67C2594D2D2009F100CB8CF0 /* Baseball */,
 				67C2595E2D2009F300CB8CF0 /* Baseball_ProjectTests */,
 				67C259682D2009F300CB8CF0 /* Baseball_ProjectUITests */,
+				675A16652D8B0ECC00672450 /* Frameworks */,
 				67C2594C2D2009F100CB8CF0 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -210,6 +239,7 @@
 				67C259472D2009F100CB8CF0 /* Sources */,
 				67C259482D2009F100CB8CF0 /* Frameworks */,
 				67C259492D2009F100CB8CF0 /* Resources */,
+				675A16672D8B0EFB00672450 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -259,6 +289,8 @@
 				672A181A2D2FA24D00D68719 /* FirebaseStorage */,
 				672A181C2D2FA24D00D68719 /* FirebaseStorageCombine-Community */,
 				672A181E2D2FA24D00D68719 /* FirebaseVertexAI */,
+				675A16612D8B0D1D00672450 /* FFmpeg */,
+				675A16632D8B0D1D00672450 /* FFmpeg-Kit */,
 			);
 			productName = Baseball_Project;
 			productReference = 67C2594B2D2009F100CB8CF0 /*    .app */;
@@ -347,6 +379,7 @@
 				67C259C62D22739400CB8CF0 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */,
 				675F54AA2D265AFF00706702 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				672A17EF2D2FA24D00D68719 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				675A16602D8B0D1D00672450 /* XCRemoteSwiftPackageReference "ffmpeg-kit-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 67C2594C2D2009F100CB8CF0 /* Products */;
@@ -736,6 +769,14 @@
 				minimumVersion = 11.6.0;
 			};
 		};
+		675A16602D8B0D1D00672450 /* XCRemoteSwiftPackageReference "ffmpeg-kit-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/tylerjonesio/ffmpeg-kit-spm";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		675F54AA2D265AFF00706702 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
@@ -882,6 +923,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 672A17EF2D2FA24D00D68719 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseVertexAI;
+		};
+		675A16612D8B0D1D00672450 /* FFmpeg */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 675A16602D8B0D1D00672450 /* XCRemoteSwiftPackageReference "ffmpeg-kit-spm" */;
+			productName = FFmpeg;
+		};
+		675A16632D8B0D1D00672450 /* FFmpeg-Kit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 675A16602D8B0D1D00672450 /* XCRemoteSwiftPackageReference "ffmpeg-kit-spm" */;
+			productName = "FFmpeg-Kit";
 		};
 		675F54AB2D265AFF00706702 /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;

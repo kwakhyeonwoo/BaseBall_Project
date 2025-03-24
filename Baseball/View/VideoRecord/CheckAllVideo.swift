@@ -8,6 +8,7 @@
 import AVKit
 import SwiftUI
 import FirebaseFirestore
+import FirebaseStorage
 
 // 응원가 확인하기 뷰
 struct CheckAllVideo: View {
@@ -128,16 +129,23 @@ struct CheckAllVideo: View {
 
     // MARK: 동영상 재생 함수 (AVPlayer)
     private func playVideo(song: UploadedSong) {
-        // ✅ Firestore에서 가져온 URL을 디코딩하여 AVPlayer가 인식하도록 수정
-        if let decodedURLString = song.videoURL.removingPercentEncoding,
-           let validURL = URL(string: decodedURLString) {
-            print("✅ AVPlayer에 전달할 URL: \(validURL.absoluteString)")
+        guard let videoURL = URL(string: song.videoURL) else {
+            print("❌ 잘못된 URL: \(song.videoURL)")
+            return
+        }
 
-            let player = AVPlayer(url: validURL)
+        print("✅ AVPlayer에 전달할 Storage URL: \(videoURL.absoluteString)")
+
+        DispatchQueue.main.async {
+            let asset = AVURLAsset(url: videoURL)
+            let playerItem = AVPlayerItem(asset: asset)
+            playerItem.preferredForwardBufferDuration = 5 // ✅ HLS 네트워크 버퍼링 설정
+
+            let player = AVPlayer(playerItem: playerItem)
             let playerController = AVPlayerViewController()
             playerController.player = player
-            
-            // ✅ iOS 15 이상에서는 keyWindow 사용이 불가능하므로, 적절한 방식으로 present
+
+            // ✅ AVPlayerViewController를 올바르게 실행
             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                let rootViewController = windowScene.windows.first?.rootViewController {
                 rootViewController.present(playerController, animated: true) {
@@ -146,8 +154,6 @@ struct CheckAllVideo: View {
             } else {
                 print("❌ AVPlayer를 실행할 수 없습니다.")
             }
-        } else {
-            print("❌ AVPlayer에서 URL을 인식하지 못함: \(song.videoURL)")
         }
     }
 }
