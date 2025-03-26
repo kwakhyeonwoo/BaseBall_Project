@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CalendarView: View {
     @StateObject private var viewModel = GameScheduleViewModel()
+    @StateObject private var ssgCrawler = SSGNewsCrawler() // ✅ SSG 뉴스 크롤러 추가
     let selectedTeam: String
     let selectedTeamImage: String
     @State private var selectedTab: String? = "경기일정"
@@ -23,11 +24,35 @@ struct CalendarView: View {
             VStack(spacing: 0) {
                 teamHeader()
                 Spacer()
+                if selectedTeam.uppercased() == "SSG" && !ssgCrawler.ssgArticles.isEmpty {
+                    Text("📢 SSG 최신 기사")
+                        .font(.headline)
+                        .padding(.top)
+
+                    List(ssgCrawler.ssgArticles, id: \.title) { article in
+                        Button(action: {
+                            ssgCrawler.openInSafari(urlString: article.link)
+                        }) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(article.title)
+                                    .font(.body)
+                                    .foregroundColor(.blue)
+                            }
+                            .padding(.vertical, 5)
+                        }
+                    }
+                    .listStyle(.plain)
+                    .frame(height: 250)
+                }
+
                 tabView()
             }
             .padding()
             .onAppear {
                 viewModel.fetchGameSchedules(for: selectedTeam)
+                if selectedTeam.uppercased() == "SSG" {
+                    ssgCrawler.fetchSSGNews()
+                }
             }
             .sheet(isPresented: $showVideoRecorder, onDismiss: {
                 if recordedVideoURL != nil {

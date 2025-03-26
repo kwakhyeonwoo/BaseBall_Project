@@ -35,6 +35,7 @@
 		675A16642D8B0D1D00672450 /* FFmpeg-Kit in Frameworks */ = {isa = PBXBuildFile; productRef = 675A16632D8B0D1D00672450 /* FFmpeg-Kit */; };
 		675A16662D8B0EFB00672450 /* FFmpeg in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 675A16612D8B0D1D00672450 /* FFmpeg */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		675A16682D8B0EFD00672450 /* FFmpeg-Kit in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 675A16632D8B0D1D00672450 /* FFmpeg-Kit */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		675A17192D92DDB700672450 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 675A17182D92DDB700672450 /* SwiftSoup */; };
 		675F54AC2D265AFF00706702 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 675F54AB2D265AFF00706702 /* GoogleSignIn */; };
 		675F54AE2D265AFF00706702 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 675F54AD2D265AFF00706702 /* GoogleSignInSwift */; };
 		67C259BE2D22714800CB8CF0 /* DotEnv in Frameworks */ = {isa = PBXBuildFile; productRef = 67C259BD2D22714800CB8CF0 /* DotEnv */; };
@@ -180,6 +181,7 @@
 				675F54AC2D265AFF00706702 /* GoogleSignIn in Frameworks */,
 				672A181F2D2FA24D00D68719 /* FirebaseVertexAI in Frameworks */,
 				672A18052D2FA24D00D68719 /* FirebaseDynamicLinks in Frameworks */,
+				675A17192D92DDB700672450 /* SwiftSoup in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -291,6 +293,7 @@
 				672A181E2D2FA24D00D68719 /* FirebaseVertexAI */,
 				675A16612D8B0D1D00672450 /* FFmpeg */,
 				675A16632D8B0D1D00672450 /* FFmpeg-Kit */,
+				675A17182D92DDB700672450 /* SwiftSoup */,
 			);
 			productName = Baseball_Project;
 			productReference = 67C2594B2D2009F100CB8CF0 /*    .app */;
@@ -380,6 +383,7 @@
 				675F54AA2D265AFF00706702 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				672A17EF2D2FA24D00D68719 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				675A16602D8B0D1D00672450 /* XCRemoteSwiftPackageReference "ffmpeg-kit-spm" */,
+				675A17172D92DDB700672450 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 67C2594C2D2009F100CB8CF0 /* Products */;
@@ -777,6 +781,14 @@
 				kind = branch;
 			};
 		};
+		675A17172D92DDB700672450 /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/scinfu/SwiftSoup";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.8.7;
+			};
+		};
 		675F54AA2D265AFF00706702 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
@@ -933,6 +945,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 675A16602D8B0D1D00672450 /* XCRemoteSwiftPackageReference "ffmpeg-kit-spm" */;
 			productName = "FFmpeg-Kit";
+		};
+		675A17182D92DDB700672450 /* SwiftSoup */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 675A17172D92DDB700672450 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			productName = SwiftSoup;
 		};
 		675F54AB2D265AFF00706702 /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;
