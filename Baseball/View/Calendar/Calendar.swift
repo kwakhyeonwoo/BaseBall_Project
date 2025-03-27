@@ -10,7 +10,6 @@ import SwiftUI
 struct CalendarView: View {
 //    @StateObject private var viewModel = GameScheduleViewModel()
     @StateObject private var highlightFetcher = HighlightVideoFetcher()
-    @StateObject private var youtubeFetcher = YouTubeFetcher()
     @StateObject var teamNewsManager = TeamNewsManager()
     let selectedTeam: String
     let selectedTeamImage: String
@@ -23,73 +22,84 @@ struct CalendarView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 0) {
-                // ✅ 뉴스 섹션
-                if !teamNewsManager.articles.isEmpty {
-                    Text("📢 \(selectedTeam.uppercased()) 최신 기사")
-                        .font(.headline)
-                        .padding(.top)
+            ZStack {
+                // ✅ 배경 로고 이미지
+                Image("\(selectedTeam)")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 200, height: 200)
+                    .opacity(0.3)
+                    .offset(y: -50)
 
-                    List(teamNewsManager.articles, id: \.title) { article in
-                        Button(action: {
-                            if let url = URL(string: article.link) {
-                                UIApplication.shared.open(url)
-                            }
-                        }) {
-                            Text(article.title)
-                                .font(.body)
-                                .foregroundColor(.blue)
-                        }
-                        .padding(.vertical, 5)
-                    }
-                    .listStyle(.plain)
-                    .frame(height: 200)
-                }
-                Spacer()
+                VStack(alignment: .leading, spacing: 0) {
+                    // ✅ 뉴스 섹션
+                    if !teamNewsManager.articles.isEmpty {
+                        Text("📢 \(selectedTeam) 최신 기사")
+                            .font(.headline)
+                            .padding(.top)
 
-                // ✅ 하이라이트 영상 섹션
-                if !teamNewsManager.highlights.isEmpty {
-                    Text("🎞️ \(selectedTeam.uppercased()) 하이라이트")
-                        .font(.headline)
-                        .padding(.top)
-
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(alignment: .top, spacing: 16) {
-                            ForEach(teamNewsManager.highlights) { video in
-                                VStack(alignment: .leading, spacing: 6) {
-                                    AsyncImage(url: URL(string: video.thumbnailURL)) { image in
-                                        image
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                    } placeholder: {
-                                        Color.gray
-                                    }
-                                    .frame(width: 140, height: 80)
-                                    .clipped()
-                                    .cornerRadius(8)
-
-                                    Text(video.title)
-                                        .font(.caption)
-                                        .foregroundColor(.primary)
-                                        .lineLimit(2)
-                                        .frame(width: 140, alignment: .leading)
+                        List(teamNewsManager.articles) { article in
+                            Button(action: {
+                                if let url = URL(string: article.link) {
+                                    UIApplication.shared.open(url)
                                 }
-                                .onTapGesture {
-                                    if let url = URL(string: video.videoURL) {
-                                        UIApplication.shared.open(url)
+                            }) {
+                                Text(article.title)
+                                    .font(.body)
+                                    .foregroundColor(.blue)
+                            }
+                            .padding(.vertical, 5)
+                        }
+                        .listStyle(.plain)
+                        .frame(height: 200)
+                    }
+                    Divider()
+                    Spacer()
+
+                    // ✅ 하이라이트 영상 섹션
+                    if !teamNewsManager.highlights.isEmpty {
+                        Text("🎞️ \(selectedTeam) 하이라이트")
+                            .font(.headline)
+                            .padding(.top)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(alignment: .top, spacing: 16) {
+                                ForEach(teamNewsManager.highlights) { video in
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        AsyncImage(url: URL(string: video.thumbnailURL)) { image in
+                                            image
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fill)
+                                        } placeholder: {
+                                            Color.gray
+                                        }
+                                        .frame(width: 140, height: 80)
+                                        .clipped()
+                                        .cornerRadius(8)
+
+                                        Text(video.title)
+                                            .font(.caption)
+                                            .foregroundColor(.primary)
+                                            .lineLimit(2)
+                                            .frame(width: 140, alignment: .leading)
+                                    }
+                                    .onTapGesture {
+                                        if let url = URL(string: video.videoURL) {
+                                            UIApplication.shared.open(url)
+                                        }
                                     }
                                 }
                             }
+                            .padding(.horizontal)
                         }
-                        .padding(.horizontal)
+                        .padding(.bottom, 10)
                     }
-                    .padding(.bottom, 10)
+                    Divider()
+                    Spacer()
+                    tabView()
                 }
-
-                Spacer()
-                tabView()
+                .padding()
             }
-            .padding()
             .onAppear {
                 teamNewsManager.fetchContent(for: selectedTeam)
             }
@@ -115,7 +125,9 @@ struct CalendarView: View {
                             videoURL: recordedVideoURL
                         ),
                         isActive: $navigateToTitleInput
-                    ) { EmptyView() }.hidden()
+                    ) {
+                        EmptyView()
+                    }.hidden()
 
                     NavigationLink(
                         destination: CheckAllVideo(
@@ -123,7 +135,9 @@ struct CalendarView: View {
                             selectedTeamImage: selectedTeamImage
                         ),
                         isActive: $navigateToCheckAllVideo
-                    ) { EmptyView() }.hidden()
+                    ) {
+                        EmptyView()
+                    }.hidden()
 
                     NavigationLink(
                         destination: TeamSelect_SongView(
@@ -131,7 +145,9 @@ struct CalendarView: View {
                             selectedTeamImage: selectedTeamImage
                         ),
                         isActive: $navigateToSongView
-                    ) { EmptyView() }.hidden()
+                    ) {
+                        EmptyView()
+                    }.hidden()
                 }
             )
         }

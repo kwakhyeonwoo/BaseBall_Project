@@ -14,7 +14,7 @@ class TeamNewsManager: ObservableObject {
     @Published var highlights: [HighlightVideo] = []
 
     private let newsFetcher = NewsFetcher()
-    private let youtubeFetcher = YouTubeFetcher()
+    private let videoArticleModel = VideoArticleViewModel()
 
     func fetchContent(for team: String) {
         newsFetcher.fetchNews(for: team) { articles in
@@ -23,7 +23,7 @@ class TeamNewsManager: ObservableObject {
             }
         }
 
-        youtubeFetcher.fetchHighlights(for: team) { videos in
+        videoArticleModel.fetchHighlights(for: team) { videos in
             DispatchQueue.main.async {
                 self.highlights = videos
             }

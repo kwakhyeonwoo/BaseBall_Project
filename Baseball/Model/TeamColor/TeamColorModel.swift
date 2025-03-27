@@ -13,12 +13,12 @@ class TeamColorModel {
     // 팀 별 팀 컬러
     private let teamColors: [String: String] = [
         "SSG": "#CE0E2D",
-        "Samsung": "#074CA1",
-        "Lotte": "#041E42",
-        "Doosan": "#1A1748",
-        "Hanwha": "#FC4E00",
-        "Kiwoom": "#570514",
-        "Kt": "#000000",
+        "삼성": "#074CA1",
+        "롯데": "#041E42",
+        "두산": "#1A1748",
+        "한화": "#FC4E00",
+        "키움": "#570514",
+        "KT": "#000000",
         "LG": "#C30452",
         "NC": "#315288",
         "KIA": "#EA0029"

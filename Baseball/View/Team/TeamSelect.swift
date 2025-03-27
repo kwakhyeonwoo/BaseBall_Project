@@ -9,8 +9,8 @@ import SwiftUI
 
 struct TeamSelect: View {
     let teams = [
-        "Doosan", "Hanwha", "Kiwoom", "Kt", "LG",
-        "Lotte", "NC", "Samsung", "SSG", "KIA"
+        "두산", "한화", "키움", "KT", "LG",
+        "롯데", "NC", "삼성", "SSG", "KIA"
     ]
     
     @State private var selectedTeam: String? = nil // 선택된 팀을 추적하는 상태 변수
