@@ -7,9 +7,13 @@
 
 import Foundation
 
-struct Article {
+//struct Article {
+//    let title: String
+//    let link: String
+//}
+
+struct Article: Identifiable {
+    let id = UUID()
     let title: String
     let link: String
 }
-
-

@@ -8,8 +8,10 @@
 import SwiftUI
 
 struct CalendarView: View {
-    @StateObject private var viewModel = GameScheduleViewModel()
-    @StateObject private var ssgCrawler = SSGNewsCrawler() // ✅ SSG 뉴스 크롤러 추가
+//    @StateObject private var viewModel = GameScheduleViewModel()
+    @StateObject private var highlightFetcher = HighlightVideoFetcher()
+    @StateObject private var youtubeFetcher = YouTubeFetcher()
+    @StateObject var teamNewsManager = TeamNewsManager()
     let selectedTeam: String
     let selectedTeamImage: String
     @State private var selectedTab: String? = "경기일정"
@@ -21,38 +23,75 @@ struct CalendarView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                teamHeader()
-                Spacer()
-                if selectedTeam.uppercased() == "SSG" && !ssgCrawler.ssgArticles.isEmpty {
-                    Text("📢 SSG 최신 기사")
+            VStack(alignment: .leading, spacing: 0) {
+                // ✅ 뉴스 섹션
+                if !teamNewsManager.articles.isEmpty {
+                    Text("📢 \(selectedTeam.uppercased()) 최신 기사")
                         .font(.headline)
                         .padding(.top)
 
-                    List(ssgCrawler.ssgArticles, id: \.title) { article in
+                    List(teamNewsManager.articles, id: \.title) { article in
                         Button(action: {
-                            ssgCrawler.openInSafari(urlString: article.link)
-                        }) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(article.title)
-                                    .font(.body)
-                                    .foregroundColor(.blue)
+                            if let url = URL(string: article.link) {
+                                UIApplication.shared.open(url)
                             }
-                            .padding(.vertical, 5)
+                        }) {
+                            Text(article.title)
+                                .font(.body)
+                                .foregroundColor(.blue)
                         }
+                        .padding(.vertical, 5)
                     }
                     .listStyle(.plain)
-                    .frame(height: 250)
+                    .frame(height: 200)
+                }
+                Spacer()
+
+                // ✅ 하이라이트 영상 섹션
+                if !teamNewsManager.highlights.isEmpty {
+                    Text("🎞️ \(selectedTeam.uppercased()) 하이라이트")
+                        .font(.headline)
+                        .padding(.top)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(alignment: .top, spacing: 16) {
+                            ForEach(teamNewsManager.highlights) { video in
+                                VStack(alignment: .leading, spacing: 6) {
+                                    AsyncImage(url: URL(string: video.thumbnailURL)) { image in
+                                        image
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                    } placeholder: {
+                                        Color.gray
+                                    }
+                                    .frame(width: 140, height: 80)
+                                    .clipped()
+                                    .cornerRadius(8)
+
+                                    Text(video.title)
+                                        .font(.caption)
+                                        .foregroundColor(.primary)
+                                        .lineLimit(2)
+                                        .frame(width: 140, alignment: .leading)
+                                }
+                                .onTapGesture {
+                                    if let url = URL(string: video.videoURL) {
+                                        UIApplication.shared.open(url)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                    .padding(.bottom, 10)
                 }
 
+                Spacer()
                 tabView()
             }
             .padding()
             .onAppear {
-                viewModel.fetchGameSchedules(for: selectedTeam)
-                if selectedTeam.uppercased() == "SSG" {
-                    ssgCrawler.fetchSSGNews()
-                }
+                teamNewsManager.fetchContent(for: selectedTeam)
             }
             .sheet(isPresented: $showVideoRecorder, onDismiss: {
                 if recordedVideoURL != nil {
@@ -62,18 +101,13 @@ struct CalendarView: View {
                 VideoRecorderViewModel { videoURL in
                     DispatchQueue.main.async {
                         if let videoURL = videoURL {
-                            print("🎬 녹화된 동영상: \(videoURL)")
                             recordedVideoURL = videoURL
-                        } else {
-                            print("❌ 녹화가 취소되었습니다.")
                         }
                     }
                 }
             }
-
             .background(
                 VStack {
-                    // ✅ "응원가 제목 입력 화면"으로 이동하는 NavigationLink
                     NavigationLink(
                         destination: UploadSongTitleView(
                             selectedTeam: selectedTeam,
@@ -81,50 +115,26 @@ struct CalendarView: View {
                             videoURL: recordedVideoURL
                         ),
                         isActive: $navigateToTitleInput
-                    ) {
-                        EmptyView()
-                    }
-                    .hidden()
-                    
-                    // ✅ "응원가 확인하기" 이동 NavigationLink
-                    NavigationLink(
-                        destination: CheckAllVideo(selectedTeam: selectedTeam, selectedTeamImage: selectedTeamImage),
-                        isActive: $navigateToCheckAllVideo
-                    ) {
-                        EmptyView()
-                    }
-                    .hidden()
+                    ) { EmptyView() }.hidden()
 
-                    // ✅ "공식 응원가" 이동 NavigationLink 추가
                     NavigationLink(
-                        destination: TeamSelect_SongView(selectedTeam: selectedTeam, selectedTeamImage: selectedTeamImage),
+                        destination: CheckAllVideo(
+                            selectedTeam: selectedTeam,
+                            selectedTeamImage: selectedTeamImage
+                        ),
+                        isActive: $navigateToCheckAllVideo
+                    ) { EmptyView() }.hidden()
+
+                    NavigationLink(
+                        destination: TeamSelect_SongView(
+                            selectedTeam: selectedTeam,
+                            selectedTeamImage: selectedTeamImage
+                        ),
                         isActive: $navigateToSongView
-                    ) {
-                        EmptyView()
-                    }
-                    .hidden()
+                    ) { EmptyView() }.hidden()
                 }
             )
         }
-    }
-
-    func teamHeader() -> some View {
-        VStack(spacing: 20) {
-            HStack {
-                Image(selectedTeamImage)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 100, height: 100)
-                    .clipShape(Circle())
-                    .shadow(radius: 5)
-                
-                Text("팀이 선택되었습니다")
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .foregroundColor(.black)
-            }
-        }
-        .padding()
     }
 
     func tabView() -> some View {

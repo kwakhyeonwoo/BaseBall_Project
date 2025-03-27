@@ -6,72 +6,54 @@
 //
 
 import Foundation
-import SwiftSoup
-import UIKit
+import FeedKit
+import SwiftUI
 
-class SSGNewsCrawler: ObservableObject {
-    @Published var ssgArticles: [Article] = []
-    
-    func fetchSSGNews() {
-        guard let url = URL(string: "https://news.google.com/rss/search?q=SSG+야구+프로야구&hl=ko&gl=KR&ceid=KR:ko") else { return }
+class TeamNewsManager: ObservableObject {
+    @Published var articles: [Article] = []
+    @Published var highlights: [HighlightVideo] = []
 
-        URLSession.shared.dataTask(with: url) { data, _, error in
-            guard let data = data, error == nil else { return }
+    private let newsFetcher = NewsFetcher()
+    private let youtubeFetcher = YouTubeFetcher()
 
-            let parser = XMLParser(data: data)
-            let rssParser = RSSParser()
-
-            parser.delegate = rssParser
-
-            if parser.parse() {
-                DispatchQueue.main.async {
-                    self.ssgArticles = rssParser.articles
-                }
-            } else {
-                print("❌ RSS 파싱 실패")
+    func fetchContent(for team: String) {
+        newsFetcher.fetchNews(for: team) { articles in
+            DispatchQueue.main.async {
+                self.articles = articles
             }
-        }.resume()
-    }
+        }
 
-    func openInSafari(urlString: String) {
-        if let url = URL(string: urlString) {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        youtubeFetcher.fetchHighlights(for: team) { videos in
+            DispatchQueue.main.async {
+                self.highlights = videos
+            }
         }
     }
 }
 
-class RSSParser: NSObject, XMLParserDelegate {
-    var articles: [Article] = []
-    private var currentElement = ""
-    private var currentTitle = ""
-    private var currentLink = ""
+class NewsFetcher {
+    func fetchNews(for team: String, completion: @escaping ([Article]) -> Void) {
+        let query = "\(team) 야구"
+        let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let urlStr = "https://news.google.com/rss/search?q=\(encoded)&hl=ko&gl=KR&ceid=KR:ko"
 
-    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?,
-                qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
-        currentElement = elementName
-    }
-
-    func parser(_ parser: XMLParser, foundCharacters string: String) {
-        switch currentElement {
-        case "title":
-            currentTitle += string
-        case "link":
-            currentLink += string
-        default:
-            break
+        guard let url = URL(string: urlStr) else {
+            completion([])
+            return
         }
-    }
 
-    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?,
-                qualifiedName qName: String?) {
-        if elementName == "item" {
-            let cleanTitle = currentTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-            let cleanLink = currentLink.trimmingCharacters(in: .whitespacesAndNewlines)
-            if cleanTitle.contains("SSG") {
-                articles.append(Article(title: cleanTitle, link: cleanLink))
+        let parser = FeedParser(URL: url)
+        parser.parseAsync { result in
+            switch result {
+            case .success(let feed):
+                let articles: [Article] = feed.rssFeed?.items?.compactMap { item in
+                    guard let title = item.title, let link = item.link else { return nil }
+                    return Article(title: title, link: link)
+                } ?? []
+                completion(articles)
+            case .failure:
+                completion([])
             }
-            currentTitle = ""
-            currentLink = ""
         }
     }
 }
