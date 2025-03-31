@@ -46,7 +46,7 @@ class VideoArticleViewModel: ObservableObject {
         let apiKey = "AIzaSyBQLvRIl6NrIhtgArmqC8twA4mE-pRSgaI"
         let query = "\(team) 야구"
         let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        let urlString = "https://www.googleapis.com/youtube/v3/search?part=snippet&q=\(encodedQuery)&type=video&maxResults=9&key=\(apiKey)"
+        let urlString = "https://www.googleapis.com/youtube/v3/search?part=snippet&q=\(encodedQuery)&type=video&order=date&maxResults=9&key=\(apiKey)"
 
         guard let url = URL(string: urlString) else {
             completion([])

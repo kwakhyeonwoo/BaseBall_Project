@@ -58,7 +58,7 @@ struct CalendarView: View {
 
                     // ✅ 하이라이트 영상 섹션
                     if !teamNewsManager.highlights.isEmpty {
-                        Text("🎞️ \(selectedTeam) 하이라이트")
+                        Text("📹 \(selectedTeam) 하이라이트")
                             .font(.headline)
                             .padding(.top)
 
@@ -101,6 +101,7 @@ struct CalendarView: View {
                 .padding()
             }
             .onAppear {
+                print("📺 CalendarView appeared - fetching content for \(selectedTeam)")
                 teamNewsManager.fetchContent(for: selectedTeam)
             }
             .sheet(isPresented: $showVideoRecorder, onDismiss: {
