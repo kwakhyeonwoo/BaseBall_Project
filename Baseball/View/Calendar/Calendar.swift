@@ -46,7 +46,7 @@ struct CalendarView: View {
                             }) {
                                 Text(article.title)
                                     .font(.body)
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(.black)
                             }
                             .padding(.vertical, 5)
                         }
