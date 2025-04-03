@@ -21,7 +21,6 @@ struct CalendarView: View {
     @State private var navigateToTitleInput = false
     @State private var showFullNewsView = false
     @State private var selectedURL: URL? = nil
-    @State private var showSafari = false
     
     var body: some View {
         NavigationStack {
@@ -49,7 +48,6 @@ struct CalendarView: View {
                             Button(action: {
                                 if let url = URL(string: article.link) {
                                     selectedURL = url
-                                    showSafari = true
                                 }
                             }) {
                                 Text(article.title)
@@ -97,7 +95,6 @@ struct CalendarView: View {
                                     .onTapGesture {
                                         if let url = URL(string: video.videoURL) {
                                             selectedURL = url
-                                            showSafari = true
                                         }
                                     }
                                 }
@@ -129,10 +126,8 @@ struct CalendarView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showSafari){
-                if let url = selectedURL {
-                    SafariView(url: url)
-                }
+            .sheet(item: $selectedURL){ url in
+                SafariView(url: url)
             }
             .background(
                 VStack {

@@ -18,6 +18,10 @@ struct SafariView: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
 }
 
+extension URL: Identifiable {
+    public var id: String { absoluteString }
+}
+
 //#Preview {
 //    SafariView()
 //}

@@ -11,8 +11,7 @@ struct TeamNewsFullView: View {
     let teamName: String
     let articles: [Article]
 
-    @State private var selectedURL: URL? = nil
-    @State private var showSafari = false
+    @State private var selectedURL: URL?
 
     var body: some View {
         ScrollView {
@@ -21,7 +20,6 @@ struct TeamNewsFullView: View {
                     Button(action: {
                         if let url = URL(string: article.link) {
                             selectedURL = url
-                            showSafari = true
                         }
                     }) {
                         Text(article.title)
@@ -35,10 +33,8 @@ struct TeamNewsFullView: View {
             .padding()
         }
         .navigationTitle("\(teamName) 뉴스")
-        .sheet(isPresented: $showSafari) {
-            if let url = selectedURL {
-                SafariView(url: url)
-            }
+        .sheet(item: $selectedURL) { url in
+            SafariView(url: url)
         }
     }
 }
