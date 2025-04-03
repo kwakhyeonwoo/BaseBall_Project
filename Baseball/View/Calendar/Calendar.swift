@@ -19,7 +19,10 @@ struct CalendarView: View {
     @State private var navigateToCheckAllVideo = false
     @State private var navigateToSongView = false // ✅ 공식 응원가 이동
     @State private var navigateToTitleInput = false
-
+    @State private var showFullNewsView = false
+    @State private var selectedURL: URL? = nil
+    @State private var showSafari = false
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -34,24 +37,31 @@ struct CalendarView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     // ✅ 뉴스 섹션
                     if !teamNewsManager.articles.isEmpty {
-                        Text("📢 \(selectedTeam) 최신 기사")
-                            .font(.headline)
-                            .padding(.top)
-
+                        Button(action: {
+                            showFullNewsView = true
+                        }) {
+                            Text("📢 \(selectedTeam) 최신 기사")
+                                .font(.headline)
+                                .padding(.bottom, 10)
+                                .padding(.horizontal, 16)
+                        }
                         List(teamNewsManager.articles) { article in
                             Button(action: {
                                 if let url = URL(string: article.link) {
-                                    UIApplication.shared.open(url)
+                                    selectedURL = url
+                                    showSafari = true
                                 }
                             }) {
                                 Text(article.title)
                                     .font(.body)
                                     .foregroundColor(.black)
+                                    .multilineTextAlignment(.leading)
                             }
                             .padding(.vertical, 5)
                         }
                         .listStyle(.plain)
                         .frame(height: 200)
+                        .padding(.bottom, 20)
                     }
                     Divider()
                     Spacer()
@@ -60,7 +70,8 @@ struct CalendarView: View {
                     if !teamNewsManager.highlights.isEmpty {
                         Text("📹 \(selectedTeam) 하이라이트")
                             .font(.headline)
-                            .padding(.top)
+                            .padding(.bottom, 10)
+                            .padding(.horizontal, 16)
 
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(alignment: .top, spacing: 16) {
@@ -85,14 +96,15 @@ struct CalendarView: View {
                                     }
                                     .onTapGesture {
                                         if let url = URL(string: video.videoURL) {
-                                            UIApplication.shared.open(url)
+                                            selectedURL = url
+                                            showSafari = true
                                         }
                                     }
                                 }
                             }
                             .padding(.horizontal)
                         }
-                        .padding(.bottom, 10)
+                        .padding(.bottom, 20)
                     }
                     Divider()
                     Spacer()
@@ -115,6 +127,11 @@ struct CalendarView: View {
                             recordedVideoURL = videoURL
                         }
                     }
+                }
+            }
+            .sheet(isPresented: $showSafari){
+                if let url = selectedURL {
+                    SafariView(url: url)
                 }
             }
             .background(
@@ -146,6 +163,16 @@ struct CalendarView: View {
                             selectedTeamImage: selectedTeamImage
                         ),
                         isActive: $navigateToSongView
+                    ) {
+                        EmptyView()
+                    }.hidden()
+                    
+                    NavigationLink(
+                        destination: TeamNewsFullView(
+                            teamName: selectedTeam,
+                            articles: teamNewsManager.articles
+                        ),
+                        isActive: $showFullNewsView
                     ) {
                         EmptyView()
                     }.hidden()
