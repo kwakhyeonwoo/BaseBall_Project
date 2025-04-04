@@ -21,6 +21,7 @@ struct CalendarView: View {
     @State private var navigateToTitleInput = false
     @State private var showFullNewsView = false
     @State private var selectedURL: URL? = nil
+    @State private var showFullHighlightView = false
     
     var body: some View {
         NavigationStack {
@@ -66,10 +67,14 @@ struct CalendarView: View {
 
                     // ✅ 하이라이트 영상 섹션
                     if !teamNewsManager.highlights.isEmpty {
-                        Text("📹 \(selectedTeam) 하이라이트")
-                            .font(.headline)
-                            .padding(.bottom, 10)
-                            .padding(.horizontal, 16)
+                        Button(action: {
+                            showFullHighlightView = true
+                        }){
+                            Text("📹 \(selectedTeam) 하이라이트")
+                                .font(.headline)
+                                .padding(.bottom, 10)
+                                .padding(.horizontal, 16)
+                        }
 
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(alignment: .top, spacing: 16) {
@@ -171,6 +176,14 @@ struct CalendarView: View {
                     ) {
                         EmptyView()
                     }.hidden()
+                    
+                    NavigationLink(
+                        destination: TeamVideoGrid(teamName: selectedTeam, videos: teamNewsManager.highlights),
+                        isActive: $showFullHighlightView
+                    ) {
+                        EmptyView()
+                    }.hidden()
+
                 }
             )
         }
