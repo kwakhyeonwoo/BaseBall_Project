@@ -178,12 +178,11 @@ struct CalendarView: View {
                     }.hidden()
                     
                     NavigationLink(
-                        destination: TeamVideoGrid(teamName: selectedTeam, videos: teamNewsManager.highlights),
+                        destination: TeamVideoGrid(teamName: selectedTeam),
                         isActive: $showFullHighlightView
                     ) {
                         EmptyView()
                     }.hidden()
-
                 }
             )
         }

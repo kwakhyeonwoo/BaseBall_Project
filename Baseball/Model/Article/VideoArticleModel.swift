@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct HighlightVideo: Identifiable {
+struct HighlightVideo: Codable, Identifiable {
     let id = UUID()
     let title: String
     let thumbnailURL: String
