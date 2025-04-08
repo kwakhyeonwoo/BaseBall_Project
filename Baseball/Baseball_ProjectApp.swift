@@ -22,7 +22,8 @@ struct Baseball_ProjectApp: App {
     
     var body: some Scene {
         WindowGroup {
-            firstPage()
+            TeamSelect()
+            //firstPage()
         }
     }
 }

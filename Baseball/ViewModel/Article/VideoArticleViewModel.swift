@@ -53,8 +53,8 @@ class VideoArticleViewModel: ObservableObject {
 
     func fetchHighlights(for team: String, append: Bool = false, completion: @escaping ([HighlightVideo]) -> Void) {
         // ✅ append 아닐 때만 캐시 확인
-        if !append, let cached = loadCache(), !isCacheExpired() {
-            print("✅ [Cache Hit] 캐시된 영상 사용")
+        if !append, let cached = loadCache(for: team), !isCacheExpired(for: team) {
+            print("✅ [Cache Hit] 캐시된 \(team) 영상 사용")
             self.cachedVideos = cached
             completion(cached)
             return
@@ -64,10 +64,10 @@ class VideoArticleViewModel: ObservableObject {
         isFetching = true
 
         let apiKey = "AIzaSyBQLvRIl6NrIhtgArmqC8twA4mE-pRSgaI"
-        let query = "\(team) 야구"
+        let query = "\(team)"
         let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
 
-        var urlString = "https://www.googleapis.com/youtube/v3/search?part=snippet&q=\(encodedQuery)&type=video&order=date&maxResults=15&key=\(apiKey)"
+        var urlString = "https://www.googleapis.com/youtube/v3/search?part=snippet&q=\(encodedQuery)&type=video&order=date&maxResults=50&key=\(apiKey)"
         if let token = nextPageToken {
             urlString += "&pageToken=\(token)" // ✅ 새 페이지 요청
         }
@@ -108,13 +108,12 @@ class VideoArticleViewModel: ObservableObject {
 
                     DispatchQueue.main.async {
                         if append {
-                            // ✅ append 시 캐시 저장 안 함, 중복 제거도 가능
                             self.cachedVideos.append(contentsOf: newVideos)
                             completion(newVideos)
                         } else {
                             self.cachedVideos = newVideos
-                            self.saveCache(newVideos)
-                            self.updateTimestamp()
+                            self.saveCache(newVideos, for: team)
+                            self.updateTimestamp(for: team)
                             completion(newVideos)
                         }
                     }
@@ -130,28 +129,36 @@ class VideoArticleViewModel: ObservableObject {
 
 
     // MARK: - Caching Helpers
-    private func saveCache(_ videos: [HighlightVideo]) {
+    private func saveCache(_ videos: [HighlightVideo], for team: String) {
         if let encoded = try? JSONEncoder().encode(videos) {
-            UserDefaults.standard.set(encoded, forKey: cacheKey)
+            UserDefaults.standard.set(encoded, forKey: cacheKey(for: team))
         }
     }
 
-    private func loadCache() -> [HighlightVideo]? {
-        if let data = UserDefaults.standard.data(forKey: cacheKey),
+    private func loadCache(for team: String) -> [HighlightVideo]? {
+        if let data = UserDefaults.standard.data(forKey: cacheKey(for: team)),
            let decoded = try? JSONDecoder().decode([HighlightVideo].self, from: data) {
             return decoded
         }
         return nil
     }
 
-    private func updateTimestamp() {
-        UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: timestampKey)
+    private func updateTimestamp(for team: String) {
+        UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: timestampKey(for: team))
     }
 
-    private func isCacheExpired() -> Bool {
-        let last = UserDefaults.standard.double(forKey: timestampKey)
+    private func isCacheExpired(for team: String) -> Bool {
+        let last = UserDefaults.standard.double(forKey: timestampKey(for: team))
         let now = Date().timeIntervalSince1970
         return (now - last) > cacheDuration
+    }
+    
+    private func cacheKey(for team: String) -> String {
+        return "cachedHighlights_\(team)"
+    }
+
+    private func timestampKey(for team: String) -> String {
+        return "lastFetchTimestamp_\(team)"
     }
 
     func resetPagination() {

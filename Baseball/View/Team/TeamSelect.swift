@@ -45,7 +45,7 @@ struct TeamSelect: View {
     func teamSelectionInstructions() -> some View {
         Text("응원하실 팀을 선택해주세요")
             .foregroundStyle(.gray)
-            .padding(.bottom, 20)
+            .padding(.bottom, 10)
     }
     
     // MARK: - 팀 이미지 그리드
@@ -64,7 +64,7 @@ struct TeamSelect: View {
             Image(team)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 120, height: 90)
+                .frame(width: 150, height: 90)
                 .background(Color(uiColor: .secondarySystemBackground))
                 .cornerRadius(10)
                 .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 2)
@@ -101,6 +101,6 @@ struct TeamSelect: View {
     }
 }
 
-#Preview {
-    TeamSelect()
-}
+//#Preview {
+//    TeamSelect()
+//}
