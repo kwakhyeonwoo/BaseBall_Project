@@ -221,7 +221,8 @@ struct CalendarView: View {
             .hidden()
 
             NavigationLink(
-                destination: TeamNewsFullView(teamName: selectedTeam),
+                destination: TeamNewsFullView(
+                    teamName: selectedTeam),
                 isActive: $showFullNewsView
             ) {
                 EmptyView()

@@ -11,32 +11,56 @@ struct TeamNewsFullView: View {
     let teamName: String
     @StateObject private var viewModel = TeamNewsFullViewModel()
     @State private var selectedURL: URL?
+    @State private var searchText: String = ""
+    @State private var isSearching: Bool = false
+
+    var filteredArticles: [Article] {
+        if searchText.isEmpty {
+            return viewModel.articles
+        } else {
+            return viewModel.articles.filter { $0.title.localizedCaseInsensitiveContains(searchText) }
+        }
+    }
 
     var body: some View {
         ScrollView {
             if viewModel.isLoading {
-                ProgressView()
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.top, 60)
+                loadingView()
             } else {
+                if isSearching {
+                    searchField()
+                }
                 articleListView()
-                    .padding(.horizontal)
-                    .padding(.top, 12)
             }
         }
         .navigationTitle("\(teamName) 뉴스")
-        .onAppear {
-            viewModel.fetch(for: teamName)
-        }
+        .toolbar { toolbarView() }
         .sheet(item: $selectedURL) { url in
             SafariView(url: url)
         }
+        .onAppear {
+            viewModel.fetch(for: teamName)
+        }
     }
 
-    @ViewBuilder
-    private func articleListView() -> some View {
+    // MARK: - 로딩 뷰
+    func loadingView() -> some View {
+        ProgressView("로딩 중...")
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.top, 60)
+    }
+
+    // MARK: - 검색 필드
+    func searchField() -> some View {
+        TextField("\(teamName) 기사 검색", text: $searchText)
+            .textFieldStyle(RoundedBorderTextFieldStyle())
+            .padding(.horizontal)
+    }
+
+    // MARK: - 기사 리스트
+    func articleListView() -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(viewModel.articles) { article in
+            ForEach(filteredArticles) { article in
                 Button(action: {
                     if let url = URL(string: article.link) {
                         selectedURL = url
@@ -66,11 +90,32 @@ struct TeamNewsFullView: View {
                 Divider().padding(.vertical, 4)
             }
         }
+        .padding(.horizontal)
+        .padding(.top, 12)
     }
 
-    private func dateFormatted(_ date: Date) -> String {
+    // MARK: - 툴바
+    func toolbarView() -> some ToolbarContent {
+        ToolbarItem(placement: .navigationBarTrailing) {
+            Button(action: {
+                withAnimation {
+                    isSearching.toggle()
+                    if !isSearching {
+                        searchText = ""
+                    }
+                }
+            }) {
+                Image(systemName: isSearching ? "xmark" : "magnifyingglass")
+                    .foregroundColor(.black)
+            }
+        }
+    }
+
+    // MARK: - 날짜 포맷터
+    func dateFormatted(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "M월 d일"
         return formatter.string(from: date)
     }
 }
+
