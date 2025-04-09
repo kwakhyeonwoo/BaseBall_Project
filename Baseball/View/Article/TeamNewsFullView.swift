@@ -27,8 +27,12 @@ struct TeamNewsFullView: View {
 
     // MARK: - 기사 리스트 뷰
     func articleListView() -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ForEach(articles) { article in
+        let sortedArticles = articles.sorted {
+            ($0.pubDate ?? Date.distantPast) > ($1.pubDate ?? Date.distantPast)
+        }
+
+        return VStack(alignment: .leading, spacing: 0) {
+            ForEach(sortedArticles) { article in
                 Button(action: {
                     if let url = URL(string: article.link) {
                         selectedURL = url
@@ -58,11 +62,13 @@ struct TeamNewsFullView: View {
                     }
                     .padding(.vertical, 8)
                 }
+
                 Divider()
                     .padding(.vertical, 4)
             }
         }
     }
+
 
     // MARK: - 날짜 포맷터
     func dateFormatted(_ date: Date) -> String {

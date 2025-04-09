@@ -72,12 +72,22 @@ struct CalendarView: View {
     func newsSection() -> some View {
         Group {
             if !teamNewsManager.articles.isEmpty {
-                Button(action: { showFullNewsView = true }) {
-                    Text("📢 \(selectedTeam) 최신 기사")
+                HStack{
+                    Text("\(selectedTeam) 최신 기사")
                         .font(.headline)
-                        .padding(.bottom, 10)
-                        .padding(.horizontal, 16)
+                    Spacer()
+                    
+                    Button(
+                        action: {
+                            showFullNewsView = true
+                        }) {
+                        Text("전체화면")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                    }
                 }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 10)
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {
@@ -124,14 +134,20 @@ struct CalendarView: View {
     func highlightSection() -> some View {
         Group {
             if !teamNewsManager.highlights.isEmpty {
-                Button(action: {
-                    showFullHighlightView = true
-                }) {
-                    Text("📹 \(selectedTeam) 하이라이트")
+                HStack{
+                    Text("\(selectedTeam) 하이라이트")
                         .font(.headline)
-                        .padding(.bottom, 10)
-                        .padding(.horizontal, 16)
+                    Spacer()
+                    Button(action: {
+                        showFullHighlightView = true
+                    }) {
+                        Text("전체화면")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                    }
                 }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 10)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: 16) {
