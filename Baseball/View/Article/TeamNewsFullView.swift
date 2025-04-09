@@ -9,51 +9,52 @@ import SwiftUI
 
 struct TeamNewsFullView: View {
     let teamName: String
-    let articles: [Article]
-
+    @StateObject private var viewModel = TeamNewsFullViewModel()
     @State private var selectedURL: URL?
 
     var body: some View {
         ScrollView {
-            articleListView()
-                .padding(.horizontal)
-                .padding(.top, 12)
+            if viewModel.isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 60)
+            } else {
+                articleListView()
+                    .padding(.horizontal)
+                    .padding(.top, 12)
+            }
         }
         .navigationTitle("\(teamName) 뉴스")
+        .onAppear {
+            viewModel.fetch(for: teamName)
+        }
         .sheet(item: $selectedURL) { url in
             SafariView(url: url)
         }
     }
 
-    // MARK: - 기사 리스트 뷰
-    func articleListView() -> some View {
-        let sortedArticles = articles.sorted {
-            ($0.pubDate ?? Date.distantPast) > ($1.pubDate ?? Date.distantPast)
-        }
-
-        return VStack(alignment: .leading, spacing: 0) {
-            ForEach(sortedArticles) { article in
+    @ViewBuilder
+    private func articleListView() -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(viewModel.articles) { article in
                 Button(action: {
                     if let url = URL(string: article.link) {
                         selectedURL = url
                     }
                 }) {
                     VStack(alignment: .leading, spacing: 4) {
-                        // 날짜
                         if let date = article.pubDate {
                             Text(dateFormatted(date))
                                 .font(.caption)
                                 .foregroundColor(.gray)
                         }
 
-                        // 제목
                         Text(article.title)
                             .font(.subheadline)
                             .foregroundColor(.primary)
                             .multilineTextAlignment(.leading)
                             .lineLimit(2)
 
-                        // 출판사
                         if let source = article.source {
                             Text(source)
                                 .font(.caption)
@@ -62,16 +63,12 @@ struct TeamNewsFullView: View {
                     }
                     .padding(.vertical, 8)
                 }
-
-                Divider()
-                    .padding(.vertical, 4)
+                Divider().padding(.vertical, 4)
             }
         }
     }
 
-
-    // MARK: - 날짜 포맷터
-    func dateFormatted(_ date: Date) -> String {
+    private func dateFormatted(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "M월 d일"
         return formatter.string(from: date)

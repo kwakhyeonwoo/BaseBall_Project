@@ -193,7 +193,10 @@ struct CalendarView: View {
                     videoURL: recordedVideoURL
                 ),
                 isActive: $navigateToTitleInput
-            ) { EmptyView() }.hidden()
+            ) {
+                EmptyView()
+            }
+            .hidden()
 
             NavigationLink(
                 destination: CheckAllVideo(
@@ -201,7 +204,10 @@ struct CalendarView: View {
                     selectedTeamImage: selectedTeamImage
                 ),
                 isActive: $navigateToCheckAllVideo
-            ) { EmptyView() }.hidden()
+            ) {
+                EmptyView()
+            }
+            .hidden()
 
             NavigationLink(
                 destination: TeamSelect_SongView(
@@ -209,20 +215,26 @@ struct CalendarView: View {
                     selectedTeamImage: selectedTeamImage
                 ),
                 isActive: $navigateToSongView
-            ) { EmptyView() }.hidden()
+            ) {
+                EmptyView()
+            }
+            .hidden()
 
             NavigationLink(
-                destination: TeamNewsFullView(
-                    teamName: selectedTeam,
-                    articles: teamNewsManager.articles
-                ),
+                destination: TeamNewsFullView(teamName: selectedTeam),
                 isActive: $showFullNewsView
-            ) { EmptyView() }.hidden()
+            ) {
+                EmptyView()
+            }
+            .hidden()
 
             NavigationLink(
                 destination: TeamVideoGrid(teamName: selectedTeam),
                 isActive: $showFullHighlightView
-            ) { EmptyView() }.hidden()
+            ) {
+                EmptyView()
+            }
+            .hidden()
         }
     }
 
