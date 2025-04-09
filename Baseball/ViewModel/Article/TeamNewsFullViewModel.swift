@@ -6,18 +6,42 @@
 //
 
 import Foundation
+import Combine
 
 class TeamNewsFullViewModel: ObservableObject {
     @Published var articles: [Article] = []
-    @Published var isLoading = false
+    @Published var isLoading: Bool = false
+    @Published var searchText: String = ""
+    @Published var filteredArticles: [Article] = []
+
+    private var cancellables = Set<AnyCancellable>()
+
+    init() {
+        $searchText
+            .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
+            .removeDuplicates()
+            .sink { [weak self] query in
+                guard let self = self else { return }
+                if query.isEmpty {
+                    self.filteredArticles = self.articles
+                } else {
+                    self.filteredArticles = self.articles.filter {
+                        $0.title.localizedCaseInsensitiveContains(query)
+                    }
+                }
+            }
+            .store(in: &cancellables)
+    }
 
     func fetch(for team: String) {
         isLoading = true
         NewsFetcher().fetchNews(for: team) { result in
             DispatchQueue.main.async {
-                self.articles = result.sorted {
+                let sorted = result.sorted {
                     ($0.pubDate ?? Date.distantPast) > ($1.pubDate ?? Date.distantPast)
                 }
+                self.articles = sorted
+                self.filteredArticles = sorted
                 self.isLoading = false
             }
         }
