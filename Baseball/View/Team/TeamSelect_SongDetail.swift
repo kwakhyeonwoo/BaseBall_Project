@@ -26,7 +26,7 @@ struct SongDetailView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 250, height: 250) // 로고 크기 조절
-                .opacity(0.3) // 투명도 50% 적용
+                .opacity(0.2) // 투명도 20% 적용
                 .offset(y: -30) // 위치 조정 (필요 시 수정 가능)
             
             VStack(spacing: 20) {

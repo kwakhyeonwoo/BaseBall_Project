@@ -22,6 +22,7 @@ struct CalendarView: View {
     @State private var showFullNewsView = false
     @State private var selectedURL: URL? = nil
     @State private var showFullHighlightView = false
+    @State private var hasFetchedContent = false
     
     var body: some View {
         NavigationStack {
@@ -29,8 +30,10 @@ struct CalendarView: View {
                 mainContent()
             }
             .onAppear {
+                guard !hasFetchedContent else { return } // ✅ 이미 불러왔으면 재요청 안함
                 print("📺 CalendarView appeared - fetching content for \(selectedTeam)")
                 teamNewsManager.fetchContent(for: selectedTeam)
+                hasFetchedContent = true
             }
             .sheet(isPresented: $showVideoRecorder, onDismiss: {
                 if recordedVideoURL != nil {
@@ -56,6 +59,7 @@ struct CalendarView: View {
         VStack(alignment: .leading, spacing: 0) {
             newsSection()
             Divider()
+            Spacer()
             highlightSection()
             Divider()
             Spacer()
@@ -140,7 +144,7 @@ struct CalendarView: View {
                                 } placeholder: {
                                     Color.gray
                                 }
-                                .frame(width: 140, height: 80)
+                                .frame(width: UIScreen.main.bounds.width * 0.4, height: 80)
                                 .clipped()
                                 .cornerRadius(8)
 
