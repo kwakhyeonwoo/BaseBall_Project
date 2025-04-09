@@ -25,9 +25,15 @@ class HighlightVideoFetcher: ObservableObject {
                         self.highlightVideos = items.compactMap { item -> HighlightVideo? in
                             guard let title = item.title, let link = item.link else { return nil }
 
+                            let videoId = URLComponents(string: link)?
+                                .queryItems?
+                                .first(where: { $0.name == "v" })?
+                                .value ?? UUID().uuidString
+                            
                             return HighlightVideo(
+                                videoId: videoId,
                                 title: title,
-                                thumbnailURL: "https://i.ytimg.com/vi/default/hqdefault.jpg", // 🔄 썸네일이 없는 경우 기본값
+                                thumbnailURL: "https://i.ytimg.com/vi/\(videoId)/hqdefault.jpg",
                                 videoURL: link
                             )
                         }
@@ -52,19 +58,12 @@ class VideoArticleViewModel: ObservableObject {
     private let cacheDuration: TimeInterval = 600 // 10분
 
     func fetchHighlights(for team: String, append: Bool = false, completion: @escaping ([HighlightVideo]) -> Void) {
-        // ✅ append 아닐 때만 캐시 확인
-        if !append, let cached = loadCache(for: team), !isCacheExpired(for: team) {
-            print("✅ [Cache Hit] 캐시된 \(team) 영상 사용")
-            self.cachedVideos = cached
-            completion(cached)
-            return
-        }
 
         guard !isFetching else { return }
         isFetching = true
 
         let apiKey = "AIzaSyBQLvRIl6NrIhtgArmqC8twA4mE-pRSgaI"
-        let query = "\(team)"
+        let query = "\(team) 야구"
         let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
 
         var urlString = "https://www.googleapis.com/youtube/v3/search?part=snippet&q=\(encodedQuery)&type=video&order=date&maxResults=50&key=\(apiKey)"
@@ -90,7 +89,7 @@ class VideoArticleViewModel: ObservableObject {
                 if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                    let items = json["items"] as? [[String: Any]] {
 
-                    self.nextPageToken = json["nextPageToken"] as? String // ✅ 항상 업데이트
+                    self.nextPageToken = json["nextPageToken"] as? String
 
                     let newVideos = items.compactMap { item -> HighlightVideo? in
                         guard
@@ -103,21 +102,27 @@ class VideoArticleViewModel: ObservableObject {
                             let thumbnailURL = highThumb["url"] as? String
                         else { return nil }
 
-                        return HighlightVideo(title: title, thumbnailURL: thumbnailURL, videoURL: "https://www.youtube.com/watch?v=\(videoId)")
+                        return HighlightVideo(
+                            videoId: videoId,
+                            title: title,
+                            thumbnailURL: thumbnailURL,
+                            videoURL: "https://www.youtube.com/watch?v=\(videoId)")
+                    }
+                    
+                    //MARK: 중복 제거
+                    let uniqueVideos = newVideos.filter { new in
+                        !self.cachedVideos.contains(where: { $0.videoId == new.videoId })
                     }
 
                     DispatchQueue.main.async {
                         if append {
-                            self.cachedVideos.append(contentsOf: newVideos)
-                            completion(newVideos)
+                            self.cachedVideos.append(contentsOf: uniqueVideos)
+                            completion(uniqueVideos)
                         } else {
-                            self.cachedVideos = newVideos
-                            self.saveCache(newVideos, for: team)
-                            self.updateTimestamp(for: team)
-                            completion(newVideos)
+                            self.cachedVideos = uniqueVideos
+                            completion(uniqueVideos)
                         }
                     }
-
                 } else {
                     completion([])
                 }
@@ -125,40 +130,6 @@ class VideoArticleViewModel: ObservableObject {
                 completion([])
             }
         }.resume()
-    }
-
-
-    // MARK: - Caching Helpers
-    private func saveCache(_ videos: [HighlightVideo], for team: String) {
-        if let encoded = try? JSONEncoder().encode(videos) {
-            UserDefaults.standard.set(encoded, forKey: cacheKey(for: team))
-        }
-    }
-
-    private func loadCache(for team: String) -> [HighlightVideo]? {
-        if let data = UserDefaults.standard.data(forKey: cacheKey(for: team)),
-           let decoded = try? JSONDecoder().decode([HighlightVideo].self, from: data) {
-            return decoded
-        }
-        return nil
-    }
-
-    private func updateTimestamp(for team: String) {
-        UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: timestampKey(for: team))
-    }
-
-    private func isCacheExpired(for team: String) -> Bool {
-        let last = UserDefaults.standard.double(forKey: timestampKey(for: team))
-        let now = Date().timeIntervalSince1970
-        return (now - last) > cacheDuration
-    }
-    
-    private func cacheKey(for team: String) -> String {
-        return "cachedHighlights_\(team)"
-    }
-
-    private func timestampKey(for team: String) -> String {
-        return "lastFetchTimestamp_\(team)"
     }
 
     func resetPagination() {

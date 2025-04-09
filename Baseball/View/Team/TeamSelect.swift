@@ -89,7 +89,7 @@ struct TeamSelect: View {
             navigateToCalendar = true // Calendar로 이동
         }) {
             Text("팀 선택 완료")
-                .frame(maxWidth: .infinity)
+                .frame(width: 320)
                 .padding()
                 .background(selectedTeam != nil ? Color.blue : Color.gray) // 팀이 선택되면 파란색, 아니면 회색
                 .foregroundColor(.white)

@@ -114,6 +114,7 @@ struct CalendarView: View {
                 }
                 .padding()
             }
+            //업데이트 될때마다 갱신중
             .onAppear {
                 print("📺 CalendarView appeared - fetching content for \(selectedTeam)")
                 teamNewsManager.fetchContent(for: selectedTeam)
@@ -190,13 +191,13 @@ struct CalendarView: View {
 
     func tabView() -> some View {
         HStack(spacing: 0) {
-            tabButton(label: "경기일정", icon: "calendar", tag: "경기일정")
-            tabButton(label: "공식 응원가", icon: "music.note", tag: "공식 응원가")
-            tabButton(label: "응원가 업로드", icon: "arrow.up.circle", tag: "응원가 업로드")
-            tabButton(label: "응원가 확인", icon: "play.rectangle", tag: "응원가 확인")
+            tabButton(label: "일정", icon: "calendar", tag: "일정")
+            tabButton(label: "응원가", icon: "music.note", tag: "응원가")
+            tabButton(label: "업로드", icon: "arrow.up.circle", tag: "업로드")
+            tabButton(label: "응원영상", icon: "play.rectangle", tag: "응원영상")
             tabButton(label: "보관함", icon: "tray.full", tag: "보관함")
         }
-        .frame(height: 80)
+        .frame(height: 40)
         .background(Color.white)
         .padding(.horizontal, 10)
     }
@@ -204,11 +205,11 @@ struct CalendarView: View {
     func tabButton(label: String, icon: String, tag: String) -> some View {
         Button(action: {
             selectedTab = tag
-            if tag == "응원가 업로드" {
+            if tag == "업로드" {
                 showVideoRecorder = true
-            } else if tag == "공식 응원가" {
+            } else if tag == "응원가" {
                 navigateToSongView = true // ✅ TeamSelect_SongView로 이동
-            } else if tag == "응원가 확인"{
+            } else if tag == "응원영상"{
                 navigateToCheckAllVideo = true
             }
         }) {
