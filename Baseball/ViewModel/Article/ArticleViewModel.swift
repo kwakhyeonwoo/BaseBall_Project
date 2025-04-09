@@ -47,10 +47,16 @@ class NewsFetcher {
             switch result {
             case .success(let feed):
                 let articles: [Article] = feed.rssFeed?.items?.compactMap { item in
-                    guard let title = item.title, let link = item.link else { return nil }
-                    return Article(title: title, link: link)
+                    guard let title = item.title,
+                          let link = item.link else { return nil }
+                    
+                    let pubDate = item.pubDate               // ✅ 날짜 가져오기
+                    let source = item.source?.value          // ✅ 출판사 정보 가져오기
+                    
+                    return Article(title: title, link: link, pubDate: pubDate, source: source)
                 } ?? []
                 completion(articles)
+                
             case .failure:
                 completion([])
             }

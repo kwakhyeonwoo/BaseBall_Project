@@ -26,95 +26,8 @@ struct CalendarView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // ✅ 배경 로고 이미지
-                Image("\(selectedTeam)")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 200, height: 200)
-                    .opacity(0.3)
-                    .offset(y: -50)
-
-                VStack(alignment: .leading, spacing: 0) {
-                    // ✅ 뉴스 섹션
-                    if !teamNewsManager.articles.isEmpty {
-                        Button(action: {
-                            showFullNewsView = true
-                        }) {
-                            Text("📢 \(selectedTeam) 최신 기사")
-                                .font(.headline)
-                                .padding(.bottom, 10)
-                                .padding(.horizontal, 16)
-                        }
-                        List(teamNewsManager.articles) { article in
-                            Button(action: {
-                                if let url = URL(string: article.link) {
-                                    selectedURL = url
-                                }
-                            }) {
-                                Text(article.title)
-                                    .font(.body)
-                                    .foregroundColor(.black)
-                                    .multilineTextAlignment(.leading)
-                            }
-                            .padding(.vertical, 5)
-                        }
-                        .listStyle(.plain)
-                        .frame(height: 200)
-                        .padding(.bottom, 20)
-                    }
-                    Divider()
-                    Spacer()
-
-                    // ✅ 하이라이트 영상 섹션
-                    if !teamNewsManager.highlights.isEmpty {
-                        Button(action: {
-                            showFullHighlightView = true
-                        }){
-                            Text("📹 \(selectedTeam) 하이라이트")
-                                .font(.headline)
-                                .padding(.bottom, 10)
-                                .padding(.horizontal, 16)
-                        }
-
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(alignment: .top, spacing: 16) {
-                                ForEach(teamNewsManager.highlights) { video in
-                                    VStack(alignment: .leading, spacing: 6) {
-                                        AsyncImage(url: URL(string: video.thumbnailURL)) { image in
-                                            image
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                        } placeholder: {
-                                            Color.gray
-                                        }
-                                        .frame(width: 140, height: 80)
-                                        .clipped()
-                                        .cornerRadius(8)
-
-                                        Text(video.title)
-                                            .font(.caption)
-                                            .foregroundColor(.primary)
-                                            .lineLimit(2)
-                                            .frame(width: 140, alignment: .leading)
-                                    }
-                                    .onTapGesture {
-                                        if let url = URL(string: video.videoURL) {
-                                            selectedURL = url
-                                        }
-                                    }
-                                }
-                            }
-                            .padding(.horizontal)
-                        }
-                        .padding(.bottom, 20)
-                    }
-                    Divider()
-                    Spacer()
-                    tabView()
-                }
-                .padding()
+                mainContent()
             }
-            //업데이트 될때마다 갱신중
             .onAppear {
                 print("📺 CalendarView appeared - fetching content for \(selectedTeam)")
                 teamNewsManager.fetchContent(for: selectedTeam)
@@ -132,62 +45,175 @@ struct CalendarView: View {
                     }
                 }
             }
-            .sheet(item: $selectedURL){ url in
+            .sheet(item: $selectedURL) { url in
                 SafariView(url: url)
             }
-            .background(
-                VStack {
-                    NavigationLink(
-                        destination: UploadSongTitleView(
-                            selectedTeam: selectedTeam,
-                            selectedTeamImage: selectedTeamImage,
-                            videoURL: recordedVideoURL
-                        ),
-                        isActive: $navigateToTitleInput
-                    ) {
-                        EmptyView()
-                    }.hidden()
-
-                    NavigationLink(
-                        destination: CheckAllVideo(
-                            selectedTeam: selectedTeam,
-                            selectedTeamImage: selectedTeamImage
-                        ),
-                        isActive: $navigateToCheckAllVideo
-                    ) {
-                        EmptyView()
-                    }.hidden()
-
-                    NavigationLink(
-                        destination: TeamSelect_SongView(
-                            selectedTeam: selectedTeam,
-                            selectedTeamImage: selectedTeamImage
-                        ),
-                        isActive: $navigateToSongView
-                    ) {
-                        EmptyView()
-                    }.hidden()
-                    
-                    NavigationLink(
-                        destination: TeamNewsFullView(
-                            teamName: selectedTeam,
-                            articles: teamNewsManager.articles
-                        ),
-                        isActive: $showFullNewsView
-                    ) {
-                        EmptyView()
-                    }.hidden()
-                    
-                    NavigationLink(
-                        destination: TeamVideoGrid(teamName: selectedTeam),
-                        isActive: $showFullHighlightView
-                    ) {
-                        EmptyView()
-                    }.hidden()
-                }
-            )
+            .background(navigationLinks())
         }
     }
+
+    func mainContent() -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            newsSection()
+            Divider()
+            highlightSection()
+            Divider()
+            Spacer()
+            tabView()
+        }
+        .padding()
+    }
+
+    //뉴스 기사 파싱
+    func newsSection() -> some View {
+        Group {
+            if !teamNewsManager.articles.isEmpty {
+                Button(action: { showFullNewsView = true }) {
+                    Text("📢 \(selectedTeam) 최신 기사")
+                        .font(.headline)
+                        .padding(.bottom, 10)
+                        .padding(.horizontal, 16)
+                }
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 12) {
+                        ForEach(teamNewsManager.articles) { article in
+                            Button(action: {
+                                if let url = URL(string: article.link) {
+                                    selectedURL = url
+                                }
+                            }) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    if let date = article.pubDate {
+                                        Text(dateFormatted(date)) // ex: 4월 9일
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                    }
+
+                                    Text(article.title)
+                                        .font(.subheadline)
+                                        .foregroundColor(.primary)
+                                        .multilineTextAlignment(.leading)
+                                        .lineLimit(2)
+
+                                    if let source = article.source {
+                                        Text(source)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+
+                                    Divider()
+                                }
+                                .padding(.horizontal, 16)
+                            }
+                        }
+                    }
+                    .padding(.top, 10)
+                }
+                .frame(height: 400)
+                .padding(.bottom, 20)
+            }
+        }
+    }
+
+    //유튜브 영상
+    func highlightSection() -> some View {
+        Group {
+            if !teamNewsManager.highlights.isEmpty {
+                Button(action: {
+                    showFullHighlightView = true
+                }) {
+                    Text("📹 \(selectedTeam) 하이라이트")
+                        .font(.headline)
+                        .padding(.bottom, 10)
+                        .padding(.horizontal, 16)
+                }
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: 16) {
+                        ForEach(teamNewsManager.highlights) { video in
+                            VStack(alignment: .leading, spacing: 6) {
+                                AsyncImage(url: URL(string: video.thumbnailURL)) { image in
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                } placeholder: {
+                                    Color.gray
+                                }
+                                .frame(width: 140, height: 80)
+                                .clipped()
+                                .cornerRadius(8)
+
+                                Text(video.title)
+                                    .font(.caption)
+                                    .foregroundColor(.primary)
+                                    .lineLimit(2)
+                                    .frame(width: 140, alignment: .leading)
+                            }
+                            .onTapGesture {
+                                if let url = URL(string: video.videoURL) {
+                                    selectedURL = url
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                .padding(.bottom, 20)
+            }
+        }
+    }
+
+    func navigationLinks() -> some View {
+        VStack {
+            NavigationLink(
+                destination: UploadSongTitleView(
+                    selectedTeam: selectedTeam,
+                    selectedTeamImage: selectedTeamImage,
+                    videoURL: recordedVideoURL
+                ),
+                isActive: $navigateToTitleInput
+            ) { EmptyView() }.hidden()
+
+            NavigationLink(
+                destination: CheckAllVideo(
+                    selectedTeam: selectedTeam,
+                    selectedTeamImage: selectedTeamImage
+                ),
+                isActive: $navigateToCheckAllVideo
+            ) { EmptyView() }.hidden()
+
+            NavigationLink(
+                destination: TeamSelect_SongView(
+                    selectedTeam: selectedTeam,
+                    selectedTeamImage: selectedTeamImage
+                ),
+                isActive: $navigateToSongView
+            ) { EmptyView() }.hidden()
+
+            NavigationLink(
+                destination: TeamNewsFullView(
+                    teamName: selectedTeam,
+                    articles: teamNewsManager.articles
+                ),
+                isActive: $showFullNewsView
+            ) { EmptyView() }.hidden()
+
+            NavigationLink(
+                destination: TeamVideoGrid(teamName: selectedTeam),
+                isActive: $showFullHighlightView
+            ) { EmptyView() }.hidden()
+        }
+    }
+
+    //날짜 포맷
+    func dateFormatted(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "M월 d일"
+        return formatter.string(from: date)
+    }
+
 
     func tabView() -> some View {
         HStack(spacing: 0) {
