@@ -47,13 +47,17 @@ class NewsFetcher {
             switch result {
             case .success(let feed):
                 let articles: [Article] = feed.rssFeed?.items?.compactMap { item in
-                    guard let title = item.title,
+                    guard let originalTitle = item.title,
                           let link = item.link else { return nil }
-                    
-                    let pubDate = item.pubDate               // ✅ 날짜 가져오기
-                    let source = item.source?.value          // ✅ 출판사 정보 가져오기
-                    
-                    return Article(title: title, link: link, pubDate: pubDate, source: source)
+
+                    let pubDate = item.pubDate
+                    let source = item.source?.value
+
+                    // ✅ title에서 가장 마지막 " - " 기준으로 앞부분만 사용
+                    let components = originalTitle.components(separatedBy: " - ")
+                    let cleanTitle = components.dropLast().joined(separator: " - ")
+
+                    return Article(title: cleanTitle, link: link, pubDate: pubDate, source: source)
                 } ?? []
                 completion(articles)
                 
