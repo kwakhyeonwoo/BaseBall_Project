@@ -11,7 +11,7 @@ import Firebase
 import AVFoundation
 import FirebaseAuth
 
-struct Song: Identifiable, Equatable, Codable {
+struct Song: Identifiable, Equatable, Codable, Hashable {
     let id: String
     let title: String
     let audioUrl: String
@@ -19,6 +19,20 @@ struct Song: Identifiable, Equatable, Codable {
     let teamImageName: String
     let lyricsStartTime: Double
     let timestamps: [Double]
+}
+
+extension Song {
+    func withUpdatedUrl(_ newUrl: String) -> Song {
+        return Song(
+            id: self.id,
+            title: self.title,
+            audioUrl: newUrl,
+            lyrics: self.lyrics,
+            teamImageName: self.teamImageName,
+            lyricsStartTime: self.lyricsStartTime,
+            timestamps: self.timestamps
+        )
+    }
 }
 
 class TeamSelect_SongModel {

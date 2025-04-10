@@ -31,7 +31,7 @@ struct MyPageView: View {
 
                         Spacer()
                         
-                        Button("탈퇴하기") {
+                        Button("로그아웃") {
                             // 탈퇴 로직 추가
                         }
                         .foregroundColor(.red)
@@ -49,11 +49,27 @@ struct MyPageView: View {
 
                         // 👉 여기에 좋아요한 응원가 리스트 들어갈 예정
                         // ScrollView로 대체될 예정
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.1))
-                            .frame(height: 120)
-                            .cornerRadius(10)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                ForEach(viewModel.likedSongs) { song in
+                                    VStack(alignment: .leading) {
+                                        Image(systemName: "music.note.list")
+                                            .resizable()
+                                            .frame(width: 80, height: 80)
+                                            .background(Color.gray.opacity(0.2))
+                                            .cornerRadius(8)
+                                        
+                                        Text(song.title)
+                                            .font(.caption)
+                                            .lineLimit(1)
+                                            .frame(width: 80, alignment: .leading)
+                                    }
+                                    .padding(.vertical, 5)
+                                }
+                            }
                             .padding(.horizontal, 20)
+                        }
+                        .frame(height: 120)
                     }
                     Divider()
                     Spacer()
@@ -79,6 +95,7 @@ struct MyPageView: View {
             .navigationTitle("보관함")
             .onAppear {
                 viewModel.fetchNickname()
+                viewModel.fetchLikedSongs()
             }
         }
     }

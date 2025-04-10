@@ -126,6 +126,6 @@ struct TeamSelect_SongView: View {
 }
 
 
-#Preview {
-    TeamSelect_SongView(selectedTeam: "SSG", selectedTeamImage: "SSG")
-}
+//#Preview {
+//    TeamSelect_SongView(selectedTeam: "SSG", selectedTeamImage: "SSG")
+//}
