@@ -60,7 +60,6 @@ class KakaoAuth {
                 var userInfo: [String: Any] = [:]
                 userInfo["id"] = user.id
                 userInfo["email"] = user.kakaoAccount?.email
-//                userInfo["profileImage"] = user.kakaoAccount?.profile?.profileImageUrl
                 print("사용자 정보 가져오기 성공: \(userInfo)")
                 completion(.success(userInfo))
             }

@@ -25,9 +25,6 @@ struct SignIn: View {
             }
             .padding()
             .frame(maxWidth: 500)
-//            .onAppear {
-//                viewModel.logOut()
-//            }
             .alert(isPresented: $viewModel.showAlert) {
                 Alert(title: Text("알림"), message: Text(viewModel.alertMessage), dismissButton: .default(Text("확인")))
             }

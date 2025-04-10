@@ -18,6 +18,7 @@ struct CalendarView: View {
     @State private var recordedVideoURL: URL? // 녹화된 영상 저장
     @State private var navigateToCheckAllVideo = false
     @State private var navigateToSongView = false // ✅ 공식 응원가 이동
+    @State private var navigateToMyPage = false // 보관함 이동
     @State private var navigateToTitleInput = false
     @State private var showFullNewsView = false
     @State private var selectedURL: URL? = nil
@@ -222,6 +223,14 @@ struct CalendarView: View {
                 EmptyView()
             }
             .hidden()
+            
+            NavigationLink(
+                destination: MyPageView(selectedTeam: selectedTeam, selectedTeamImage: selectedTeamImage),
+                isActive: $navigateToMyPage
+            ) {
+                EmptyView()
+            }
+            .hidden()
 
             NavigationLink(
                 destination: TeamNewsFullView(
@@ -267,12 +276,17 @@ struct CalendarView: View {
     func tabButton(label: String, icon: String, tag: String) -> some View {
         Button(action: {
             selectedTab = tag
-            if tag == "업로드" {
+            switch tag {
+            case "업로드":
                 showVideoRecorder = true
-            } else if tag == "응원가" {
-                navigateToSongView = true // ✅ TeamSelect_SongView로 이동
-            } else if tag == "응원영상"{
+            case "응원가":
+                navigateToSongView = true
+            case "응원영상":
                 navigateToCheckAllVideo = true
+            case "보관함":
+                navigateToMyPage = true // ✅ 보관함으로 이동 활성화
+            default:
+                break
             }
         }) {
             VStack(spacing: 5) {
