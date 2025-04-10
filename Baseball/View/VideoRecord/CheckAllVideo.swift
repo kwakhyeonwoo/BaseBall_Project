@@ -16,6 +16,7 @@ struct CheckAllVideo: View {
 
     @State private var uploadedSongs: [UploadedSong] = []
     @State private var selectedCategory: UploadedSongCategory = .uploaded
+    @StateObject private var viewModel = CheckAllVideoViewModel()
     private let db = Firestore.firestore()
 
     var body: some View {
@@ -52,6 +53,20 @@ struct CheckAllVideo: View {
                                 }
 
                                 Spacer()
+                                
+                                VStack {
+                                    Button(action: {
+                                        viewModel.toggleLike(for: song)
+                                    }) {
+                                        Image(systemName: viewModel.likedSongs.contains(song.id) ? "heart.fill" : "heart")
+                                            .foregroundColor(viewModel.likedSongs.contains(song.id) ? .red : .gray)
+                                            .font(.title2)
+                                    }
+                                    
+                                    Text("\(viewModel.likeCounts[song.id, default: 0])")
+                                        .font(.footnote)
+                                        .foregroundColor(.gray)
+                                }
                             }
                             .padding()
                             .background(Color(.secondarySystemBackground))

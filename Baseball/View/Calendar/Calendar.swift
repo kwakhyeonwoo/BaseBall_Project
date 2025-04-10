@@ -91,7 +91,10 @@ struct CalendarView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {
-                        ForEach(teamNewsManager.articles) { article in
+                        //최신 기사 상단 배치
+                        ForEach(teamNewsManager.articles.sorted(by: {
+                            ($0.pubDate ?? Date.distantPast) > ($1.pubDate ?? Date.distantPast)
+                        })) { article in
                             Button(action: {
                                 if let url = URL(string: article.link) {
                                     selectedURL = url
