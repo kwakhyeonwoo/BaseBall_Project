@@ -11,11 +11,13 @@ import FirebaseFirestore
 
 class MyPageViewModel: ObservableObject {
     @Published var nickname: String = ""
-    @Published var likedSongs: [UploadedSong] = []
+    @Published var likedUploadedSongs: [UploadedSong] = []
+    @Published var likedTeamSongs: [Song] = []
     
     private let db = Firestore.firestore()
-    private let likeKey = "likedSongs"
+    private let likedSongsKey = "likedSongs" // 공통 저장 키
 
+    // MARK: 닉네임 불러오기
     func fetchNickname() {
         guard let user = Auth.auth().currentUser else {
             print("❌ 현재 로그인된 사용자가 없습니다.")
@@ -23,32 +25,59 @@ class MyPageViewModel: ObservableObject {
         }
 
         let uid = user.uid
-        print("✅ 현재 로그인된 UID: \(uid)")
-
         db.collection("users").document(uid).getDocument { [weak self] snapshot, error in
-            if let error = error {
-                print("❌ Firestore 사용자 정보 가져오기 실패: \(error.localizedDescription)")
-                return
-            }
-
             if let data = snapshot?.data(),
                let id = data["id"] as? String {
                 DispatchQueue.main.async {
                     self?.nickname = id
-                    print("✅ 닉네임 불러오기 성공: \(id)")
+                    print("✅ 닉네임: \(id)")
                 }
             } else {
-                print("❌ 사용자 데이터에서 'id' 필드를 찾을 수 없음")
+                print("❌ 사용자 닉네임 정보 없음")
             }
         }
     }
-    
-    func fetchLikedSongs() {
-        guard let likedIds = UserDefaults.standard.array(forKey: likeKey) as? [String], !likedIds.isEmpty else {
-            print("💡 좋아요한 곡 없음")
+
+    // MARK: 좋아요한 팀 응원가
+    func fetchLikedTeamSongs(for team: String) {
+        guard let likedIDs = UserDefaults.standard.array(forKey: likedSongsKey) as? [String], !likedIDs.isEmpty else {
+            print("❤️ 좋아요한 팀 응원가 없음")
             return
         }
-        
+
+        db.collection("songs").document(team).collection("teamSongs")
+            .getDocuments { [weak self] snapshot, error in
+                if let documents = snapshot?.documents {
+                    let songs = documents.compactMap { doc -> Song? in
+                        let data = doc.data()
+                        let id = doc.documentID
+                        guard likedIDs.contains(id) else { return nil }
+
+                        return Song(
+                            id: id,
+                            title: data["title"] as? String ?? "제목 없음",
+                            audioUrl: data["audioUrl"] as? String ?? "",
+                            lyrics: data["lyrics"] as? String ?? "",
+                            teamImageName: team,
+                            lyricsStartTime: data["lyricsStartTime"] as? Double ?? 0,
+                            timestamps: data["timestamps"] as? [Double] ?? []
+                        )
+                    }
+
+                    DispatchQueue.main.async {
+                        self?.likedTeamSongs = songs
+                    }
+                }
+            }
+    }
+
+    // MARK: 좋아요한 업로드 응원가
+    func fetchLikedUploadedSongs() {
+        guard let likedIds = UserDefaults.standard.array(forKey: likedSongsKey) as? [String], !likedIds.isEmpty else {
+            print("💡 좋아요한 업로드 응원가 없음")
+            return
+        }
+
         db.collection("uploadedSongs")
             .whereField(FieldPath.documentID(), in: likedIds)
             .getDocuments { [weak self] snapshot, error in
@@ -63,7 +92,7 @@ class MyPageViewModel: ObservableObject {
                         )
                     }
                     DispatchQueue.main.async {
-                        self?.likedSongs = songs
+                        self?.likedUploadedSongs = songs
                     }
                 }
             }
