@@ -108,15 +108,13 @@ struct MyPageView: View {
                                 // ✅ 마지막 항목엔 Divider 생략
                                 if index < viewModel.likedTeamSongs.count - 1 {
                                     Divider()
-                                        .padding(.horizontal, 20)
-                                        .padding(.vertical, 8)
                                 }
                             }
                         }
                     }
                     .padding(.vertical, 5)
                 }
-                .frame(height: 400)
+                .frame(height: 300)
             }
         }
     }

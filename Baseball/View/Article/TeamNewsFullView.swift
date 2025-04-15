@@ -52,10 +52,35 @@ struct TeamNewsFullView: View {
 
     // MARK: - 검색 필드
     func searchField() -> some View {
-        TextField("\(teamName) 기사 검색", text: $searchText)
-            .textFieldStyle(RoundedBorderTextFieldStyle())
+        HStack {
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.gray)
+
+                TextField("검색어를 입력하세요", text: $searchText)
+                    .autocapitalization(.none)
+                    .disableAutocorrection(true)
+                    .foregroundColor(.primary)
+
+                if !searchText.isEmpty {
+                    Button(action: {
+                        self.searchText = ""
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                    }
+                }
+            }
+            .padding(10)
+            .background(Color(.systemGray6))
+            .cornerRadius(10)
             .padding(.horizontal)
+            .transition(.move(edge: .top).combined(with: .opacity))
+            .animation(.easeInOut(duration: 0.3), value: isSearching)
+        }
+        .padding(.top, 8)
     }
+
 
     // MARK: - 기사 리스트
     func articleListView() -> some View {
