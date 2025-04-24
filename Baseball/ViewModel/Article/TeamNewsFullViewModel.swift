@@ -18,7 +18,7 @@ class TeamNewsFullViewModel: ObservableObject {
 
     init() {
         $searchText
-            //디바운스를 통해 요청 한꺼번에 처리 
+            //디바운스를 통해 마지막 이벤트만 실행
             .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
             .removeDuplicates()
             .sink { [weak self] query in

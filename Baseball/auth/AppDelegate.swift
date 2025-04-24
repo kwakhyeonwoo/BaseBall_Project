@@ -21,11 +21,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // Google Sign-In 초기화
         GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: "490200374980-e8u3racek0o44dflciovskp3d1dgdd91.apps.googleusercontent.com")
         
-        do {
-            try checkAndAuthenticateUser()
-            checkFirebaseProjectID()
-        } catch let error {
-            print("❌ [ERROR] Authentication failed: \(error.localizedDescription)")
+        authenticateAndRefreshTokenIfNeeded {
+            // ✅ Firestore 접근은 여기서부터!
+            self.checkFirebaseProjectID()
         }
         
         return true
@@ -40,49 +38,63 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         return GIDSignIn.sharedInstance.handle(url)
     }
     
-    private func checkAndAuthenticateUser() throws {
+    // MARK: - 인증 및 토큰 갱신 후 Firestore 작업
+    private func authenticateAndRefreshTokenIfNeeded(completion: @escaping () -> Void) {
         if let user = Auth.auth().currentUser {
-            print("✅ [DEBUG] Firebase User Authenticated: \(user.uid), Email: \(user.email ?? "No Email")")
-            try refreshFirebaseToken(user: user)
+            print("✅ 현재 사용자 존재: \(user.uid)")
+            refreshFirebaseToken(user: user) { success in
+                if success {
+                    completion()
+                } else {
+                    print("❌ 토큰 갱신 실패")
+                }
+            }
         } else {
-            print("❌ [ERROR] No authenticated Firebase user. Attempting to sign in...")
+            print("❌ 인증된 사용자 없음 → 익명 로그인 시도")
             
             Auth.auth().signInAnonymously { authResult, error in
                 if let error = error {
-                    print("❌ [ERROR] Failed to sign in: \(error.localizedDescription)")
-                } else if let user = authResult?.user {
-                    print("✅ [SUCCESS] Re-authenticated: \(user.uid), Email: \(user.email ?? "No Email")")
-                    do {
-                        try self.refreshFirebaseToken(user: user)
-                    } catch let tokenError {
-                        print("❌ [ERROR] Token refresh failed: \(tokenError.localizedDescription)")
+                    print("❌ 익명 로그인 실패: \(error.localizedDescription)")
+                    return
+                }
+                
+                if let user = authResult?.user {
+                    print("✅ 익명 로그인 성공: \(user.uid)")
+                    self.refreshFirebaseToken(user: user) { success in
+                        if success {
+                            completion()
+                        } else {
+                            print("❌ 익명 로그인 후 토큰 갱신 실패")
+                        }
                     }
                 }
             }
         }
     }
     
-    // MARK: - 🔄 Token Refresh Handling
-    private func refreshFirebaseToken(user: User) throws {
-        user.getIDTokenForcingRefresh(true) { token, error in
-            if let error = error {
-                print("❌ [ERROR] Failed to refresh token: \(error.localizedDescription)")
-            } else {
-                print("✅ [DEBUG] Firebase Token Refreshed Successfully")
+    // MARK: - 토큰 갱신 (완료 콜백 포함)
+        private func refreshFirebaseToken(user: User, completion: @escaping (Bool) -> Void) {
+            user.getIDTokenForcingRefresh(true) { token, error in
+                if let error = error {
+                    print("❌ 토큰 갱신 실패: \(error.localizedDescription)")
+                    completion(false)
+                } else {
+                    print("✅ 토큰 갱신 성공")
+                    completion(true)
+                }
             }
         }
-    }
-    
-    func checkFirebaseProjectID() {
-        if let options = FirebaseApp.app()?.options {
-            print("✅ [DEBUG] Firebase Project ID: \(options.projectID ?? "Unknown")")
-            print("✅ [DEBUG] Firebase Storage Bucket: \(options.storageBucket ?? "Unknown")")
-            print("✅ [DEBUG] Firebase API Key: \(options.apiKey ?? "Unknown")")
-        } else {
-            print("❌ [ERROR] Firebase App is not configured correctly.")
-        }
-    }
 
+        // MARK: - Firebase 프로젝트 정보 확인
+        func checkFirebaseProjectID() {
+            if let options = FirebaseApp.app()?.options {
+                print("✅ Firebase Project ID: \(options.projectID ?? "Unknown")")
+                print("✅ Storage Bucket: \(options.storageBucket ?? "Unknown")")
+                print("✅ API Key: \(options.apiKey ?? "Unknown")")
+            } else {
+                print("❌ Firebase 설정 오류")
+            }
+        }
 }
 
 //490200374980-e8u3racek0o44dflciovskp3d1dgdd91.apps.googleusercontent.com"

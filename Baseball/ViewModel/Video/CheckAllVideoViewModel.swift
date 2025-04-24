@@ -22,32 +22,6 @@ class CheckAllVideoViewModel: ObservableObject {
         loadLikeCounts()  // ✅ 앱 실행 시 저장된 좋아요 개수 불러오기
     }
 
-    func loadUploadedSongs() {
-        db.collection("uploadedSongs").getDocuments { snapshot, error in
-            guard let documents = snapshot?.documents, error == nil else {
-                print("Error fetching uploaded songs: \(error?.localizedDescription ?? "Unknown error")")
-                return
-            }
-
-            DispatchQueue.main.async {
-                self.uploadedSongs = documents.compactMap { document in
-                    let data = document.data()
-                    let song = UploadedSong(
-                        id: document.documentID,
-                        title: data["title"] as? String ?? "Unknown Title",
-                        uploader: data["uploader"] as? String ?? "익명",
-                        videoURL: data["videoURL"] as? String ?? ""
-                    )
-                    // ✅ 기본 좋아요 카운트 설정
-                    if self.likeCounts[song.id] == nil {
-                        self.likeCounts[song.id] = self.likedSongs.contains(song.id) ? 1 : 0
-                    }
-                    return song
-                }
-            }
-        }
-    }
-
     func toggleLike(for song: UploadedSong) {
         DispatchQueue.main.async {
             if self.likedSongs.contains(song.id) {

@@ -71,7 +71,7 @@ class MyPageViewModel: ObservableObject {
             }
     }
 
-    // MARK: 좋아요한 업로드 응원가
+    // MARK: 업로드 한 응원가 
     func fetchLikedUploadedSongs() {
         guard let likedIds = UserDefaults.standard.array(forKey: likedSongsKey) as? [String], !likedIds.isEmpty else {
             print("💡 좋아요한 업로드 응원가 없음")
