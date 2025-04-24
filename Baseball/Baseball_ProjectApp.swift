@@ -18,7 +18,6 @@ struct Baseball_ProjectApp: App {
         FirebaseApp.configure()
         AVPlayerBackgroundManager.configureAudioSession()
     }
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     var body: some Scene {
         WindowGroup {
