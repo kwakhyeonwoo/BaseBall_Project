@@ -94,7 +94,7 @@ class UploadedSongsManager {
         let segmentPath = hlsDirectory.appendingPathComponent("\(uuid)_%03d.ts").path
 
         let command = """
-        -i \(mp4URL.path) -codec copy -start_number 0 -hls_time 3 -hls_list_size 0 \
+        -i \(mp4URL.path) -c:v copy -c:a aac -b:a 128k -start_number 0 -hls_time 2 -hls_list_size 0 \
         -hls_segment_filename \(segmentPath) -f hls \(m3u8Output.path)
         """
 

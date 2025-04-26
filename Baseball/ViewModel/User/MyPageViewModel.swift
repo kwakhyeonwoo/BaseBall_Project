@@ -13,6 +13,7 @@ class MyPageViewModel: ObservableObject {
     @Published var nickname: String = ""
     @Published var likedUploadedSongs: [UploadedSong] = []
     @Published var likedTeamSongs: [Song] = []
+    @Published var thumbnailCache: [String: UIImage] = [:]
     
     private let db = Firestore.firestore()
     private let likedSongsKey = "likedSongs" // 공통 저장 키
@@ -96,5 +97,16 @@ class MyPageViewModel: ObservableObject {
                     }
                 }
             }
+    }
+    
+    //영상 썸네일
+    func loadThumbnail(for song: UploadedSong) {
+        guard let url = URL(string: song.videoURL), thumbnailCache[song.id] == nil else { return }
+
+        generateThumbnail(from: url) { image in
+            if let image = image {
+                self.thumbnailCache[song.id] = image
+            }
+        }
     }
 }

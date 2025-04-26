@@ -10,7 +10,8 @@ import SwiftUI
 struct MyPageView: View {
     let selectedTeam: String
     let selectedTeamImage: String
-
+    @State private var selectedVideoURL: String?
+    @State private var showPlayer = false
     @StateObject private var viewModel = MyPageViewModel()
     @StateObject private var playerManager = AudioPlayerManager.shared
 
@@ -26,7 +27,6 @@ struct MyPageView: View {
                     Spacer(minLength: 40)
                 }
 
-                // ✅ MiniPlayerView (응원가 재생 시)
                 if playerManager.currentSong != nil {
                     MiniPlayerView(selectedTeam: selectedTeam)
                         .padding(.bottom, 10)
@@ -40,10 +40,14 @@ struct MyPageView: View {
                 viewModel.fetchLikedTeamSongs(for: selectedTeam)
                 viewModel.fetchLikedUploadedSongs()
             }
+            .sheet(isPresented: $showPlayer) {
+                if let url = selectedVideoURL {
+                    MyPageUploadFullView(videoURL: url)
+                }
+            }
         }
     }
 
-    // MARK: - 사용자 프로필 헤더
     private func userHeader() -> some View {
         HStack {
             Image(selectedTeamImage)
@@ -67,10 +71,9 @@ struct MyPageView: View {
         .padding(.top, 20)
     }
 
-    // MARK: - 좋아요 한 응원가 (세로)
     private func likedTeamSongSection() -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("좋아요 한 응원가")
+            Text("좋아요 한 응원가 - 응원가")
                 .font(.headline)
                 .padding(.horizontal, 20)
 
@@ -105,7 +108,6 @@ struct MyPageView: View {
                                     }
                                 }
 
-                                // ✅ 마지막 항목엔 Divider 생략
                                 if index < viewModel.likedTeamSongs.count - 1 {
                                     Divider()
                                 }
@@ -119,32 +121,40 @@ struct MyPageView: View {
         }
     }
 
-    // MARK: - 업로드 한 응원가 (가로)
     private func likedUploadedSongSection() -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("업로드 한 응원가")
+            Text("좋아요 한 응원가 - 업로드")
                 .font(.headline)
                 .padding(.horizontal, 20)
 
             if viewModel.likedUploadedSongs.isEmpty {
-                Text("업로드한 응원가가 없습니다.")
+                Text("좋아요한 응원가가 없습니다.")
                     .foregroundColor(.gray)
                     .padding(.horizontal, 20)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
-                        ForEach(viewModel.likedUploadedSongs) { song in
-                            VStack(alignment: .leading) {
-                                Image(systemName: "video.fill")
-                                    .resizable()
-                                    .frame(width: 80, height: 80)
-                                    .background(Color.gray.opacity(0.2))
-                                    .cornerRadius(8)
+                        ForEach(viewModel.likedUploadedSongs, id: \.id) { song in
+                            VStack {
+                                if let thumbnail = viewModel.thumbnailCache[song.videoURL] {
+                                    Image(uiImage: thumbnail)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(height: 100)
+                                } else {
+                                    Color.gray
+                                        .frame(height: 100)
+                                        .onAppear {
+                                            viewModel.loadThumbnail(for: song)
+                                        }
+                                }
 
                                 Text(song.title)
                                     .font(.caption)
-                                    .lineLimit(1)
-                                    .frame(width: 80, alignment: .leading)
+                            }
+                            .onTapGesture {
+                                selectedVideoURL = song.videoURL
+                                showPlayer = true
                             }
                         }
                     }
