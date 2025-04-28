@@ -262,7 +262,7 @@ struct CalendarView: View {
 
     func tabView() -> some View {
         HStack(spacing: 0) {
-            tabButton(label: "일정", icon: "calendar", tag: "일정")
+            tabButton(label: "뉴스", icon: "calendar", tag: "뉴스")
             tabButton(label: "응원가", icon: "music.note", tag: "응원가")
             tabButton(label: "업로드", icon: "arrow.up.circle", tag: "업로드")
             tabButton(label: "응원영상", icon: "play.rectangle", tag: "응원영상")
