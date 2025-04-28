@@ -28,4 +28,3 @@ func generateThumbnail(from url: URL, completion: @escaping (UIImage?) -> Void) 
         }
     }
 }
-

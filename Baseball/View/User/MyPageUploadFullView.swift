@@ -10,14 +10,19 @@ import AVKit
 
 struct MyPageUploadFullView: View {
     let videoURL: String
+    @State private var player: AVPlayer? = nil
 
     var body: some View {
         if let url = URL(string: videoURL) {
-            VideoPlayer(player: AVPlayer(url: url))
+            VideoPlayer(player: player)
                 .edgesIgnoringSafeArea(.all)
+                .onAppear {
+                    player = AVPlayer(url: url)
+                    player?.play()
+                }
                 .onDisappear {
-                    // 재생 중인 AVPlayer 중지
-                    AVPlayer(url: url).pause()
+                    player?.pause()
+                    player = nil // 메모리 해제까지
                 }
         } else {
             Text("유효하지 않은 URL입니다.")

@@ -94,6 +94,9 @@ class MyPageViewModel: ObservableObject {
                     }
                     DispatchQueue.main.async {
                         self?.likedUploadedSongs = songs
+                        songs.forEach { song in
+                            self?.loadThumbnail(for: song)
+                        }
                     }
                 }
             }
@@ -101,11 +104,23 @@ class MyPageViewModel: ObservableObject {
     
     //영상 썸네일
     func loadThumbnail(for song: UploadedSong) {
-        guard let url = URL(string: song.videoURL), thumbnailCache[song.id] == nil else { return }
+        guard thumbnailCache[song.id] == nil else { return } // 이미 있으면 로딩 X
+        
+        guard let url = URL(string: song.videoURL) else {
+            print("❌ 잘못된 URL: \(song.videoURL)")
+            return
+        }
 
-        generateThumbnail(from: url) { image in
-            if let image = image {
-                self.thumbnailCache[song.id] = image
+        DispatchQueue.global(qos: .userInitiated).async { // ✅ 백그라운드에서 썸네일 생성
+            generateThumbnail(from: url) { [weak self] image in
+                guard let self = self else { return }
+                if let image = image {
+                    DispatchQueue.main.async {
+                        self.thumbnailCache[song.id] = image
+                    }
+                } else {
+                    print("❌ 썸네일 생성 실패: \(url.absoluteString)")
+                }
             }
         }
     }

@@ -6,14 +6,19 @@
 //
 
 import SwiftUI
+import Combine
+import FirebaseAuth
+import FirebaseFirestore
 
+// MARK: - MyPageView
 struct MyPageView: View {
     let selectedTeam: String
     let selectedTeamImage: String
-    @State private var selectedVideoURL: String?
-    @State private var showPlayer = false
+
     @StateObject private var viewModel = MyPageViewModel()
     @StateObject private var playerManager = AudioPlayerManager.shared
+
+    @State private var selectedUploadedSong: UploadedSong? = nil
 
     var body: some View {
         NavigationStack {
@@ -40,21 +45,19 @@ struct MyPageView: View {
                 viewModel.fetchLikedTeamSongs(for: selectedTeam)
                 viewModel.fetchLikedUploadedSongs()
             }
-            .sheet(isPresented: $showPlayer) {
-                if let url = selectedVideoURL {
-                    MyPageUploadFullView(videoURL: url)
-                }
+            .sheet(item: $selectedUploadedSong) { song in
+                MyPageUploadFullView(videoURL: song.videoURL)
             }
         }
     }
 
+    // MARK: - 사용자 프로필 헤더
     private func userHeader() -> some View {
         HStack {
             Image(selectedTeamImage)
                 .resizable()
                 .frame(width: 32, height: 32)
                 .clipShape(Circle())
-                .scaledToFit()
 
             Text(viewModel.nickname.isEmpty ? "닉네임 불러오는 중..." : viewModel.nickname)
                 .font(.title2)
@@ -71,6 +74,7 @@ struct MyPageView: View {
         .padding(.top, 20)
     }
 
+    // MARK: - 좋아요 한 응원가 - 공식
     private func likedTeamSongSection() -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("좋아요 한 응원가 - 응원가")
@@ -84,34 +88,30 @@ struct MyPageView: View {
             } else {
                 ScrollView {
                     VStack(spacing: 16) {
-                        ForEach(Array(viewModel.likedTeamSongs.enumerated()), id: \.element.id) { index, song in
-                            VStack(spacing: 8) {
-                                HStack {
-                                    Image(selectedTeamImage)
-                                        .resizable()
-                                        .frame(width: 40, height: 40)
-                                        .padding(6)
-                                        .background(Color.gray.opacity(0.2))
-                                        .cornerRadius(10)
+                        ForEach(viewModel.likedTeamSongs, id: \ .id) { song in
+                            HStack {
+                                Image(selectedTeamImage)
+                                    .resizable()
+                                    .frame(width: 40, height: 40)
+                                    .padding(6)
+                                    .background(Color.gray.opacity(0.2))
+                                    .cornerRadius(10)
 
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(song.title)
-                                            .font(.headline)
-                                    }
-
-                                    Spacer()
-                                }
-                                .padding(.horizontal, 20)
-                                .onTapGesture {
-                                    if let url = URL(string: song.audioUrl) {
-                                        playerManager.play(url: url, for: song)
-                                    }
+                                VStack(alignment: .leading) {
+                                    Text(song.title)
+                                        .font(.headline)
                                 }
 
-                                if index < viewModel.likedTeamSongs.count - 1 {
-                                    Divider()
+                                Spacer()
+                            }
+                            .padding(.horizontal, 20)
+                            .onTapGesture {
+                                if let url = URL(string: song.audioUrl) {
+                                    playerManager.play(url: url, for: song)
                                 }
                             }
+
+                            Divider()
                         }
                     }
                     .padding(.vertical, 5)
@@ -121,6 +121,7 @@ struct MyPageView: View {
         }
     }
 
+    // MARK: - 좋아요 한 응원가 - 업로드
     private func likedUploadedSongSection() -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("좋아요 한 응원가 - 업로드")
@@ -134,16 +135,19 @@ struct MyPageView: View {
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
-                        ForEach(viewModel.likedUploadedSongs, id: \.id) { song in
-                            VStack {
-                                if let thumbnail = viewModel.thumbnailCache[song.videoURL] {
+                        ForEach(viewModel.likedUploadedSongs, id: \ .id) { song in
+                            VStack(spacing: 8) {
+                                if let thumbnail = viewModel.thumbnailCache[song.id] {
                                     Image(uiImage: thumbnail)
                                         .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(height: 100)
+                                        .scaledToFill()
+                                        .frame(width: 100, height: 100)
+                                        .clipped()
+                                        .cornerRadius(8)
                                 } else {
                                     Color.gray
-                                        .frame(height: 100)
+                                        .frame(width: 100, height: 100)
+                                        .cornerRadius(8)
                                         .onAppear {
                                             viewModel.loadThumbnail(for: song)
                                         }
@@ -151,16 +155,17 @@ struct MyPageView: View {
 
                                 Text(song.title)
                                     .font(.caption)
+                                    .frame(width: 100)
+                                    .lineLimit(1)
                             }
                             .onTapGesture {
-                                selectedVideoURL = song.videoURL
-                                showPlayer = true
+                                selectedUploadedSong = song
                             }
                         }
                     }
                     .padding(.horizontal, 20)
                 }
-                .frame(height: 120)
+                .frame(height: 150)
             }
         }
     }
