@@ -103,7 +103,8 @@ struct CheckAllVideo: View {
                         id: doc.documentID,
                         title: data["title"] as? String ?? "Unknown",
                         uploader: data["uploader"] as? String ?? "익명",
-                        videoURL: data["videoURL"] as? String ?? ""
+                        videoURL: data["videoURL"] as? String ?? "",
+                        thumbnailURL: data["videoURL"] as? String ?? ""
                     )
                 }
             }
@@ -140,19 +141,6 @@ struct CheckAllVideo: View {
         }
     }
 }
-
-struct UploadedSong: Identifiable {
-    let id: String
-    let title: String
-    let uploader: String
-    let videoURL: String
-}
-
-enum UploadedSongCategory {
-    case uploaded
-    case popular
-}
-
 
 //#Preview {
 //    CheckAllVideo()

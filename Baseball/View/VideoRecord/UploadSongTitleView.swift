@@ -84,41 +84,17 @@ struct UploadSongTitleView: View {
         // 2️⃣ Firestore 업로드를 백그라운드에서 실행
         DispatchQueue.global(qos: .background).async {
             let manager = UploadedSongsManager()
-            
-            manager.convertToHLS(inputURL: videoURL) { success, hlsURL in
-                guard success, let hlsURL = hlsURL else {
-                    DispatchQueue.main.async {
-                        alertMessage = "HLS 변환 실패"
+            // ✅ Firestore에 최종 저장
+            manager.processAndUploadVideo(title: title, videoURL: videoURL, selectedTeam: selectedTeam, uploader: uploader) { success in
+                DispatchQueue.main.async {
+                    if success {
+                        // ✅ Firestore에서 최신 데이터 다시 가져오기
+                        NotificationCenter.default.post(name: NSNotification.Name("RefreshUploadedSongs"), object: nil)
+                    } else {
+                        // ❌ Firestore 업로드 실패 처리
+                        alertMessage = "업로드 실패"
                         showAlert = true
                         navigateToCheckAllVideo = false
-                    }
-                    return
-                }
-
-                // ✅ Firebase Storage에 HLS 업로드
-                manager.uploadHLSToFirebase(hlsDirectory: hlsURL) { success, firebaseHlsUrl in
-                    guard success, let firebaseHlsUrl = firebaseHlsUrl else {
-                        DispatchQueue.main.async {
-                            alertMessage = "HLS 파일 업로드 실패"
-                            showAlert = true
-                            navigateToCheckAllVideo = false
-                        }
-                        return
-                    }
-
-                    // ✅ Firestore에 최종 저장
-                    manager.saveHLSToFirestore(title: title, hlsURL: firebaseHlsUrl, selectedTeam: selectedTeam, uploader: uploader) { success in
-                        DispatchQueue.main.async {
-                            if success {
-                                // ✅ Firestore에서 최신 데이터 다시 가져오기
-                                NotificationCenter.default.post(name: NSNotification.Name("RefreshUploadedSongs"), object: nil)
-                            } else {
-                                // ❌ Firestore 업로드 실패 처리
-                                alertMessage = "Firestore 업로드 실패"
-                                showAlert = true
-                                navigateToCheckAllVideo = false
-                            }
-                        }
                     }
                 }
             }

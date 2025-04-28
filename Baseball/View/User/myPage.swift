@@ -135,22 +135,27 @@ struct MyPageView: View {
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
-                        ForEach(viewModel.likedUploadedSongs, id: \ .id) { song in
+                        ForEach(viewModel.likedUploadedSongs, id: \.id) { song in
                             VStack(spacing: 8) {
-                                if let thumbnail = viewModel.thumbnailCache[song.id] {
-                                    Image(uiImage: thumbnail)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 100, height: 100)
-                                        .clipped()
-                                        .cornerRadius(8)
+                                if let url = URL(string: song.thumbnailURL) {
+                                    AsyncImage(url: url) { phase in
+                                        if let image = phase.image {
+                                            image
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: 100, height: 100)
+                                                .clipped()
+                                                .cornerRadius(8)
+                                        } else {
+                                            Color.gray
+                                                .frame(width: 100, height: 100)
+                                                .cornerRadius(8)
+                                        }
+                                    }
                                 } else {
                                     Color.gray
                                         .frame(width: 100, height: 100)
                                         .cornerRadius(8)
-                                        .onAppear {
-                                            viewModel.loadThumbnail(for: song)
-                                        }
                                 }
 
                                 Text(song.title)

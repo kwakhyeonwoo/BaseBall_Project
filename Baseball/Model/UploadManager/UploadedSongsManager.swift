@@ -10,7 +10,9 @@ import FirebaseStorage
 import FirebaseFirestore
 import AVFoundation
 import ffmpegkit
+import UIKit
 
+// "영상확인" 부분 업로드 관련
 class UploadedSongsManager {
     private let storage = Storage.storage()
     private let db = Firestore.firestore()
@@ -29,7 +31,28 @@ class UploadedSongsManager {
                     return
                 }
 
-                self.saveHLSToFirestore(title: title, hlsURL: hlsURL, selectedTeam: selectedTeam, uploader: uploader, completion: completion)
+                // ✨ [추가] 썸네일 생성 및 업로드
+                self.generateThumbnailImage(from: videoURL) { thumbnailImage in
+                    guard let thumbnailImage = thumbnailImage else {
+                        completion(false)
+                        return
+                    }
+
+                    // UUID 가져오기 (폴더명)
+                    let uuid = hlsDirectory.lastPathComponent.replacingOccurrences(of: "HLS_", with: "")
+                    
+                    self.uploadThumbnailImage(thumbnailImage, uuid: uuid) { thumbnailURL in
+                        guard let thumbnailURL = thumbnailURL else {
+                            completion(false)
+                            return
+                        }
+
+                        // ✨ [변경] HLS URL + 썸네일 URL Firestore 저장
+                        self.saveHLSToFirestore(title: title, hlsURL: hlsURL, thumbnailURL: thumbnailURL.absoluteString, selectedTeam: selectedTeam, uploader: uploader) { success in
+                            completion(success)
+                        }
+                    }
+                }
             }
         }
     }
@@ -237,11 +260,12 @@ class UploadedSongsManager {
     }
 
     // MARK: - Firestore 저장
-    func saveHLSToFirestore(title: String, hlsURL: String, selectedTeam: String, uploader: String, completion: @escaping (Bool) -> Void) {
+    func saveHLSToFirestore(title: String, hlsURL: String, thumbnailURL: String, selectedTeam: String, uploader: String, completion: @escaping (Bool) -> Void) {
         let data: [String: Any] = [
             "title": title,
             "uploader": uploader,
             "videoURL": hlsURL,
+            "thumbnailURL": thumbnailURL,
             "team": selectedTeam,
             "timestamp": Timestamp(date: Date())
         ]
@@ -253,6 +277,56 @@ class UploadedSongsManager {
             } else {
                 print("✅ Firestore 저장 성공: \(title)")
                 completion(true)
+            }
+        }
+    }
+    
+    // MARK: - 썸네일 생성
+    func generateThumbnailImage(from videoURL: URL, completion: @escaping (UIImage?) -> Void) {
+        let asset = AVAsset(url: videoURL)
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        let time = CMTime(seconds: 1, preferredTimescale: 600)
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                let cgImage = try generator.copyCGImage(at: time, actualTime: nil)
+                let image = UIImage(cgImage: cgImage)
+                DispatchQueue.main.async {
+                    completion(image)
+                }
+            } catch {
+                print("❌ 썸네일 생성 실패: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    completion(nil)
+                }
+            }
+        }
+    }
+
+    // MARK: - 썸네일 JPEG로 변환 후 Storage에 업로드
+    func uploadThumbnailImage(_ image: UIImage, uuid: String, completion: @escaping (URL?) -> Void) {
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            completion(nil)
+            return
+        }
+
+        let storageRef = Storage.storage().reference().child("hlsVideos/\(uuid)/thumbnail.jpg")
+
+        storageRef.putData(imageData, metadata: nil) { metadata, error in
+            if let error = error {
+                print("❌ 썸네일 업로드 실패: \(error.localizedDescription)")
+                completion(nil)
+                return
+            }
+
+            storageRef.downloadURL { url, error in
+                if let url = url {
+                    completion(url)
+                } else {
+                    print("❌ 썸네일 URL 획득 실패")
+                    completion(nil)
+                }
             }
         }
     }
