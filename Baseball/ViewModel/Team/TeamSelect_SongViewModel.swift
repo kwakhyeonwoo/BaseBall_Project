@@ -15,14 +15,14 @@ enum SongCategory: String, CaseIterable {
 class TeamSelectSongViewModel: ObservableObject {
     @Published var songs: [Song] = []
     @Published var isLoading = false
-    @Published var favoriteSongs: [String] = [] // 즐겨찾기된 Song ID 저장
+    @Published var favoriteSongs: [String] = []
     @Published var selectedCategory: SongCategory = .teamSongs
 
     private let model = TeamSelect_SongModel()
-    private let likedSongsKey = "likedSongs" // ✅ UserDefaults 저장 키
+    private let likedSongsKey = "likedSongs"
 
     init() {
-        loadFavoriteSongs() // ✅ 앱 실행 시 좋아요 상태 불러오기
+        loadFavoriteSongs()
     }
 
     // MARK: - Fetch Songs
@@ -36,50 +36,46 @@ class TeamSelectSongViewModel: ObservableObject {
         }
     }
 
-    // MARK: - 곡 선택 및 재생
+    // MARK: - 재생 처리
     func setupAndPlaySong(_ song: Song) {
-        model.getAllSongs { [weak self] allSongs in
+        guard let index = songs.firstIndex(where: { $0.id == song.id }) else {
+            print("❌ Error: Song not found in current list")
+            return
+        }
+
+        let selectedSong = songs[index]
+
+        if let urlString = model.convertToHttp(gsUrl: selectedSong.audioUrl),
+           urlString.hasSuffix(".m3u8"),
+           let url = URL(string: urlString) {
+
+            let updatedSong = selectedSong.withUpdatedUrl(urlString)
+            AudioPlayerManager.shared.setPlaylist(songs: songs, startIndex: index)
+            AudioPlayerManager.shared.play(url: url, for: updatedSong)
+            return
+        }
+
+        model.getDownloadURL(for: selectedSong.audioUrl) { url in
             DispatchQueue.main.async {
-                guard let self = self else { return }
-
-                self.songs = allSongs
-
-                if let index = allSongs.firstIndex(where: { $0.id == song.id }) {
-                    let selectedSong = allSongs[index]
-
-                    if let convertedUrlString = self.model.convertToHttp(gsUrl: selectedSong.audioUrl),
-                       convertedUrlString.hasSuffix(".m3u8"),
-                       let url = URL(string: convertedUrlString) {
-                        let updatedSong = selectedSong.withUpdatedUrl(url.absoluteString)
-                        AudioPlayerManager.shared.setPlaylist(songs: allSongs, startIndex: index)
-                        AudioPlayerManager.shared.play(url: url, for: updatedSong)
-                        return
-                    }
-
-                    self.model.getDownloadURL(for: selectedSong.audioUrl) { url in
-                        DispatchQueue.main.async {
-                            if let url = url, url.absoluteString.hasSuffix(".m3u8") {
-                                let updatedSong = selectedSong.withUpdatedUrl(url.absoluteString)
-                                AudioPlayerManager.shared.setPlaylist(songs: allSongs, startIndex: index)
-                                AudioPlayerManager.shared.play(url: url, for: updatedSong)
-                            } else {
-                                print("❌ Error: Failed to get HLS URL")
-                            }
-                        }
-                    }
+                guard let url = url, url.absoluteString.hasSuffix(".m3u8") else {
+                    print("❌ Error: Failed to resolve valid HLS URL")
+                    return
                 }
+                let updatedSong = selectedSong.withUpdatedUrl(url.absoluteString)
+                AudioPlayerManager.shared.setPlaylist(songs: self.songs, startIndex: index)
+                AudioPlayerManager.shared.play(url: url, for: updatedSong)
             }
         }
     }
 
-    // MARK: - Toggle Favorite 
+    // MARK: - Toggle Favorite
     func toggleFavorite(song: Song) {
         if let index = favoriteSongs.firstIndex(of: song.id) {
             favoriteSongs.remove(at: index)
         } else {
             favoriteSongs.append(song.id)
         }
-        saveFavoriteSongs() // ✅ 변경사항 저장
+        saveFavoriteSongs()
     }
 
     func isFavorite(song: Song) -> Bool {

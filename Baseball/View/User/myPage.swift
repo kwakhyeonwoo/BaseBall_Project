@@ -116,7 +116,7 @@ struct MyPageView: View {
                     }
                     .padding(.vertical, 5)
                 }
-                .frame(height: 300)
+                .frame(height: 250)
             }
         }
     }

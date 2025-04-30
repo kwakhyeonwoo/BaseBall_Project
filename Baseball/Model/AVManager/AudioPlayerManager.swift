@@ -17,7 +17,7 @@ class AudioPlayerManager: ObservableObject {
     @Published var currentTime: Double = 0
     @Published var duration: Double = 0
     @Published var didFinishPlaying: Bool = false
-    @Published private var currentIndex: Int? = nil
+    @Published private(set) var currentIndex: Int? = nil
     @Published var currentSong: Song?
 
     var player: AVPlayer?
@@ -31,316 +31,183 @@ class AudioPlayerManager: ObservableObject {
         backgroundManager.configureRemoteCommandCenter(for: self)
         setupEndTimeObserver()
     }
-    
+
     var progress: Double {
-        get {
-            duration > 0 ? currentTime / duration : 0
-        }
-        set {
-            seek(to: newValue * duration)
-        }
+        get { duration > 0 ? currentTime / duration : 0 }
+        set { seek(to: newValue * duration) }
     }
-    
-    // MARK: - 재생 메서드
+
+    // MARK: - 플레이어 초기화 및 재생
     func play(url: URL?, for song: Song) {
         guard let url = url else {
-            print("❌ Error: URL is nil for song \(song.title)")
+            print("❌ URL is nil for song \(song.title)")
             return
         }
-
-        stop()  // ✅ Stop any current playback
-        setupPlayer(url: url, for: song)
-        currentUrl = url
-        currentSong = song
-
-        // ✅ Save the correct song and time BEFORE playback starts
-        saveCurrentSong(song, time: 0)
-
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-
+        let urlString = url.absoluteString
+        guard let encodedUrl = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let encodedURL = URL(string: encodedUrl) else {
+            print("❌ 유효하지 않은 HLS URL: \(urlString)")
+            return
+        }
+        
+        print("📥 입력받은 .m3u8 URL: \(url.absoluteString)")
+        stop()
+        
+        downloadAndPrepareM3U8(from: url) { [weak self] preparedURL in
+            guard let self = self, let preparedURL = preparedURL else {
+                print("❌ M3U8 처리 실패")
+                return
+            }
+            
+            print("🎬 AVPlayer에 사용할 최종 URL: \(preparedURL)")
+            
+            let item = AVPlayerItem(url: preparedURL)
+            self.player = AVPlayer(playerItem: item)
+            self.currentUrl = preparedURL
             self.currentSong = song
+            
+            item.asset.loadValuesAsynchronously(forKeys: ["duration"]) {
+                DispatchQueue.main.async {
+                    self.duration = CMTimeGetSeconds(item.asset.duration)
+                    self.backgroundManager.setupNowPlayingInfo(for: song, player: self.player)
+                }
+            }
+            
+            self.playerObserver = self.player?.addPeriodicTimeObserver(
+                forInterval: CMTime(seconds: 0.1, preferredTimescale: 600),
+                queue: .main
+            ) { [weak self] time in
+                guard let self = self else { return }
+                self.currentTime = CMTimeGetSeconds(time)
+                self.backgroundManager.updateNowPlayingPlaybackState(for: self.player, duration: self.duration)
+            }
+            
             self.player?.play()
             self.isPlaying = true
-
-            // ✅ Update Control Center NOW (before background mode)
             self.backgroundManager.setupNowPlayingInfo(for: song, player: self.player)
-            print("🎵 Now Playing: \(song.title), URL: \(url)")
+            
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(self.handlePlaybackEnded),
+                name: .AVPlayerItemDidPlayToEndTime,
+                object: item
+            )
+        }
+    }
+    
+    // MARK: - m3u8 파일 절대경로로 전환
+    private func downloadAndPrepareM3U8(from url: URL, completion: @escaping (URL?) -> Void) {
+        let session = URLSession.shared
+        session.dataTask(with: url) { data, response, error in
+            guard let data = data, let content = String(data: data, encoding: .utf8) else {
+                print("❌ .m3u8 다운로드 실패: \(error?.localizedDescription ?? "알 수 없음")")
+                DispatchQueue.main.async { completion(nil) }
+                return
+            }
+            
+            let lines = content.split(separator: "\n")
+            let folderURL = url.deletingLastPathComponent()
+            
+            let modifiedContent = lines.map { line -> String in
+                if line.hasSuffix(".ts") {
+                    let tsFile = String(line)
+                    let absolute = folderURL.appendingPathComponent(tsFile).absoluteString
+                    print("🔄 상대경로 → 절대경로 변환: \(tsFile) → \(absolute)")
+                    return absolute
+                }
+                return String(line)
+            }.joined(separator: "\n")
+            
+            let tempFile = FileManager.default.temporaryDirectory
+                .appendingPathComponent(UUID().uuidString + ".m3u8")
+            
+            do {
+                try modifiedContent.write(to: tempFile, atomically: true, encoding: .utf8)
+                print("✅ 수정된 .m3u8 로컬 저장 완료: \(tempFile)")
+                DispatchQueue.main.async { completion(tempFile) }
+            } catch {
+                print("❌ .m3u8 저장 실패: \(error.localizedDescription)")
+                DispatchQueue.main.async { completion(nil) }
+            }
+        }.resume()
+    }
+    
+    // MARK: - 일시정지
+    func pause() {
+        player?.pause()
+        isPlaying = false
+        backgroundManager.updateNowPlayingPlaybackState(for: player, duration: duration)
+    }
+
+    // MARK: - 다시시작
+    func resume() {
+        if let savedData = UserDefaults.standard.data(forKey: "currentSong"),
+           let savedSong = try? JSONDecoder().decode(Song.self, from: savedData),
+           let savedTime = UserDefaults.standard.value(forKey: "currentTime") as? Double {
+            play(url: URL(string: savedSong.audioUrl), for: savedSong)
+            seek(to: savedTime)
+            backgroundManager.updateNowPlayingInfo()
+        } else {
+            print("❌ No saved song to resume")
         }
     }
 
-
-
-    // MARK: - 플레이어 초기화 -> 초기화해서 불러올때 gs://로 불러옴.
-    private func setupPlayer(url: URL, for song: Song) {
-        stop()  // ✅ 기존 플레이어 정리
-
-        let playerItem = AVPlayerItem(url: url)
-        player = AVPlayer(playerItem: playerItem)
-
-        playerItem.preferredForwardBufferDuration = 5
-
-        playerItem.asset.loadValuesAsynchronously(forKeys: ["duration"]) {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self else { return }
-                
-                if self.player?.currentItem !== playerItem {
-                    print("⚠️ AVPlayerItem 교체 확인 실패")
-                    return
-                }
-
-                self.duration = CMTimeGetSeconds(playerItem.duration)
-                self.backgroundManager.setupNowPlayingInfo(for: song, player: self.player)
-
-                print("✅ 새로운 곡 로드 완료: \(song.title)")
-            }
-        }
-
+    // MARK: - 멈춤
+    func stop() {
+        player?.pause()
+        player?.replaceCurrentItem(with: nil)
+        player = nil
+        currentTime = 0
+        duration = 0
+        isPlaying = false
         if let observer = playerObserver {
             player?.removeTimeObserver(observer)
             playerObserver = nil
         }
-
-        let savedTime = self.currentTime
-
-        playerObserver = player?.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.1, preferredTimescale: 600), queue: .main) { time in
-            DispatchQueue.main.async {
-                self.currentTime = CMTimeGetSeconds(time)
-                self.backgroundManager.updateNowPlayingPlaybackState(for: self.player, duration: self.duration)
-            }
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.player?.seek(to: CMTime(seconds: savedTime, preferredTimescale: 600))
-            self.player?.play()
-            self.isPlaying = true
-            self.backgroundManager.setupNowPlayingInfo(for: song, player: self.player)
-        }
-
-        NotificationCenter.default.addObserver(self, selector: #selector(handlePlaybackEnded), name: .AVPlayerItemDidPlayToEndTime, object: playerItem)
     }
 
-    // MARK: - 재생목록 설정
-    func setPlaylist(songs: [Song], startIndex: Int) {
-        playlist = songs
-        currentIndex = startIndex
-        guard let song = playlist[safe: startIndex] else {
-            print("❌ Error: Invalid start index for playlist.")
-            return
-        }
-        if let url = URL(string: song.audioUrl) {
-            play(url: url, for: song)
-        } else {
-            print("❌ Error: Invalid URL for song \(song.title)")
-        }
-
-    }
-
-    // MARK: - 이전 / 다음 곡 재생
-    func playPrevious() {
-        guard let currentSong = self.currentSong else { return }
-
-        firestoreService.getPreviousSong(for: currentSong) { [weak self] previousSong in
-            guard let self = self else { return }
-
-            if let previousSong = previousSong {
-                print("✅ Previous song found: \(previousSong.title)")
-
-                self.firestoreService.getDownloadURL(for: previousSong.audioUrl) { url in
-                    DispatchQueue.main.async {
-                        if let url = url {
-                            print("🔗 Converted URL for previous song: \(url.absoluteString)")
-
-                            // ✅ 최신 곡으로 업데이트
-                            let updatedPreviousSong = Song(
-                                id: previousSong.id,
-                                title: previousSong.title,
-                                audioUrl: url.absoluteString,
-                                lyrics: previousSong.lyrics,
-                                teamImageName: previousSong.teamImageName,
-                                lyricsStartTime: previousSong.lyricsStartTime,
-                                timestamps: previousSong.timestamps
-                            )
-
-                            self.currentSong = updatedPreviousSong
-                            self.currentUrl = url
-                            self.currentSong = self.currentSong  // ✅ playerManager에 반영
-
-                            if self.isPlaying {
-                                print("🎵 [DEBUG] Auto-playing previous song: \(updatedPreviousSong.title)")
-                                self.play(url: url, for: updatedPreviousSong)
-                            } else {
-                                print("⏸ [DEBUG] Previous song loaded but playback is paused")
-                            }
-                        } else {
-                            print("❌ Error: Failed to convert gs:// URL for previous song")
-                        }
-                    }
-                }
-            } else {
-                print("⚠️ No previous song available.")
+    // MARK: - 막대바 이동
+    func seek(to time: Double) {
+        guard let player = player else { return }
+        player.seek(to: CMTime(seconds: time, preferredTimescale: 600))
+        currentTime = time
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            if let currentSong = self.currentSong {
+                self.backgroundManager.setupNowPlayingInfo(for: currentSong, player: self.player)
             }
         }
     }
 
-    func playNext() {
-        guard let currentSong = self.currentSong else { return }
-
-        firestoreService.getNextSong(for: currentSong) { [weak self] nextSong in
-            guard let self = self else { return }
-
-            if let nextSong = nextSong {
-                self.firestoreService.getDownloadURL(for: nextSong.audioUrl) { url in
-                    DispatchQueue.main.async {
-                        if let url = url {
-                            print("🔗 다음 곡 URL 변환 완료: \(url.absoluteString)")
-
-                            let updatedNextSong = Song(
-                                id: nextSong.id,
-                                title: nextSong.title,
-                                audioUrl: url.absoluteString,
-                                lyrics: nextSong.lyrics,
-                                teamImageName: nextSong.teamImageName,
-                                lyricsStartTime: nextSong.lyricsStartTime,
-                                timestamps: nextSong.timestamps
-                            )
-
-                            self.currentSong = updatedNextSong
-                            self.currentUrl = url
-                            self.objectWillChange.send()
-
-                            if self.isPlaying {
-                                print("🎵 [DEBUG] Auto-playing next song: \(updatedNextSong.title)")
-                                self.play(url: url, for: updatedNextSong)
-                            } else {
-                                print("⏸ [DEBUG] Next song loaded but playback is paused")
-                            }
-
-                            // ✅ Immediately update Control Center with new song
-                            self.backgroundManager.setupNowPlayingInfo(for: updatedNextSong, player: self.player)
-                            self.backgroundManager.updateNowPlayingPlaybackState(for: self.player, duration: self.duration)
-                        } else {
-                            print("❌ Error: Failed to convert gs:// URL for next song")
-                        }
-                    }
-                }
-            } else {
-                print("⚠️ No next song available.")
-            }
-        }
-    }
-
-    func saveCurrentSong(_ song: Song, time: Double) {
-        if let encodedSong = try? JSONEncoder().encode(song) {
-            UserDefaults.standard.set(encodedSong, forKey: "currentSong")
-        }
-        UserDefaults.standard.set(time, forKey: "currentTime")
-        UserDefaults.standard.synchronize() // ✅ Ensure data is written immediately
-    }
-
-    // 🔹 Firestore 기반 이전 곡 여부 확인
+    // MARK: - 다음 / 이전 곡
     func hasNextSong(for song: Song, completion: @escaping (Bool) -> Void) {
         firestoreService.getAllSongs { songs in
             guard let index = songs.firstIndex(where: { $0.id == song.id }) else {
-                completion(false) // ✅ Song not found, return false
+                completion(false)
                 return
             }
-            completion(songs.indices.contains(index + 1)) // ✅ Check if next song exists
+            completion(songs.indices.contains(index + 1))
         }
     }
 
     func hasPreviousSong(for song: Song, completion: @escaping (Bool) -> Void) {
         firestoreService.getAllSongs { songs in
             guard let index = songs.firstIndex(where: { $0.id == song.id }) else {
-                completion(false) // ✅ Song not found, return false
+                completion(false)
                 return
             }
-            completion(songs.indices.contains(index - 1)) // ✅ Check if previous song exists
+            completion(songs.indices.contains(index - 1))
         }
     }
 
-    // MARK: - 일시정지
-    func pause() {
-        guard let player = player else {
-            print("❌ Error: Player is nil, cannot pause playback.")
-            return
-        }
-        
-        print("⏸️ Pausing playback...")
-        
-        player.pause()
-        isPlaying = false
-        backgroundManager.updateNowPlayingPlaybackState(for: player, duration: duration)
-    }
-    
-    // MARK: - 다시 시작
-    func resume() {
-        guard let player = player else {
-            // ✅ Load saved song and time correctly
-            if let savedData = UserDefaults.standard.data(forKey: "currentSong"),
-               let savedSong = try? JSONDecoder().decode(Song.self, from: savedData),
-               let savedTime = UserDefaults.standard.value(forKey: "currentTime") as? Double {
-
-                print("🔄 Restoring song from background: \(savedSong.title)")
-                play(url: URL(string: savedSong.audioUrl), for: savedSong)
-                seek(to: savedTime)  // ✅ Ensure it starts from the correct position
-
-                // ✅ Force update background metadata
-                self.backgroundManager.updateNowPlayingInfo()
-
-                return
-            }
-
-            print("❌ Error: Player is nil. Cannot resume playback.")
-            return
-        }
-
-        player.play()
-        isPlaying = true
-        backgroundManager.updateNowPlayingInfo()
+    @objc private func handlePlaybackEnded() {
+        didFinishPlaying = true
+        stop()
     }
 
-    // MARK: - 음원 종료시 메모리 해제
-    func stop() {
-        player?.pause()
-        // ✅ 현재 재생 중인 AVPlayerItem을 완전히 해제
-        player?.replaceCurrentItem(with: nil)
-        
-        player = nil
-//        currentUrl = nil  // ✅ 기존 URL 완전히 초기화
-        currentTime = 0
-        duration = 0
-        isPlaying = false
-        
-        // ✅ 기존 timeObserver 제거 (안 그러면 메모리 누수 가능성 있음)
-        if let observer = playerObserver {
-            player?.removeTimeObserver(observer)
-            playerObserver = nil
-        }
+    @objc private func playerDidFinishPlaying() {
+        playNext()
     }
 
-    // MARK: - 실행되고 있는 URL 불러오기
-    func getCurrentUrl() -> URL? {
-        return currentUrl
-    }
-    
-    // MARK: - 동영상 막대바 이동 - 언래핑
-    func seek(to time: Double) {
-        guard let player = player else { return }
-        let newTime = CMTime(seconds: time, preferredTimescale: 600)
-        player.seek(to: newTime)
-        currentTime = time
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            guard let currentSong = self.currentSong else {
-                print("❌ Error: No current song found while seeking")
-                return
-            }
-            self.backgroundManager.setupNowPlayingInfo(for: currentSong, player: self.player)
-        }
-    }
-    
-    // 종료 알림 설정
     private func setupEndTimeObserver() {
         NotificationCenter.default.addObserver(
             self,
@@ -349,21 +216,44 @@ class AudioPlayerManager: ObservableObject {
             object: nil
         )
     }
-    
-    // 재생이 끝났을 때 호출되는 메서드
-    @objc private func playerDidFinishPlaying() {
-            playNext()
+
+    // MARK: - 현재 재생 URL
+    func getCurrentUrl() -> URL? {
+        return currentUrl
     }
 
-    @objc private func handlePlaybackEnded(){
-        DispatchQueue.main.async{
-            self.didFinishPlaying = true
-            self.stop()
+    // MARK: - 플레이리스트 처리
+    func setPlaylist(songs: [Song], startIndex: Int) {
+        playlist = songs
+        currentIndex = startIndex
+        if let song = playlist[safe: startIndex], let url = URL(string: song.audioUrl) {
+            play(url: url, for: song)
+        }
+    }
+
+    func playNext() {
+        guard let currentSong = currentSong else { return }
+        firestoreService.getNextSong(for: currentSong) { [weak self] next in
+            guard let self = self, let next = next, let url = URL(string: next.audioUrl) else { return }
+            if let idx = self.playlist.firstIndex(where: { $0.id == next.id }) {
+                self.currentIndex = idx
+            }
+            self.play(url: url, for: next)
+        }
+    }
+
+    func playPrevious() {
+        guard let currentSong = currentSong else { return }
+        firestoreService.getPreviousSong(for: currentSong) { [weak self] prev in
+            guard let self = self, let prev = prev, let url = URL(string: prev.audioUrl) else { return }
+            if let idx = self.playlist.firstIndex(where: { $0.id == prev.id }) {
+                self.currentIndex = idx
+            }
+            self.play(url: url, for: prev)
         }
     }
 }
 
-// 배열 범위 체크를 안전하게 하기 위한 확장 기능
 extension Array {
     subscript(safe index: Int) -> Element? {
         return indices.contains(index) ? self[index] : nil

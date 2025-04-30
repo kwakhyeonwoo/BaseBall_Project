@@ -37,12 +37,8 @@ extension Song {
 
 class TeamSelect_SongModel {
     private let db = Firestore.firestore()
-    //URL 캐시 - 중복 다운로드 방지, 초기에 다운된 URL 저장 후 재요청시 호출
     private var cachedUrls: [String: URL] = [:]
-    private var audioPlayer: AVPlayer?
 
-    // 노래 목록 가져오기
-    // firebase와 네트워크 연동
     func fetchSongs(for team: String, category: SongCategory, completion: @escaping ([Song]) -> Void) {
         getAllSongs { allSongs in
             let teamSongs = allSongs.filter { $0.teamImageName == team }
@@ -50,109 +46,53 @@ class TeamSelect_SongModel {
         }
     }
 
-
-    //MARK: 리스트 오름차순
     private func customSort(_ songs: [Song]) -> [Song] {
         return songs.sorted { lhs, rhs in
             let lhsIsEnglish = lhs.title.range(of: "^[A-Za-z]", options: .regularExpression) != nil
             let rhsIsEnglish = rhs.title.range(of: "^[A-Za-z]", options: .regularExpression) != nil
+            if lhsIsEnglish != rhsIsEnglish { return lhsIsEnglish }
 
-            // 영어 먼저 정렬
-            if lhsIsEnglish && !rhsIsEnglish {
-                return true
-            } else if !lhsIsEnglish && rhsIsEnglish {
-                return false
-            }
+            let lhsNum = lhs.title.components(separatedBy: CharacterSet.decimalDigits.inverted).compactMap(Int.init).first ?? 0
+            let rhsNum = rhs.title.components(separatedBy: CharacterSet.decimalDigits.inverted).compactMap(Int.init).first ?? 0
+            if lhsNum != rhsNum { return lhsNum < rhsNum }
 
-            // ✅ 2. Extract numeric components for sorting numbers (e.g., "Song 1" < "Song 2")
-            let lhsNumbers = lhs.title.components(separatedBy: CharacterSet.decimalDigits.inverted).compactMap { Int($0) }
-            let rhsNumbers = rhs.title.components(separatedBy: CharacterSet.decimalDigits.inverted).compactMap { Int($0) }
-
-            if let lhsNumber = lhsNumbers.first, let rhsNumber = rhsNumbers.first {
-                return lhsNumber < rhsNumber
-            }
-
-            // ✅ 3. Final fallback: Sort by localized standard comparison
             return lhs.title.localizedStandardCompare(rhs.title) == .orderedAscending
         }
     }
-    
-    // Firebase Storage URL 가져오기
+
     func getDownloadURL(for gsUrl: String, completion: @escaping (URL?) -> Void) {
         guard gsUrl.starts(with: "gs://") else {
-            print("❌ [ERROR] Invalid gs:// URL: \(gsUrl)")
+            print("❌ Invalid gs:// URL: \(gsUrl)")
             completion(nil)
             return
         }
-
-        let storage = Storage.storage()
-        let storageRef = storage.reference(forURL: gsUrl)
-
-        print("📌 [DEBUG] Fetching Download URL for: \(gsUrl)")
-
-        storageRef.downloadURL { url, error in
+        if let cached = cachedUrls[gsUrl] {
+            completion(cached)
+            return
+        }
+        let ref = Storage.storage().reference(forURL: gsUrl)
+        ref.downloadURL { url, error in
             DispatchQueue.main.async {
-                if let error = error {
-                    print("❌ [ERROR] Failed to fetch URL: \(error.localizedDescription)")
-                    completion(nil)
-                } else if let url = url {
-                    print("✅ [SUCCESS] Converted URL: \(url.absoluteString)")
+                if let url = url {
+                    self.cachedUrls[gsUrl] = url
+                    print("✅ URL 변환 완료: \(url.absoluteString)")
                     completion(url)
+                } else {
+                    print("❌ URL 변환 실패: \(error?.localizedDescription ?? "unknown")")
+                    completion(nil)
                 }
             }
         }
     }
 
     func convertToHttp(gsUrl: String) -> String? {
-        print("📌 [DEBUG] 변환 요청된 gs:// URL: \(gsUrl)")
-
-        // ✅ 1️⃣ 올바른 gs:// 형식인지 확인
-        guard gsUrl.starts(with: "gs://") else {
-            print("❌ [ERROR] Invalid gs:// URL: \(gsUrl)")
-            return nil
-        }
-
-        // ✅ 2️⃣ Firebase Storage 버킷 이름 설정
-        let storageBucket = "baseball-642ed.firebasestorage.app" // 🔥 기존 appspot.com과 다름!
-
-        // ✅ 3️⃣ gs:// 제거하고 파일 경로 추출
-        let path = gsUrl.replacingOccurrences(of: "gs://\(storageBucket)/", with: "")
-
-        // ✅ 4️⃣ URL 인코딩 적용 (공백 & 특수문자 처리)
-        guard let encodedPath = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
-            print("❌ [ERROR] URL 인코딩 실패: \(path)")
-            return nil
-        }
-
-        // ✅ 5️⃣ 최종 변환된 Firebase Storage URL
-        let convertedUrl = "https://firebasestorage.googleapis.com/v0/b/\(storageBucket)/o/\(encodedPath)?alt=media"
-
-        print("✅ [SUCCESS] 변환된 URL: \(convertedUrl)")
-        return convertedUrl
+        let bucket = "baseball-642ed.firebasestorage.app"
+        guard gsUrl.starts(with: "gs://\(bucket)/") else { return nil }
+        let path = gsUrl.replacingOccurrences(of: "gs://\(bucket)/", with: "")
+        guard let encoded = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else { return nil }
+        return "https://firebasestorage.googleapis.com/v0/b/\(bucket)/o/\(encoded)?alt=media"
     }
 
-
-    
-    // MARK: 팀 선택시 제어 화면에서 보이는 팀 이미지
-    private func determineTeamImageName(for team: String) -> String {
-        switch team {
-        case "SSG": return "SSG"
-        case "Samsung": return "Samsung"
-        case "LG": return "LG"
-        case "Doosan": return "Doosan"
-        case "Hanwha": return "Hanwha"
-        case "KIA": return "KIA"
-        case "Kiwoom": return "Kiwoom"
-        case "Kt": return "Kt"
-        case "Lotte": return "Lotte"
-        case "NC": return "NC"
-        default: return "DefaultTeamImage"
-        }
-    }
-}
-
-extension TeamSelect_SongModel {
-    /// 🔹 Firestore에서 모든 곡 불러오기 rotlqkf wrkxek
     func getAllSongs(completion: @escaping ([Song]) -> Void) {
         let teams = ["SSG", "Samsung", "LG", "Doosan", "Hanwha", "KIA", "Kiwoom", "Kt", "Lotte", "NC"]
         var allSongs: [Song] = []
@@ -161,43 +101,25 @@ extension TeamSelect_SongModel {
         for team in teams {
             group.enter()
             db.collection("songs").document(team).collection("teamSongs").getDocuments { snapshot, error in
-                if let error = error {
-                    print("❌ Firestore에서 노래 목록을 불러오는 데 실패함: \(error.localizedDescription)")
-                    group.leave()
-                    return
-                }
-
-                guard let documents = snapshot?.documents else {
-                    print("⚠️ \(team)의 팀 응원가 없음")
-                    group.leave()
-                    return
-                }
-
-                for document in documents {
-                    let data = document.data()
+                defer { group.leave() }
+                guard error == nil, let docs = snapshot?.documents else { return }
+                for doc in docs {
+                    let data = doc.data()
                     guard let title = data["title"] as? String,
                           let audioUrl = data["audioUrl"] as? String,
                           let lyrics = data["lyrics"] as? String,
                           let lyricsStartTime = data["lyricsStartTime"] as? Double,
-                          let timestampsArray = data["timestamps"] as? [Double] else { continue }
-
-                    let song = Song(id: document.documentID, title: title, audioUrl: audioUrl, lyrics: lyrics, teamImageName: team, lyricsStartTime: lyricsStartTime,
-                        timestamps: timestampsArray)
-                    allSongs.append(song)
+                          let timestamps = data["timestamps"] as? [Double] else { continue }
+                    allSongs.append(Song(id: doc.documentID, title: title, audioUrl: audioUrl, lyrics: lyrics, teamImageName: team, lyricsStartTime: lyricsStartTime, timestamps: timestamps))
                 }
-
-                group.leave()
             }
         }
 
         group.notify(queue: .main) {
-            let sortedSongs = self.customSort(allSongs)  // ✅ Apply the same sorting
-            completion(sortedSongs)
+            completion(self.customSort(allSongs))
         }
     }
 
-
-    /// 🔹 Firestore에서 현재 곡의 이전 곡 찾기
     func getPreviousSong(for song: Song, completion: @escaping (Song?) -> Void) {
         getAllSongs { songs in
             guard let index = songs.firstIndex(where: { $0.id == song.id }) else {
@@ -210,7 +132,7 @@ extension TeamSelect_SongModel {
             completion(songs[prevIndex])
         }
     }
-
+    
     func getNextSong(for song: Song, completion: @escaping (Song?) -> Void) {
         getAllSongs { songs in
             guard let index = songs.firstIndex(where: { $0.id == song.id }) else {
@@ -218,7 +140,7 @@ extension TeamSelect_SongModel {
                 completion(nil)
                 return
             }
-
+            
             let nextIndex = (index + 1) % songs.count // ✅ Loop to first song if at the end
             let nextSong = songs[nextIndex]
             
@@ -227,19 +149,19 @@ extension TeamSelect_SongModel {
         }
     }
 
-    /// 🔹 Firestore에서 현재 곡의 이전 곡 존재 여부 확인
     func hasPreviousSong(for song: Song, completion: @escaping (Bool) -> Void) {
         getAllSongs { songs in
-            let hasPrevious = (songs.firstIndex(where: { $0.id == song.id }) ?? 0) > 0
-            completion(hasPrevious)
+            completion((songs.firstIndex(where: { $0.id == song.id }) ?? 0) > 0)
         }
     }
 
-    /// 🔹 Firestore에서 현재 곡의 다음 곡 존재 여부 확인
     func hasNextSong(for song: Song, completion: @escaping (Bool) -> Void) {
         getAllSongs { songs in
-            let hasNext = (songs.firstIndex(where: { $0.id == song.id }) ?? songs.count - 1) < songs.count - 1
-            completion(hasNext)
+            guard let index = songs.firstIndex(where: { $0.id == song.id }) else {
+                completion(false)
+                return
+            }
+            completion(index < songs.count - 1)
         }
     }
 }

@@ -6,28 +6,27 @@
 //
 
 import SwiftUI
-import AVKit
+import AVFoundation
+import Combine
 
 struct MiniPlayerView: View {
     @StateObject private var playerManager = AudioPlayerManager.shared
     @State private var isShowingDetailView: Bool = false
-    let selectedTeam: String  // 선택된 팀 이름
+    let selectedTeam: String
 
     var body: some View {
         if let currentSong = playerManager.currentSong {
-            // 막대바를 ZStack으로 변경해서 간격 조절해야 되나
             VStack(alignment: .leading) {
                 CustomProgressBar(
-                    progress: .constant(playerManager.currentTime / playerManager.duration),
+                    progress: .constant(playerManager.duration > 0 ? playerManager.currentTime / playerManager.duration : 0),
                     onSeek: { newProgress in
                         let newTime = newProgress * playerManager.duration
                         playerManager.seek(to: newTime)
                     },
                     teamColor: TeamColorModel.shared.getColor(for: selectedTeam)
                 )
-                .frame(height: 14)  // MiniPlayer에 적합한 높이로 조정
-                .padding(.horizontal, 10)  // 여백 설정
-
+                .frame(height: 14)
+                .padding(.horizontal, 10)
 
                 VStack(spacing: 10) {
                     miniPlayerContent(for: currentSong)
@@ -37,9 +36,9 @@ struct MiniPlayerView: View {
                 .cornerRadius(12)
                 .shadow(radius: 2)
                 .sheet(isPresented: $isShowingDetailView) {
-                    SongDetailView(song: currentSong, selectedTeam: selectedTeam)  // 팀 이름 전달
+                    SongDetailView(song: currentSong, selectedTeam: selectedTeam)
                         .onAppear {
-                            AVPlayerBackgroundManager.configureAudioSession() // 🔥 Re-enable background audio session
+                            AVPlayerBackgroundManager.configureAudioSession()
                         }
                 }
             }
@@ -83,20 +82,18 @@ struct MiniPlayerView: View {
 
     private func playbackControls(for song: Song) -> some View {
         Button(action: {
+            guard let url = URL(string: song.audioUrl) else {
+                print("❌ Invalid song URL")
+                return
+            }
+
             if playerManager.isPlaying {
                 playerManager.pause()
             } else {
-                if playerManager.currentUrl == URL(string: song.audioUrl) {
-                    // ✅ Resume playback instead of reloading the song
+                if playerManager.currentUrl == url {
                     playerManager.resume()
                 } else {
-                    // ✅ If a different song is selected, start playback from the beginning
-                    if let url = URL(string: song.audioUrl) {
-                        playerManager.play(url: url, for: song)
-                    } else {
-                        print("❌ Error: Invalid URL for song \(song.title)")
-                    }
-
+                    playerManager.play(url: url, for: song)
                 }
             }
         }) {
@@ -107,10 +104,5 @@ struct MiniPlayerView: View {
                 .background(Color(uiColor: .secondarySystemBackground))
                 .clipShape(Circle())
         }
-    }
-
-
-    private func showSongDetailView() {
-        isShowingDetailView = true
     }
 }

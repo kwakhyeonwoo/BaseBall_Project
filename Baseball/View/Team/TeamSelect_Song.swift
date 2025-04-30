@@ -12,8 +12,7 @@ struct TeamSelect_SongView: View {
     let selectedTeam: String
     let selectedTeamImage: String
     @StateObject private var viewModel = TeamSelectSongViewModel()
-    @StateObject private var playerManager = AudioPlayerManager.shared
-    @State private var player: AVPlayer? = nil
+    @ObservedObject private var playerManager = AudioPlayerManager.shared
     @State private var selectedSong: Song? = nil
     @State private var isDetailPresented: Bool = false
 
@@ -105,8 +104,30 @@ struct TeamSelect_SongView: View {
                 .padding(.leading, 10)
                 .onTapGesture {
                     selectedSong = song
-                    viewModel.setupAndPlaySong(song)
+                    if song.audioUrl.starts(with: "https://") {
+                        // ✅ https일 경우 바로 재생
+                        if let url = URL(string: song.audioUrl) {
+                            AudioPlayerManager.shared.setPlaylist(songs: viewModel.songs, startIndex: viewModel.songs.firstIndex(where: { $0.id == song.id }) ?? 0)
+                            AudioPlayerManager.shared.play(url: url, for: song)
+                        }
+                    } else if song.audioUrl.starts(with: "gs://") {
+                        // ✅ gs://이면 변환 후 재생
+                        TeamSelect_SongModel().getDownloadURL(for: song.audioUrl) { url in
+                            if let url = url, url.absoluteString.hasSuffix(".m3u8") {
+                                let updatedSong = song.withUpdatedUrl(url.absoluteString)
+                                DispatchQueue.main.async {
+                                    AudioPlayerManager.shared.setPlaylist(songs: viewModel.songs, startIndex: viewModel.songs.firstIndex(where: { $0.id == song.id }) ?? 0)
+                                    AudioPlayerManager.shared.play(url: url, for: updatedSong)
+                                }
+                            } else {
+                                print("❌ 유효하지 않은 HLS URL: \(song.title)")
+                            }
+                        }
+                    } else {
+                        print("❌ Unknown URL format for song: \(song.title)")
+                    }
                 }
+
             
             Spacer()
             
