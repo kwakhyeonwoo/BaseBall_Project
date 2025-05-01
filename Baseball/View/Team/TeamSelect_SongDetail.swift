@@ -122,11 +122,21 @@ struct SongDetailView: View {
         .background(Color.white)
         .edgesIgnoringSafeArea(.all)
         .onAppear {
-            lyricsLines = formatLyrics(song.lyrics)
+            updateLyricsLines()
             AVPlayerBackgroundManager.configureAudioSession()
+        }
+        .onChange(of: playerManager.currentSong) { _ in
+            updateLyricsLines()
         }
         .onReceive(playerManager.$currentTime) { currentTime in
             updateHighlightedLyric(for: currentTime)
+        }
+    }
+    
+    private func updateLyricsLines() {
+        if let lyrics = playerManager.currentSong?.lyrics {
+            lyricsLines = formatLyrics(lyrics)
+            activeLineIndex = -1
         }
     }
 

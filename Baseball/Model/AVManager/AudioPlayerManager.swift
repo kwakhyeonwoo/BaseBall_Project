@@ -43,95 +43,51 @@ class AudioPlayerManager: ObservableObject {
             print("❌ URL is nil for song \(song.title)")
             return
         }
+
         let urlString = url.absoluteString
-        guard let encodedUrl = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let encodedURL = URL(string: encodedUrl) else {
+        guard url.pathExtension == "m3u8" else {
             print("❌ 유효하지 않은 HLS URL: \(urlString)")
             return
         }
-        
+
         print("📥 입력받은 .m3u8 URL: \(url.absoluteString)")
         stop()
-        
-        downloadAndPrepareM3U8(from: url) { [weak self] preparedURL in
-            guard let self = self, let preparedURL = preparedURL else {
-                print("❌ M3U8 처리 실패")
-                return
+
+        print("🎬 AVPlayer에 사용할 최종 URL: \(url)")
+
+        let item = AVPlayerItem(url: url)
+        self.player = AVPlayer(playerItem: item)
+        self.currentUrl = url
+        self.currentSong = song
+
+        item.asset.loadValuesAsynchronously(forKeys: ["duration"]) {
+            DispatchQueue.main.async {
+                self.duration = CMTimeGetSeconds(item.asset.duration)
+                self.backgroundManager.setupNowPlayingInfo(for: song, player: self.player)
             }
-            
-            print("🎬 AVPlayer에 사용할 최종 URL: \(preparedURL)")
-            
-            let item = AVPlayerItem(url: preparedURL)
-            self.player = AVPlayer(playerItem: item)
-            self.currentUrl = preparedURL
-            self.currentSong = song
-            
-            item.asset.loadValuesAsynchronously(forKeys: ["duration"]) {
-                DispatchQueue.main.async {
-                    self.duration = CMTimeGetSeconds(item.asset.duration)
-                    self.backgroundManager.setupNowPlayingInfo(for: song, player: self.player)
-                }
-            }
-            
-            self.playerObserver = self.player?.addPeriodicTimeObserver(
-                forInterval: CMTime(seconds: 0.1, preferredTimescale: 600),
-                queue: .main
-            ) { [weak self] time in
-                guard let self = self else { return }
-                self.currentTime = CMTimeGetSeconds(time)
-                self.backgroundManager.updateNowPlayingPlaybackState(for: self.player, duration: self.duration)
-            }
-            
-            self.player?.play()
-            self.isPlaying = true
-            self.backgroundManager.setupNowPlayingInfo(for: song, player: self.player)
-            
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(self.handlePlaybackEnded),
-                name: .AVPlayerItemDidPlayToEndTime,
-                object: item
-            )
         }
+
+        self.playerObserver = self.player?.addPeriodicTimeObserver(
+            forInterval: CMTime(seconds: 0.1, preferredTimescale: 600),
+            queue: .main
+        ) { [weak self] time in
+            guard let self = self else { return }
+            self.currentTime = CMTimeGetSeconds(time)
+            self.backgroundManager.updateNowPlayingPlaybackState(for: self.player, duration: self.duration)
+        }
+
+        self.player?.play()
+        self.isPlaying = true
+        self.backgroundManager.setupNowPlayingInfo(for: song, player: self.player)
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(self.handlePlaybackEnded),
+            name: .AVPlayerItemDidPlayToEndTime,
+            object: item
+        )
     }
-    
-    // MARK: - m3u8 파일 절대경로로 전환
-    private func downloadAndPrepareM3U8(from url: URL, completion: @escaping (URL?) -> Void) {
-        let session = URLSession.shared
-        session.dataTask(with: url) { data, response, error in
-            guard let data = data, let content = String(data: data, encoding: .utf8) else {
-                print("❌ .m3u8 다운로드 실패: \(error?.localizedDescription ?? "알 수 없음")")
-                DispatchQueue.main.async { completion(nil) }
-                return
-            }
-            
-            let lines = content.split(separator: "\n")
-            let folderURL = url.deletingLastPathComponent()
-            
-            let modifiedContent = lines.map { line -> String in
-                if line.hasSuffix(".ts") {
-                    let tsFile = String(line)
-                    let absolute = folderURL.appendingPathComponent(tsFile).absoluteString
-                    print("🔄 상대경로 → 절대경로 변환: \(tsFile) → \(absolute)")
-                    return absolute
-                }
-                return String(line)
-            }.joined(separator: "\n")
-            
-            let tempFile = FileManager.default.temporaryDirectory
-                .appendingPathComponent(UUID().uuidString + ".m3u8")
-            
-            do {
-                try modifiedContent.write(to: tempFile, atomically: true, encoding: .utf8)
-                print("✅ 수정된 .m3u8 로컬 저장 완료: \(tempFile)")
-                DispatchQueue.main.async { completion(tempFile) }
-            } catch {
-                print("❌ .m3u8 저장 실패: \(error.localizedDescription)")
-                DispatchQueue.main.async { completion(nil) }
-            }
-        }.resume()
-    }
-    
+
     // MARK: - 일시정지
     func pause() {
         player?.pause()
