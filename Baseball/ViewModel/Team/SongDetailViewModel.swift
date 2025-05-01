@@ -71,10 +71,13 @@ class SongDetailViewModel: ObservableObject {
 
     func togglePlayPause(for song: Song) {
         guard let url = URL(string: song.audioUrl) else { return }
+
+        let isSameSong = playerManager.currentSong?.id == song.id
+
         if playerManager.isPlaying {
             playerManager.pause()
         } else {
-            if playerManager.currentUrl == url {
+            if isSameSong {
                 playerManager.resume()
             } else {
                 playerManager.play(url: url, for: song)

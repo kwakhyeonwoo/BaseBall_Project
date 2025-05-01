@@ -97,15 +97,15 @@ class AudioPlayerManager: ObservableObject {
 
     // MARK: - 다시시작
     func resume() {
-        if let savedData = UserDefaults.standard.data(forKey: "currentSong"),
-           let savedSong = try? JSONDecoder().decode(Song.self, from: savedData),
-           let savedTime = UserDefaults.standard.value(forKey: "currentTime") as? Double {
-            play(url: URL(string: savedSong.audioUrl), for: savedSong)
-            seek(to: savedTime)
-            backgroundManager.updateNowPlayingInfo()
-        } else {
-            print("❌ No saved song to resume")
+        guard let player = player, let current = currentSong else {
+            print("❌ 현재 재생 중인 곡 없음. resume 실패")
+            return
         }
+
+        player.play()
+        isPlaying = true
+        print("▶️ 재개: \(current.title)")
+        backgroundManager.updateNowPlayingInfo()
     }
 
     // MARK: - 멈춤
@@ -189,14 +189,16 @@ class AudioPlayerManager: ObservableObject {
 
     func playNext() {
         guard let currentSong = currentSong else { return }
+        print("📌 현재곡 (before next): \(currentSong.title)")
+        
         firestoreService.getNextSong(for: currentSong) { [weak self] next in
             guard let self = self, let next = next, let url = URL(string: next.audioUrl) else { return }
-            if let idx = self.playlist.firstIndex(where: { $0.id == next.id }) {
-                self.currentIndex = idx
-            }
+            print("➡️ 다음 곡: \(next.title)")
+            self.currentIndex = self.playlist.firstIndex(where: { $0.id == next.id })
             self.play(url: url, for: next)
         }
     }
+
 
     func playPrevious() {
         guard let currentSong = currentSong else { return }

@@ -13,7 +13,7 @@ struct SongDetailView: View {
     let song: Song
     let selectedTeam: String
     @Environment(\.presentationMode) var presentationMode
-
+    @StateObject private var viewModel = SongDetailViewModel()
     @ObservedObject private var playerManager = AudioPlayerManager.shared
 
     @State private var lyricsLines: [String] = []
@@ -87,13 +87,11 @@ struct SongDetailView: View {
                     Spacer()
 
                     Button(action: {
-                        if playerManager.isPlaying {
-                            playerManager.pause()
-                        } else {
-                            if let url = URL(string: song.audioUrl) {
-                                playerManager.play(url: url, for: song)
+                        if let current = playerManager.currentSong {
+                                viewModel.togglePlayPause(for: current)
+                            } else {
+                                viewModel.togglePlayPause(for: song) // fallback
                             }
-                        }
                     }) {
                         Image(systemName: playerManager.isPlaying ? "pause.fill" : "play.fill")
                             .font(.system(size: 40))
@@ -103,7 +101,6 @@ struct SongDetailView: View {
                             .clipShape(Circle())
                             .frame(width: 70, height: 70)
                     }
-
                     Spacer()
 
                     Button(action: { playerManager.playNext() }) {
