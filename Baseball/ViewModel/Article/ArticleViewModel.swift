@@ -14,7 +14,6 @@ class TeamNewsManager: ObservableObject {
     @Published var highlights: [HighlightVideo] = []
 
     private let newsFetcher = NewsFetcher()
-    private let videoArticleModel = VideoArticleViewModel()
 
     func fetchContent(for team: String) {
         newsFetcher.fetchNews(for: team) { articles in
@@ -23,11 +22,21 @@ class TeamNewsManager: ObservableObject {
             }
         }
 
-        videoArticleModel.fetchHighlights(for: team) { videos in
-            DispatchQueue.main.async {
-                self.highlights = videos
-            }
-        }
+        let encodedTeam = team.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+            guard let url = URL(string: "http://localhost:3000/api/highlights/\(encodedTeam)") else { return }
+
+            URLSession.shared.dataTask(with: url) { data, _, error in
+                guard let data = data, error == nil else { return }
+
+                do {
+                    let videos = try JSONDecoder().decode([HighlightVideo].self, from: data)
+                    DispatchQueue.main.async {
+                        self.highlights = videos
+                    }
+                } catch {
+                    print("❌ 하이라이트 JSON 파싱 실패: \(error)")
+                }
+            }.resume()
     }
 }
 

@@ -16,6 +16,7 @@ struct TeamSelect: View {
     @State private var selectedTeam: String? = nil // 선택된 팀을 추적하는 상태 변수
     @State private var isAnimating: Bool = false // 애니메이션 상태 변수
     @State private var navigateToCalendar: Bool = false // Calendar로 이동 여부
+    @StateObject private var youtube = VideoArticleViewModel()
     
     var body: some View {
         NavigationStack {
@@ -85,8 +86,14 @@ struct TeamSelect: View {
     // MARK: - 팀 선택 완료 버튼
     func teamSelectionButton() -> some View {
         Button(action: {
-            print("\(selectedTeam ?? "") 팀 선택됨")
-            navigateToCalendar = true // Calendar로 이동
+            guard let team = selectedTeam else { return }
+
+            print("\(team) 팀 선택됨 - 서버에 요청 전송")
+            
+            // ✅ 서버로 하이라이트 요청
+            youtube.fetchHighlights(for: team) {_ in
+                navigateToCalendar = true // 요청 성공 후 화면 전환
+            }
         }) {
             Text("팀 선택 완료")
                 .frame(width: 320)
