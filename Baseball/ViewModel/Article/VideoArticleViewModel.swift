@@ -52,9 +52,6 @@ class VideoArticleViewModel: ObservableObject {
 
     private var nextPageToken: String? = nil
     private var isFetching = false
-
-    private let cacheKey = "cachedHighlights"
-    private let timestampKey = "lastFetchTimestamp"
     private let cacheDuration: TimeInterval = 600 // 10분
 
     func fetchHighlights(for team: String, append: Bool = false, completion: @escaping ([HighlightVideo]) -> Void) {
@@ -62,7 +59,7 @@ class VideoArticleViewModel: ObservableObject {
             isFetching = true
 
             let encodedTeam = team.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-            guard let url = URL(string: "http://83-208-210-192:3000/api/highlights/\(encodedTeam)") else {
+            guard let url = URL(string: "http://localhost:3000/api/highlights/\(encodedTeam)") else {
                 isFetching = false
                 completion([])
                 return

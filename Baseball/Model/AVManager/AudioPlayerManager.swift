@@ -43,7 +43,7 @@ class AudioPlayerManager: ObservableObject {
             print("❌ URL is nil for song \(song.title)")
             return
         }
-
+        player?.automaticallyWaitsToMinimizeStalling = false
         let urlString = url.absoluteString
         guard url.pathExtension == "m3u8" else {
             print("❌ 유효하지 않은 HLS URL: \(urlString)")
@@ -55,8 +55,14 @@ class AudioPlayerManager: ObservableObject {
 
         print("🎬 AVPlayer에 사용할 최종 URL: \(url)")
 
-        let item = AVPlayerItem(url: url)
+        // ✅ AVPlayer 캐시 무력화를 위해 URL에 쿼리 추가
+        let separator = url.absoluteString.contains("?") ? "&" : "?"
+        let finalUrl = URL(string: "\(url.absoluteString)\(separator)nocache=\(UUID().uuidString)")
+        print("🎧 AVPlayer 재생 URL: \(finalUrl?.absoluteString ?? "없음")")
+
+        let item = AVPlayerItem(url: finalUrl!)
         self.player = AVPlayer(playerItem: item)
+
         self.currentUrl = url
         self.currentSong = song
 
@@ -182,8 +188,19 @@ class AudioPlayerManager: ObservableObject {
     func setPlaylist(songs: [Song], startIndex: Int) {
         playlist = songs
         currentIndex = startIndex
-        if let song = playlist[safe: startIndex], let url = URL(string: song.audioUrl) {
-            play(url: url, for: song)
+
+        if let song = playlist[safe: startIndex] {
+            // 🧠 Firestore의 audioUrl에 따라 final URL 구성
+            let urlString = song.audioUrl
+            guard let url = URL(string: urlString) else {
+                print("❌ 유효하지 않은 URL: \(urlString)")
+                return
+            }
+
+            let separator = urlString.contains("?") ? "&" : "?"
+            let finalUrl = URL(string: "\(urlString)\(separator)nocache=\(UUID().uuidString)")
+
+            play(url: finalUrl, for: song)
         }
     }
 
