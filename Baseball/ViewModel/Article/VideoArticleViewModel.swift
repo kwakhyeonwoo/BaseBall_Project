@@ -59,7 +59,7 @@ class VideoArticleViewModel: ObservableObject {
             isFetching = true
 
             let encodedTeam = team.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-            guard let url = URL(string: "http://192.210.221.177:3000/api/highlights/\(encodedTeam)") else {
+            guard let url = URL(string: "http://192.210.243.105:3000/api/highlights/\(encodedTeam.trimmingCharacters(in: CharacterSet(charactersIn: "/")))") else {
                 isFetching = false
                 completion([])
                 return

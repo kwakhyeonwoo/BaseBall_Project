@@ -10,6 +10,7 @@ import SwiftUI
 struct CalendarView: View {
 //    @StateObject private var viewModel = GameScheduleViewModel()
     @StateObject private var highlightFetcher = HighlightVideoFetcher()
+    @StateObject private var videoArticleViewModel = VideoArticleViewModel()
     @StateObject var teamNewsManager = TeamNewsManager()
     let selectedTeam: String
     let selectedTeamImage: String
@@ -34,6 +35,7 @@ struct CalendarView: View {
                 guard !hasFetchedContent else { return } // ✅ 이미 불러왔으면 재요청 안함
                 print("📺 CalendarView appeared - fetching content for \(selectedTeam)")
                 teamNewsManager.fetchContent(for: selectedTeam)
+                videoArticleViewModel.fetchHighlights(for: selectedTeam) { _ in }
                 hasFetchedContent = true
             }
             .sheet(isPresented: $showVideoRecorder, onDismiss: {
@@ -137,7 +139,7 @@ struct CalendarView: View {
     //유튜브 영상
     func highlightSection() -> some View {
         Group {
-            if !teamNewsManager.highlights.isEmpty {
+            if !videoArticleViewModel.cachedVideos.isEmpty {
                 HStack{
                     Text("\(selectedTeam) 하이라이트")
                         .font(.headline)
@@ -155,7 +157,7 @@ struct CalendarView: View {
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: 16) {
-                        ForEach(teamNewsManager.highlights) { video in
+                        ForEach(videoArticleViewModel.cachedVideos) { video in
                             VStack(alignment: .leading, spacing: 6) {
                                 AsyncImage(url: URL(string: video.thumbnailURL)) { image in
                                     image

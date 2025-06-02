@@ -35,6 +35,7 @@ class TeamNewsManager: ObservableObject {
                     }
                 } catch {
                     print("❌ 하이라이트 JSON 파싱 실패: \(error)")
+                    print(String(data: data, encoding: .utf8) ?? "no data")
                 }
             }.resume()
     }
