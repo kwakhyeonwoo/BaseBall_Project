@@ -23,7 +23,7 @@ class TeamNewsManager: ObservableObject {
         }
 
         let encodedTeam = team.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-            guard let url = URL(string: "http://localhost:3000/api/highlights/\(encodedTeam)") else { return }
+            guard let url = URL(string: "http://192.119.129.52:3000/api/highlights/\(encodedTeam)") else { return }
 
             URLSession.shared.dataTask(with: url) { data, _, error in
                 guard let data = data, error == nil else { return }
