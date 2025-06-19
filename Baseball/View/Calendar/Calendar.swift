@@ -305,7 +305,7 @@ struct CalendarView: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
-
+//
 //#Preview {
 //    CalendarView(selectedTeam: , selectedTeamImage: <#String#>)
 //}

@@ -31,7 +31,9 @@ class SongDetailViewModel: ObservableObject {
 
     private func setupBindings() {
         playerManager.$isPlaying.receive(on: RunLoop.main).assign(to: &$isPlaying)
-        playerManager.$currentTime.receive(on: RunLoop.main).sink { [weak self] time in
+        playerManager.$currentTime
+            .receive(on: RunLoop.main)
+            .sink { [weak self] time in
             guard let self = self else { return }
             self.currentTime = time
             let safeDuration = max(1, self.playerManager.duration)

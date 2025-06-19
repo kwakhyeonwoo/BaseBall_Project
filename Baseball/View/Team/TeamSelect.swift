@@ -89,10 +89,10 @@ struct TeamSelect: View {
             guard let team = selectedTeam else { return }
 
             print("\(team) 팀 선택됨 - 서버에 요청 전송")
-            
+            navigateToCalendar = true // 요청 성공 후 화면 전환
             // ✅ 서버로 하이라이트 요청
             youtube.fetchHighlights(for: team) {_ in
-                navigateToCalendar = true // 요청 성공 후 화면 전환
+                print("응답 성공!")
             }
         }) {
             Text("팀 선택 완료")
