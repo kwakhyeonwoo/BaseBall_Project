@@ -9,13 +9,13 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>6b54fc20e78909e7354f9c49ba25e913</string>
+				<string></string>
 			</array>
 		</dict>
 	</array>
 	<key>KAKAO_APP_KEY</key>
-	<string>6b54fc20e78909e7354f9c49ba25e913</string>
-	<key>LSApplicationQueriesSchemes</key>
+	<string></string>
+	<key></key>
 	<array>
 		<string>kakaokompassauth</string>
 		<string>kakaolink</string>
