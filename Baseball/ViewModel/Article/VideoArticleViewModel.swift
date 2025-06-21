@@ -108,4 +108,3 @@ class VideoArticleViewModel: ObservableObject {
         }
 }
 
-//AIzaSyBQLvRIl6NrIhtgArmqC8twA4mE-pRSgaI,VideoArticleViewModel
