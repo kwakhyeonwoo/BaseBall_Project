@@ -69,6 +69,5 @@
 
 ---
 
-## 📊 성능 테스트
-![hey 부하 테스트 결과](./images/Hey_result.png)
-![Proxy-Server Cache값 반환](./images/Cache.png)
+<img src="./images/Hey_result.png" alt="부하 테스트 결과" style=width: 60%;"/>
+<img src="./images/Cache.png" alt="Proxy-Server Cache 반환" style=width: 60%;"/>
