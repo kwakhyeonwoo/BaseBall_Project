@@ -67,8 +67,15 @@ dlfjs# ⚾ 누구나 야구를 - 야구 응원가 업로드 및 스트리밍 앱
 > [누구나 야구를 Notion 링크](https://www.notion.so/1dcc08ecd4d280589a77e173f05c21c9?pvs=21](https://www.notion.so/iOS-1d8c08ecd4d2801e817ee62f4336e1b8?p=1dcc08ecd4d280589a77e173f05c21c9&pm=c))
 
 ---
-<p float="left">
-  <img src="./images/Hey_result.png" width="45%" />
-  <img src="./images/Cache.png" width="45%" />
+
+<h3>📊 성능 테스트 결과</h3>
+
+<p>
+  <strong>1️⃣ Hey 부하 테스트 결과 (50명 동시 요청)</strong><br/>
+  <img src="./images/Hey_result.png" alt="부하 테스트 결과" style="width: 45%; margin-right: 5%;" />
+  
+  <strong>2️⃣ Proxy-Server Cache 반환 결과</strong><br/>
+  <img src="./images/Cache.png" alt="Proxy-Server Cache 반환" style="width: 45%;" />
 </p>
+
 
