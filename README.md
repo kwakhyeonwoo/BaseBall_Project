@@ -70,4 +70,5 @@
 ---
 
 ## 📊 성능 테스트
-![hey 부하 테스트 결과](./
+![hey 부하 테스트 결과](./images/hey_result.png)
+![Proxy-Server Cache값 반환](./images/Cache.png)
