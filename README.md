@@ -1,4 +1,4 @@
-# ⚾ 누구나 야구를 - 야구 응원가 업로드 및 스트리밍 앱
+dlfjs# ⚾ 누구나 야구를 - 야구 응원가 업로드 및 스트리밍 앱
 
 ![SwiftUI](https://img.shields.io/badge/SwiftUI-%23FA7343.svg?style=for-the-badge&logo=swift&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase-%23039BE5.svg?style=for-the-badge&logo=firebase)
@@ -64,10 +64,11 @@
 
 ## 🎥 시연
 
-> 📽 영상 또는 GIF 추가 예정  
 > [누구나 야구를 Notion 링크](https://www.notion.so/1dcc08ecd4d280589a77e173f05c21c9?pvs=21](https://www.notion.so/iOS-1d8c08ecd4d2801e817ee62f4336e1b8?p=1dcc08ecd4d280589a77e173f05c21c9&pm=c))
 
 ---
+<p float="left">
+  <img src="./images/Hey_result.png" width="45%" />
+  <img src="./images/Cache.png" width="45%" />
+</p>
 
-<img src="./images/Hey_result.png" alt="부하 테스트 결과" style=width: 60%;"/>
-<img src="./images/Cache.png" alt="Proxy-Server Cache 반환" style=width: 60%;"/>
