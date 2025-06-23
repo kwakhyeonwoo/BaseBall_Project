@@ -78,4 +78,17 @@ dlfjs# ⚾ 누구나 야구를 - 야구 응원가 업로드 및 스트리밍 앱
   <img src="./images/Cache.png" alt="Proxy-Server Cache 반환" style="width: 45%;" />
 </p>
 
+---
+
+## 📚 배우고 느낀 점
+- Combine과 Concurrency를 통한 비동기 처리 학습
+- URLSession을 통한 외부 서버 연결
+- ffmpegkit을 활용한 기존 Download 방식을 HLS 전환
+- Google RSS Feed를 활용한 구글 뉴스 XML Parser
+- MediaPlayer를 활용한 백그라운드 재생 및 NotificationCenter에 대한 학습
+- SwiftUI의 상태관리 및 데이터 관리
+- Node.js를 활용한 Proxy-Server 구축
+- Docker-compose를 활용한 서버 구축 
+
+
 
