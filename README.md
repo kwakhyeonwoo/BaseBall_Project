@@ -65,9 +65,9 @@
 ## 🎥 시연
 
 > 📽 영상 또는 GIF 추가 예정  
-> [누구나 야구를 Notion 링크]([https://www.notion.so/1dcc08ecd4d280589a77e173f05c21c9?pvs=21](https://www.notion.so/iOS-1d8c08ecd4d2801e817ee62f4336e1b8?p=1dcc08ecd4d280589a77e173f05c21c9&pm=c))
+> [누구나 야구를 Notion 링크](https://www.notion.so/1dcc08ecd4d280589a77e173f05c21c9?pvs=21](https://www.notion.so/iOS-1d8c08ecd4d2801e817ee62f4336e1b8?p=1dcc08ecd4d280589a77e173f05c21c9&pm=c))
 
 ---
 
 ## 📊 성능 테스트
-
+![hey 부하 테스트 결과](./
