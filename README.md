@@ -1,4 +1,4 @@
-dlfjs# ⚾ 누구나 야구를 - 야구 응원가 업로드 및 스트리밍 앱
+# ⚾ 누구나 야구를 - 야구 응원가 업로드 및 스트리밍 앱
 
 ![SwiftUI](https://img.shields.io/badge/SwiftUI-%23FA7343.svg?style=for-the-badge&logo=swift&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase-%23039BE5.svg?style=for-the-badge&logo=firebase)
