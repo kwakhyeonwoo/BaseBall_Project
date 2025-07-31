@@ -62,7 +62,7 @@
 
 ---
 
-## 🎥 시연
+## 💡 더 고민한 부분들 
 
 > [누구나 야구를 Notion 링크](https://www.notion.so/1dcc08ecd4d280589a77e173f05c21c9?pvs=21](https://www.notion.so/iOS-1d8c08ecd4d2801e817ee62f4336e1b8?p=1dcc08ecd4d280589a77e173f05c21c9&pm=c))
 
